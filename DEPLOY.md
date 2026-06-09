@@ -104,6 +104,17 @@ sudo -u avpool --preserve-env=NODE_ENV,DATABASE_URL npm run build
 ```
 
 > Pour les mises à jour suivantes : `sudo bash /opt/avpool/deploy.sh` (sans re-seed).
+> Il applique automatiquement les migrations Prisma (étiquettes, documents, journal…).
+>
+> Les **habilitations sécurité** (électrique, travail en hauteur, CACES, SST…) font
+> partie du catalogue défini dans le seed. Pour les ajouter à une base existante,
+> relancer le seed (idempotent pour le référentiel — réinitialise toutefois le mot de
+> passe admin selon `ADMIN_PASSWORD` et ré-insère les 2 entreprises de base) :
+>
+> ```bash
+> cd /opt/avpool && sudo -u avpool env DATABASE_URL="file:/opt/avpool/data/avpool.db" \
+>   npx tsx prisma/seed.ts
+> ```
 
 ## 6. Service systemd
 
