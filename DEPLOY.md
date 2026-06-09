@@ -173,6 +173,23 @@ connexion avec `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 Vérifier la carte (onglet *Zone d'intervention* d'une fiche) : si les tuiles
 ne s'affichent pas, c'est la CSP → confirmer `img-src ... *.tile.openstreetmap.org`.
 
+## Peupler des données de démonstration (optionnel)
+
+Pour une démo : 8 entreprises (siège + agences multi-régions) et ~200 techniciens
+fictifs — tous services / contrats / niveaux, compétences réparties et
+certifications aux expirations échelonnées (dashboard parlant).
+
+```bash
+sudo -u avpool git -C /opt/avpool pull        # récupérer le script si besoin
+cd /opt/avpool
+sudo -u avpool env DATABASE_URL="file:/opt/avpool/data/avpool.db" \
+  npx tsx prisma/seed-demo.ts                 # COUNT=300 npx tsx ... pour un autre volume
+```
+
+⚠️ Remplace les techniciens / entreprises / agences existants. Ne touche pas au
+référentiel (compétences, certifications) ni au compte admin. À lancer **après**
+le seed principal. Rafraîchir le navigateur — aucun redémarrage nécessaire.
+
 ## 12. Sauvegarde de la base (RGPD)
 
 ```bash
