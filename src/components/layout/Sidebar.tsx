@@ -19,6 +19,7 @@ import {
   Layers,
   FolderKanban,
   GraduationCap,
+  Activity,
 } from "lucide-react";
 import { useSession } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ const mainNav = [
   { href: "/search", label: "Chercher une equipe", icon: Search },
   { href: "/projets", label: "Projets", icon: FolderKanban },
   { href: "/formation", label: "Formation", icon: GraduationCap },
+  { href: "/parc", label: "Sante du parc", icon: Activity },
 ];
 
 const settingsNav = [

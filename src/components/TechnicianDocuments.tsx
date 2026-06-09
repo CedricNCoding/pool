@@ -27,6 +27,7 @@ import {
   Clock,
 } from "lucide-react";
 import { DOC_CATEGORIES } from "@/lib/uploads";
+import { dossierStatus, docCategoryLabel } from "@/lib/dossier";
 
 interface Doc {
   id: string;
@@ -58,7 +59,13 @@ function expiryBadge(d: string | null) {
   return { color: "#10B981", Icon: CheckCircle, label: "Valide" };
 }
 
-export default function TechnicianDocuments({ technicianId }: { technicianId: string }) {
+export default function TechnicianDocuments({
+  technicianId,
+  service = "",
+}: {
+  technicianId: string;
+  service?: string;
+}) {
   const [docs, setDocs] = useState<Doc[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ category: "contrat", title: "", expiryDate: "" });
@@ -119,6 +126,9 @@ export default function TechnicianDocuments({ technicianId }: { technicianId: st
     docs: docs.filter((d) => d.category === c.value),
   })).filter((g) => g.docs.length > 0);
 
+  const present = [...new Set(docs.map((d) => d.category))];
+  const status = dossierStatus(service, present);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between no-print">
@@ -129,6 +139,27 @@ export default function TechnicianDocuments({ technicianId }: { technicianId: st
         <Button size="sm" onClick={() => setOpen(true)}>
           <Plus className="w-4 h-4 mr-1" /> Ajouter un document
         </Button>
+      </div>
+
+      {/* Dossier complet / incomplet (documents obligatoires par service) */}
+      <div
+        className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
+        style={
+          status.complete
+            ? { borderColor: "#10B98155", backgroundColor: "#10B98115", color: "#34D399" }
+            : { borderColor: "#F59E0B55", backgroundColor: "#F59E0B15", color: "#FBBF24" }
+        }
+      >
+        {status.complete ? (
+          <>
+            <CheckCircle className="w-4 h-4" /> Dossier complet
+          </>
+        ) : (
+          <>
+            <AlertTriangle className="w-4 h-4" />
+            Dossier incomplet — manque : {status.missing.map(docCategoryLabel).join(", ")}
+          </>
+        )}
       </div>
 
       {docs.length === 0 ? (

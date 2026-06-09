@@ -1106,7 +1106,7 @@ export default function TechnicianDetailPage() {
           {/* TAB: Documents (coffre-fort)                                 */}
           {/* ----------------------------------------------------------- */}
           <TabsContent value="documents" className="space-y-6">
-            <TechnicianDocuments technicianId={tech.id} />
+            <TechnicianDocuments technicianId={tech.id} service={tech.service} />
           </TabsContent>
 
           {/* ----------------------------------------------------------- */}
