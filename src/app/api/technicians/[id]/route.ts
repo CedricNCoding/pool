@@ -24,6 +24,7 @@ export async function GET(
         orderBy: { certification: { category: "asc" } },
       },
       tags: { orderBy: { name: "asc" } },
+      _count: { select: { projects: true } },
     },
   });
 

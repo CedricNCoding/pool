@@ -152,6 +152,7 @@ interface Technician {
   skills: TechSkill[];
   certifications: TechCert[];
   tags: { id: string; name: string; color: string }[];
+  _count?: { projects: number };
 }
 
 interface CertOption {
@@ -638,6 +639,43 @@ export default function TechnicianDetailPage() {
                   ))}
                 </div>
               )}
+
+              {/* Stats cle (carte d'identite) */}
+              {(() => {
+                const validCerts = tech.certifications.filter(
+                  (c) =>
+                    c.status === "active" &&
+                    (!c.expiryDate || new Date(c.expiryDate) > new Date())
+                ).length;
+                let seniority = "—";
+                if (tech.contractStart) {
+                  const months = Math.max(
+                    0,
+                    Math.floor(
+                      (Date.now() - new Date(tech.contractStart).getTime()) /
+                        (1000 * 60 * 60 * 24 * 30.44)
+                    )
+                  );
+                  const y = Math.floor(months / 12);
+                  const m = months % 12;
+                  seniority = y > 0 ? `${y} an${y > 1 ? "s" : ""}${m ? ` ${m} mois` : ""}` : `${m} mois`;
+                }
+                const stats: [string, string | number][] = [
+                  ["Anciennete", seniority],
+                  ["Projets", tech._count?.projects ?? 0],
+                  ["Certifs valides", validCerts],
+                ];
+                return (
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 mt-3">
+                    {stats.map(([label, value]) => (
+                      <span key={label} className="text-sm">
+                        <span className="text-slate-500">{label} </span>
+                        <span className="font-semibold text-slate-100">{value}</span>
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
 

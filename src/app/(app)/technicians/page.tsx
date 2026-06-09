@@ -50,7 +50,10 @@ import {
   Pencil,
   Trash2,
   X,
+  List,
+  LayoutGrid,
 } from "lucide-react";
+import MiniRadar from "@/components/MiniRadar";
 import { CONTRACT_TYPES, SERVICES, SKILL_LEVELS, AVAILABILITY, availabilityMeta } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
@@ -173,6 +176,7 @@ export default function TechniciansPage() {
   const [availabilityFilter, setAvailabilityFilter] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
 
   // Selection multiple + actions groupees
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -299,6 +303,15 @@ export default function TechniciansPage() {
         t.skills.some((s) => s.skill.category.id === skillCategoryId)
       )
     : technicians;
+
+  // Valeurs du mini-radar par technicien (moyenne de niveau par famille)
+  const radarValues = (tech: Technician) =>
+    skillCategories.map((cat) => {
+      const lv = tech.skills
+        .filter((s) => s.skill.category.id === cat.id)
+        .map((s) => s.level);
+      return lv.length ? lv.reduce((a, b) => a + b, 0) / lv.length : 0;
+    });
 
   // Clear all filters
   function clearFilters() {
@@ -536,7 +549,28 @@ export default function TechniciansPage() {
         </div>
       )}
 
+      {/* Bascule tableau / cartes */}
+      <div className="flex justify-end">
+        <div className="inline-flex rounded-lg border border-slate-700 overflow-hidden">
+          <button
+            onClick={() => setViewMode("table")}
+            className={`px-2.5 py-1.5 ${viewMode === "table" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white"}`}
+            title="Vue tableau"
+          >
+            <List className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode("cards")}
+            className={`px-2.5 py-1.5 ${viewMode === "cards" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white"}`}
+            title="Vue cartes"
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
       {/* Table */}
+      {viewMode === "table" ? (
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -779,6 +813,61 @@ export default function TechniciansPage() {
           </Table>
         </CardContent>
       </Card>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {loading ? (
+            <p className="col-span-full text-center py-12 text-slate-400">Chargement...</p>
+          ) : filteredTechnicians.length === 0 ? (
+            <p className="col-span-full text-center py-12 text-slate-400">Aucun technicien trouve</p>
+          ) : (
+            filteredTechnicians.map((tech) => {
+              const activeCerts = tech.certifications.filter((c) => c.status === "active");
+              const contractColor = CONTRACT_COLOR[tech.contractType] ?? "#94A3B8";
+              return (
+                <Link
+                  key={tech.id}
+                  href={`/technicians/${tech.id}`}
+                  className="rounded-xl border border-slate-700/60 bg-slate-900 p-4 hover:border-slate-600 transition-colors flex gap-4"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-slate-50 truncate">
+                        {tech.firstName} {tech.lastName}
+                      </span>
+                      <span
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: availabilityMeta(tech.availabilityStatus).color }}
+                        title={availabilityMeta(tech.availabilityStatus).label}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm text-slate-400 mt-0.5">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: tech.company.color }} />
+                      <span className="truncate">{tech.company.name}</span>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">{getServiceLabel(tech.service)}</div>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      <Badge variant="outline" className="text-[10px]" style={{ color: contractColor, borderColor: contractColor + "55" }}>
+                        {tech.contractType}
+                      </Badge>
+                      {activeCerts.length > 0 && (
+                        <span className="text-[10px] text-slate-400">{activeCerts.length} cert.</span>
+                      )}
+                      {tech.tags.slice(0, 2).map((t) => (
+                        <span key={t.id} className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-700/70 text-slate-300">
+                          {t.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0 self-center">
+                    <MiniRadar values={radarValues(tech)} color={tech.company.color} size={72} />
+                  </div>
+                </Link>
+              );
+            })
+          )}
+        </div>
+      )}
 
       {/* Pagination */}
       {pagination.pages > 1 && (
