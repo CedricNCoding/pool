@@ -56,6 +56,37 @@ export async function GET(req: NextRequest) {
     };
   }
 
+  // Recherche d'equipe : plusieurs criteres en ET.
+  //   skillsAll = "skillId:minLevel,skillId:minLevel"  (niveau optionnel)
+  //   certsAll  = "certId,certId"
+  const skillsAll = url.searchParams.get("skillsAll");
+  const certsAll = url.searchParams.get("certsAll");
+  const andClauses: Record<string, unknown>[] = [];
+  if (skillsAll) {
+    for (const part of skillsAll.split(",").filter(Boolean)) {
+      const [sid, lvl] = part.split(":");
+      const lvlNum = parseInt(lvl);
+      andClauses.push({
+        skills: {
+          some: {
+            skillId: sid,
+            ...(Number.isFinite(lvlNum) && lvlNum > 0
+              ? { level: { gte: lvlNum } }
+              : {}),
+          },
+        },
+      });
+    }
+  }
+  if (certsAll) {
+    for (const cid of certsAll.split(",").filter(Boolean)) {
+      andClauses.push({
+        certifications: { some: { certificationId: cid, status: { not: "revoked" } } },
+      });
+    }
+  }
+  if (andClauses.length > 0) where.AND = andClauses;
+
   const include = {
     company: { select: { id: true, name: true, color: true } },
     agency: { select: { id: true, name: true, city: true } },

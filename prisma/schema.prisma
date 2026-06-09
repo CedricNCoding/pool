@@ -45,6 +45,7 @@ model Company {
   technicians Technician[]
   users       User[]
   apiKeys     ApiKey[]
+  projects    Project[]
 
   @@map("companies")
 }
@@ -95,6 +96,7 @@ model Technician {
   skills         TechnicianSkill[]
   certifications TechnicianCertification[]
   skillHistory   TechnicianSkillHistory[]
+  projects       Project[]
 
   @@map("technicians")
 }
@@ -228,4 +230,22 @@ model Setting {
   value String
 
   @@map("settings")
+}
+
+// Projet / Equipe : un titre, une description libre, et une liste de techniciens.
+// Cloisonne par entreprise (companyId = entreprise du createur ; null = admin).
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  status      String   @default("actif") // actif | termine | archive
+  companyId   String?  @map("company_id")
+  createdById String?  @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  company     Company?     @relation(fields: [companyId], references: [id])
+  technicians Technician[]
+
+  @@map("projects")
 }

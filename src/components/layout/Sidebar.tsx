@@ -17,6 +17,7 @@ import {
   UserCog,
   FileDown,
   Layers,
+  FolderKanban,
 } from "lucide-react";
 import { useSession } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
@@ -27,7 +28,8 @@ const mainNav = [
   { href: "/companies", label: "Entreprises", icon: Building2 },
   { href: "/certifications", label: "Certifications", icon: Award },
   { href: "/competences", label: "Competences", icon: Layers },
-  { href: "/search", label: "Recherche avancee", icon: Search },
+  { href: "/search", label: "Chercher une equipe", icon: Search },
+  { href: "/projets", label: "Projets", icon: FolderKanban },
 ];
 
 const settingsNav = [
