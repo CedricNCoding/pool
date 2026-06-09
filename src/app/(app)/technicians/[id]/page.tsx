@@ -41,8 +41,16 @@ import {
   CheckCircle,
   Clock,
   FileText,
+  FileDown,
 } from "lucide-react";
 import TechnicianDocuments from "@/components/TechnicianDocuments";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { generateTechnicianPdf, type PdfTech } from "@/lib/pdf";
 import {
   Radar,
   RadarChart,
@@ -611,6 +619,22 @@ export default function TechnicianDetailPage() {
           </div>
 
           <div className="flex items-center gap-2 no-print">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <FileDown className="w-4 h-4 mr-1" />
+                  PDF
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => generateTechnicianPdf(tech as unknown as PdfTech, "fiche")}>
+                  <FileText className="w-4 h-4 mr-2" /> Fiche technicien
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => generateTechnicianPdf(tech as unknown as PdfTech, "attestation")}>
+                  <FileText className="w-4 h-4 mr-2" /> Attestation de competences
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               variant="outline"
               size="sm"
