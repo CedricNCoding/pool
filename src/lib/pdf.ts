@@ -1,6 +1,7 @@
 import { SKILL_LEVELS, SERVICES, CONTRACT_TYPES } from "./constants";
 
 export interface PdfTech {
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -73,6 +74,23 @@ export async function generateTechnicianPdf(
 
   doc.setTextColor(20, 20, 20);
   let y = 38;
+
+  // --- QR code vers la fiche en ligne (pour identification sur site) ---
+  try {
+    const QRCode = (await import("qrcode")).default;
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const dataUrl = await QRCode.toDataURL(`${origin}/technicians/${tech.id}`, {
+      margin: 1,
+      width: 120,
+    });
+    doc.addImage(dataUrl, "PNG", W - 38, 32, 24, 24);
+    doc.setFontSize(7);
+    doc.setTextColor(120, 120, 120);
+    doc.text("Fiche en ligne", W - 36, 59);
+    doc.setTextColor(20, 20, 20);
+  } catch {
+    /* QR optionnel */
+  }
 
   // --- Identite ---
   doc.setFontSize(18);
@@ -168,4 +186,82 @@ export async function generateTechnicianPdf(
 
   const safe = fullName.normalize("NFD").replace(/[^\w]+/g, "_");
   doc.save(`${mode === "attestation" ? "attestation" : "fiche"}_${safe}.pdf`);
+}
+
+export interface PdfProject {
+  title: string;
+  description: string | null;
+  company: { name: string; color: string } | null;
+  technicians: {
+    firstName: string;
+    lastName: string;
+    service: string;
+    company: { name: string; color: string };
+    agency: { city: string | null } | null;
+    skills: { level: number; skill: { name: string } }[];
+    certifications: { certification: { name: string } }[];
+  }[];
+}
+
+// Proposition d'equipe / dossier crew, a l'entete de l'entreprise du projet.
+export async function generateProjectPdf(p: PdfProject) {
+  const { jsPDF } = await import("jspdf");
+  const autoTable = (await import("jspdf-autotable")).default;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const W = doc.internal.pageSize.getWidth();
+  const color = p.company?.color ?? p.technicians[0]?.company.color ?? "#3B82F6";
+  const [r, g, b] = hexToRgb(color);
+
+  doc.setFillColor(r, g, b);
+  doc.rect(0, 0, W, 26, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text(p.company?.name ?? "Proposition d'equipe", 14, 13);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text("Proposition d'equipe", 14, 20);
+  doc.text(`Edite le ${new Date().toLocaleDateString("fr-FR")}`, W - 14, 20, { align: "right" });
+
+  doc.setTextColor(20, 20, 20);
+  let y = 38;
+  doc.setFontSize(18);
+  doc.setFont("helvetica", "bold");
+  doc.text(p.title, 14, y);
+  y += 7;
+  if (p.description) {
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(90, 90, 90);
+    const lines = doc.splitTextToSize(p.description, W - 28);
+    doc.text(lines, 14, y);
+    y += lines.length * 5 + 2;
+    doc.setTextColor(20, 20, 20);
+  }
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text(`Equipe proposee : ${p.technicians.length} technicien(s)`, 14, y + 2);
+
+  const rows = p.technicians.map((t) => {
+    const top = [...t.skills].sort((a, b) => b.level - a.level).slice(0, 4).map((s) => s.skill.name).join(", ");
+    return [
+      `${t.firstName} ${t.lastName}`,
+      t.company.name,
+      serviceLabel(t.service),
+      top || "-",
+      String(t.certifications.length),
+    ];
+  });
+  autoTable(doc, {
+    startY: y + 6,
+    head: [["Technicien", "Entreprise", "Service", "Competences cles", "Certifs"]],
+    body: rows,
+    headStyles: { fillColor: [r, g, b], fontSize: 9 },
+    bodyStyles: { fontSize: 9 },
+    margin: { left: 14, right: 14 },
+    theme: "striped",
+  });
+
+  const safe = p.title.normalize("NFD").replace(/[^\w]+/g, "_");
+  doc.save(`projet_${safe}.pdf`);
 }

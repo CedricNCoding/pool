@@ -100,6 +100,7 @@ model Technician {
   trainingAssignments TrainingAssignment[]
   documents           Document[]
   tags                Tag[]
+  events              TechnicianEvent[]
 
   @@map("technicians")
 }
@@ -234,6 +235,23 @@ model Setting {
   value String
 
   @@map("settings")
+}
+
+// Journal de suivi : evenements dates par technicien (entretien, incident, evaluation...)
+model TechnicianEvent {
+  id           String   @id @default(uuid())
+  technicianId String   @map("technician_id")
+  type         String   @default("note") // entretien | incident | evaluation | note | autre
+  title        String
+  body         String?
+  date         DateTime
+  createdById  String?  @map("created_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([technicianId])
+  @@map("technician_events")
 }
 
 // Etiquettes / attributs libres (vehicule, habilite hauteur, anglais, permis...)

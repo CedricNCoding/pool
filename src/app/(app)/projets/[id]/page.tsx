@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Printer, Save, Trash2, Users, MapPin, Award, X } from "lucide-react";
+import { ArrowLeft, Printer, Save, Trash2, Users, MapPin, Award, X, FileDown } from "lucide-react";
 import MiniRadar from "@/components/MiniRadar";
+import { generateProjectPdf, type PdfProject } from "@/lib/pdf";
 
 interface SkillCategory { id: string; name: string; color: string }
 interface Tech {
@@ -135,6 +136,9 @@ export default function ProjectDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 no-print">
+            <Button variant="outline" size="sm" onClick={() => generateProjectPdf(project as unknown as PdfProject)}>
+              <FileDown className="w-4 h-4 mr-1" /> PDF
+            </Button>
             <Button variant="outline" size="sm" onClick={() => window.print()}>
               <Printer className="w-4 h-4 mr-1" /> Imprimer
             </Button>

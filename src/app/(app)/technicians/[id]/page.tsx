@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import TechnicianDocuments from "@/components/TechnicianDocuments";
 import TechnicianFormation from "@/components/TechnicianFormation";
+import TechnicianEvents from "@/components/TechnicianEvents";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -1264,6 +1265,8 @@ export default function TechnicianDetailPage() {
                 </dl>
               </CardContent>
             </Card>
+
+            <TechnicianEvents technicianId={tech.id} />
           </TabsContent>
         </Tabs>
       </div>
