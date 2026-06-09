@@ -7,6 +7,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -162,6 +172,23 @@ export default function TechniciansPage() {
   const [isActive, setIsActive] = useState(true);
   const [page, setPage] = useState(1);
 
+  // Selection multiple + actions groupees
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [modules, setModules] = useState<{ id: string; title: string }[]>([]);
+  const [bulkProjectOpen, setBulkProjectOpen] = useState(false);
+  const [bulkFormationOpen, setBulkFormationOpen] = useState(false);
+  const [bulkForm, setBulkForm] = useState({ title: "", description: "", moduleId: "" });
+  const [bulkSaving, setBulkSaving] = useState(false);
+
+  function toggleSel(id: string) {
+    setSelected((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  }
+
   // Debounce search
   const [debouncedSearch, setDebouncedSearch] = useState("");
   useEffect(() => {
@@ -180,7 +207,48 @@ export default function TechniciansPage() {
       setSkillCategories(categoriesData);
       setAllTags((tagsData as { name: string }[]).map((t) => t.name));
     });
+    fetch("/api/training/modules")
+      .then((r) => r.json())
+      .then((d: { id: string; title: string }[]) => setModules(d))
+      .catch(() => {});
   }, []);
+
+  // Actions groupees
+  async function bulkCreateProject() {
+    if (!bulkForm.title.trim() || selected.size === 0) return;
+    setBulkSaving(true);
+    const res = await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: bulkForm.title,
+        description: bulkForm.description,
+        technicianIds: [...selected],
+      }),
+    });
+    setBulkSaving(false);
+    if (res.ok) {
+      const p = await res.json();
+      router.push(`/projets/${p.id}`);
+    }
+  }
+  async function bulkProposeFormation() {
+    if (!bulkForm.moduleId || selected.size === 0) return;
+    setBulkSaving(true);
+    await Promise.all(
+      [...selected].map((technicianId) =>
+        fetch("/api/training/assignments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ technicianId, moduleId: bulkForm.moduleId, status: "propose" }),
+        })
+      )
+    );
+    setBulkSaving(false);
+    setBulkFormationOpen(false);
+    setBulkForm({ title: "", description: "", moduleId: "" });
+    setSelected(new Set());
+  }
 
   // Fetch technicians
   const fetchTechnicians = useCallback(async () => {
@@ -419,12 +487,59 @@ export default function TechniciansPage() {
         </CardContent>
       </Card>
 
+      {/* Barre d'actions groupees */}
+      {selected.size > 0 && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-blue-700/50 bg-blue-950/30 px-4 py-2.5 flex-wrap">
+          <span className="text-sm text-slate-200">
+            <strong>{selected.size}</strong> technicien{selected.size > 1 ? "s" : ""} selectionne{selected.size > 1 ? "s" : ""}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => { setBulkForm((f) => ({ ...f, title: "", description: "" })); setBulkProjectOpen(true); }}>
+              Creer un projet
+            </Button>
+            <Button size="sm" variant="outline" disabled={modules.length === 0} onClick={() => { setBulkForm((f) => ({ ...f, moduleId: "" })); setBulkFormationOpen(true); }}>
+              Proposer une formation
+            </Button>
+            <a
+              href={`/api/export?format=csv${companyId ? `&companyId=${companyId}` : ""}`}
+              download
+              className="text-sm text-blue-400 hover:underline px-2"
+            >
+              Exporter
+            </a>
+            <Button size="sm" variant="ghost" className="text-slate-400" onClick={() => setSelected(new Set())}>
+              Deselectionner
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[40px]">
+                  <input
+                    type="checkbox"
+                    className="accent-blue-600"
+                    checked={
+                      filteredTechnicians.length > 0 &&
+                      filteredTechnicians.every((t) => selected.has(t.id))
+                    }
+                    onChange={() =>
+                      setSelected((s) => {
+                        const allSel = filteredTechnicians.every((t) => s.has(t.id));
+                        const n = new Set(s);
+                        filteredTechnicians.forEach((t) =>
+                          allSel ? n.delete(t.id) : n.add(t.id)
+                        );
+                        return n;
+                      })
+                    }
+                  />
+                </TableHead>
                 <TableHead>Nom</TableHead>
                 <TableHead>Entreprise</TableHead>
                 <TableHead>Service</TableHead>
@@ -437,13 +552,13 @@ export default function TechniciansPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-slate-400">
+                  <TableCell colSpan={8} className="text-center py-12 text-slate-400">
                     Chargement...
                   </TableCell>
                 </TableRow>
               ) : filteredTechnicians.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-slate-400">
+                  <TableCell colSpan={8} className="text-center py-12 text-slate-400">
                     Aucun technicien trouve
                   </TableCell>
                 </TableRow>
@@ -463,6 +578,16 @@ export default function TechniciansPage() {
                       className="cursor-pointer hover:bg-slate-800/50"
                       onClick={() => router.push(`/technicians/${tech.id}`)}
                     >
+                      {/* Select */}
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className="accent-blue-600"
+                          checked={selected.has(tech.id)}
+                          onChange={() => toggleSel(tech.id)}
+                        />
+                      </TableCell>
+
                       {/* Name */}
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -677,6 +802,52 @@ export default function TechniciansPage() {
           </div>
         </div>
       )}
+
+      {/* Dialog : creer un projet avec la selection */}
+      <Dialog open={bulkProjectOpen} onOpenChange={setBulkProjectOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Creer un projet ({selected.size} technicien{selected.size > 1 ? "s" : ""})</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Titre *</Label>
+              <Input value={bulkForm.title} onChange={(e) => setBulkForm((f) => ({ ...f, title: e.target.value }))} placeholder="ex: Equipe festival ete" />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea rows={3} value={bulkForm.description} onChange={(e) => setBulkForm((f) => ({ ...f, description: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>
+            <Button onClick={bulkCreateProject} disabled={bulkSaving || !bulkForm.title.trim()}>Creer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog : proposer une formation a la selection */}
+      <Dialog open={bulkFormationOpen} onOpenChange={setBulkFormationOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Proposer une formation ({selected.size} technicien{selected.size > 1 ? "s" : ""})</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Module</Label>
+              <select
+                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                value={bulkForm.moduleId}
+                onChange={(e) => setBulkForm((f) => ({ ...f, moduleId: e.target.value }))}
+              >
+                <option value="">Selectionner un module...</option>
+                {modules.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
+              </select>
+            </div>
+            <p className="text-xs text-slate-400">Une affectation « Propose » sera creee pour chaque technicien selectionne.</p>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>
+            <Button onClick={bulkProposeFormation} disabled={bulkSaving || !bulkForm.moduleId}>Proposer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
