@@ -29,7 +29,7 @@ import {
   Search as SearchIcon,
   Tag as TagIcon,
 } from "lucide-react";
-import { SKILL_LEVELS, CERT_CATEGORIES } from "@/lib/constants";
+import { SKILL_LEVELS, CERT_CATEGORIES, availabilityMeta } from "@/lib/constants";
 import { useSession } from "@/lib/hooks";
 import MiniRadar from "@/components/MiniRadar";
 
@@ -57,6 +57,7 @@ interface TechResult {
   lastName: string;
   service: string;
   contractType: string;
+  availabilityStatus: string;
   interventionRadiusKm: number;
   distanceKm?: number;
   company: { id: string; name: string; color: string };
@@ -582,8 +583,13 @@ export default function TeamSearchPage() {
                           </td>
                           <td className="py-2 px-3">
                             <Link href={`/technicians/${t.id}`} className="hover:underline">
-                              <div className="font-medium text-slate-100">
+                              <div className="font-medium text-slate-100 flex items-center gap-1.5">
                                 {t.firstName} {t.lastName}
+                                <span
+                                  className="w-2 h-2 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: availabilityMeta(t.availabilityStatus).color }}
+                                  title={availabilityMeta(t.availabilityStatus).label}
+                                />
                               </div>
                             </Link>
                             <div className="flex items-center gap-1.5 text-xs text-slate-400">

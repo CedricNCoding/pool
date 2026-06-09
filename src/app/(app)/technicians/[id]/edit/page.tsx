@@ -18,7 +18,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { CONTRACT_TYPES, SERVICES } from "@/lib/constants";
+import { CONTRACT_TYPES, SERVICES, AVAILABILITY } from "@/lib/constants";
 
 interface Company {
   id: string;
@@ -41,6 +41,8 @@ interface Technician {
   contractEnd: string | null;
   isActive: boolean;
   departureDate: string | null;
+  availabilityStatus: string;
+  availableUntil: string | null;
   notes: string | null;
   interventionCenterLat: number | null;
   interventionCenterLng: number | null;
@@ -88,6 +90,8 @@ export default function EditTechnicianPage() {
     notes: "",
     isActive: true,
     departureDate: "",
+    availabilityStatus: "disponible",
+    availableUntil: "",
   });
 
   function addTag(name: string) {
@@ -125,6 +129,8 @@ export default function EditTechnicianPage() {
         notes: tech.notes || "",
         isActive: tech.isActive,
         departureDate: isoToInput(tech.departureDate),
+        availabilityStatus: tech.availabilityStatus || "disponible",
+        availableUntil: isoToInput(tech.availableUntil),
       });
       setTags((tech.tags ?? []).map((t) => t.name));
     } catch {
@@ -193,6 +199,8 @@ export default function EditTechnicianPage() {
         notes: form.notes || null,
         isActive: form.isActive,
         departureDate: form.departureDate || null,
+        availabilityStatus: form.availabilityStatus,
+        availableUntil: form.availableUntil || null,
         tags,
       }),
     });
@@ -436,6 +444,33 @@ export default function EditTechnicianPage() {
                 value={form.departureDate}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, departureDate: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Disponibilite</Label>
+              <select
+                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                value={form.availabilityStatus}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, availabilityStatus: e.target.value }))
+                }
+              >
+                {AVAILABILITY.map((a) => (
+                  <option key={a.value} value={a.value}>{a.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>
+                {form.availabilityStatus === "en_mission" ? "En mission jusqu'au" : "Indisponible jusqu'au"}
+              </Label>
+              <Input
+                type="date"
+                disabled={form.availabilityStatus === "disponible"}
+                value={form.availableUntil}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, availableUntil: e.target.value }))
                 }
               />
             </div>

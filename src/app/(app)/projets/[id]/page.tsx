@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Printer, Save, Trash2, Users, MapPin, Award, X, FileDown } from "lucide-react";
 import MiniRadar from "@/components/MiniRadar";
 import { generateProjectPdf, type PdfProject } from "@/lib/pdf";
+import AuditTrail from "@/components/AuditTrail";
 
 interface SkillCategory { id: string; name: string; color: string }
 interface Tech {
@@ -255,6 +256,8 @@ export default function ProjectDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        <AuditTrail entityType="project" entityId={project.id} />
       </div>
     </>
   );

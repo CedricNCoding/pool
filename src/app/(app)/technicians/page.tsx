@@ -51,7 +51,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { CONTRACT_TYPES, SERVICES, SKILL_LEVELS } from "@/lib/constants";
+import { CONTRACT_TYPES, SERVICES, SKILL_LEVELS, AVAILABILITY, availabilityMeta } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -94,6 +94,7 @@ interface Technician {
   phone: string | null;
   service: string;
   contractType: string;
+  availabilityStatus: string;
   isActive: boolean;
   company: { id: string; name: string; color: string };
   agency: { id: string; name: string; city: string } | null;
@@ -169,6 +170,7 @@ export default function TechniciansPage() {
   const [contractType, setContractType] = useState("");
   const [skillCategoryId, setSkillCategoryId] = useState("");
   const [tagFilter, setTagFilter] = useState("");
+  const [availabilityFilter, setAvailabilityFilter] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [page, setPage] = useState(1);
 
@@ -259,6 +261,7 @@ export default function TechniciansPage() {
     if (service) params.set("service", service);
     if (contractType) params.set("contractType", contractType);
     if (tagFilter) params.set("tag", tagFilter);
+    if (availabilityFilter) params.set("availability", availabilityFilter);
     params.set("isActive", String(isActive));
     params.set("page", String(page));
     params.set("limit", String(ITEMS_PER_PAGE));
@@ -279,7 +282,7 @@ export default function TechniciansPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, companyId, service, contractType, tagFilter, isActive, page]);
+  }, [debouncedSearch, companyId, service, contractType, tagFilter, availabilityFilter, isActive, page]);
 
   useEffect(() => {
     fetchTechnicians();
@@ -288,7 +291,7 @@ export default function TechniciansPage() {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, companyId, service, contractType, skillCategoryId, tagFilter, isActive]);
+  }, [debouncedSearch, companyId, service, contractType, skillCategoryId, tagFilter, availabilityFilter, isActive]);
 
   // Client-side skill category filter
   const filteredTechnicians = skillCategoryId
@@ -305,6 +308,7 @@ export default function TechniciansPage() {
     setContractType("");
     setSkillCategoryId("");
     setTagFilter("");
+    setAvailabilityFilter("");
     setIsActive(true);
     setPage(1);
   }
@@ -315,6 +319,7 @@ export default function TechniciansPage() {
     service !== "" ||
     contractType !== "" ||
     tagFilter !== "" ||
+    availabilityFilter !== "" ||
     skillCategoryId !== "" ||
     !isActive;
 
@@ -465,6 +470,23 @@ export default function TechniciansPage() {
               </Select>
             )}
 
+            {/* Availability filter */}
+            <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Disponibilite" />
+              </SelectTrigger>
+              <SelectContent>
+                {AVAILABILITY.map((a) => (
+                  <SelectItem key={a.value} value={a.value}>
+                    <span className="flex items-center gap-2">
+                      <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: a.color }} />
+                      {a.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             {/* Active toggle */}
             <div className="flex items-center gap-2">
               <Switch
@@ -596,8 +618,13 @@ export default function TechniciansPage() {
                             style={{ backgroundColor: tech.company.color }}
                           />
                           <div>
-                            <div className="font-medium text-slate-50">
+                            <div className="font-medium text-slate-50 flex items-center gap-1.5">
                               {tech.firstName} {tech.lastName}
+                              <span
+                                className="w-2 h-2 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: availabilityMeta(tech.availabilityStatus).color }}
+                                title={availabilityMeta(tech.availabilityStatus).label}
+                              />
                             </div>
                             <div className="text-sm text-slate-400">{tech.email}</div>
                             {tech.tags.length > 0 && (

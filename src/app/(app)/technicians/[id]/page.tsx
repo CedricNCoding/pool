@@ -48,6 +48,7 @@ import TechnicianDocuments from "@/components/TechnicianDocuments";
 import TechnicianFormation from "@/components/TechnicianFormation";
 import TechnicianEvents from "@/components/TechnicianEvents";
 import AiImport from "@/components/AiImport";
+import AuditTrail from "@/components/AuditTrail";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -69,6 +70,7 @@ import {
   CONTRACT_TYPES,
   SERVICES,
   CERT_CATEGORIES,
+  availabilityMeta,
 } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
@@ -135,6 +137,8 @@ interface Technician {
   contractStart: string | null;
   contractEnd: string | null;
   isActive: boolean;
+  availabilityStatus: string;
+  availableUntil: string | null;
   departureDate: string | null;
   scheduledDeletionDate: string | null;
   notes: string | null;
@@ -574,6 +578,20 @@ export default function TechnicianDetailPage() {
                 >
                   {tech.isActive ? "Actif" : "Inactif"}
                 </Badge>
+                {(() => {
+                  const av = availabilityMeta(tech.availabilityStatus);
+                  return (
+                    <Badge
+                      variant="outline"
+                      style={{ backgroundColor: av.color + "20", color: av.color, borderColor: av.color + "40" }}
+                    >
+                      {av.label}
+                      {tech.availableUntil && tech.availabilityStatus !== "disponible"
+                        ? ` → ${new Date(tech.availableUntil).toLocaleDateString("fr-FR")}`
+                        : ""}
+                    </Badge>
+                  );
+                })()}
               </div>
 
               <div className="flex items-center gap-2 mt-1 text-sm text-slate-400 flex-wrap">
@@ -1269,6 +1287,8 @@ export default function TechnicianDetailPage() {
             </Card>
 
             <TechnicianEvents technicianId={tech.id} />
+
+            <AuditTrail entityType="technician" entityId={tech.id} />
           </TabsContent>
         </Tabs>
       </div>

@@ -85,6 +85,8 @@ model Technician {
   interventionCenterLng Float?    @map("intervention_center_lng")
   interventionRadiusKm  Int       @default(50) @map("intervention_radius_km")
   isActive              Boolean   @default(true) @map("is_active")
+  availabilityStatus    String    @default("disponible") @map("availability_status") // disponible | en_mission | indisponible
+  availableUntil        DateTime? @map("available_until")
   departureDate         DateTime? @map("departure_date")
   scheduledDeletionDate DateTime? @map("scheduled_deletion_date")
   notes                 String?

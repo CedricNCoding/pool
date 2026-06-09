@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
   const certificationId = url.searchParams.get("certificationId");
   const contractType = url.searchParams.get("contractType");
   const tag = url.searchParams.get("tag");
+  const availability = url.searchParams.get("availability");
   const isActive = url.searchParams.get("isActive");
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = Math.min(parseInt(url.searchParams.get("limit") || "50"), 100);
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
   if (service) where.service = service;
   if (contractType) where.contractType = contractType;
   if (tag) where.tags = { some: { name: tag } };
+  if (availability) where.availabilityStatus = availability;
   if (isActive !== null && isActive !== undefined && isActive !== "") {
     where.isActive = isActive === "true";
   }

@@ -17,6 +17,17 @@ export const CONTRACT_TYPES = [
   { value: "freelance", label: "Freelance", color: "#8B5CF6" },
 ] as const;
 
+// Disponibilite (indicateur leger, sans calendrier)
+export const AVAILABILITY = [
+  { value: "disponible", label: "Disponible", color: "#10B981" },
+  { value: "en_mission", label: "En mission", color: "#3B82F6" },
+  { value: "indisponible", label: "Indisponible", color: "#EF4444" },
+] as const;
+
+export function availabilityMeta(v: string) {
+  return AVAILABILITY.find((a) => a.value === v) ?? AVAILABILITY[0];
+}
+
 export const SERVICES = [
   { value: "tech", label: "Technicien AV" },
   { value: "BE", label: "Bureau d'etudes" },

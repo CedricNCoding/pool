@@ -62,6 +62,15 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 p-4 space-y-1">
+        <button
+          onClick={() => window.dispatchEvent(new Event("avpool-command-open"))}
+          className="flex items-center gap-2 w-full px-3 py-2 mb-2 rounded-lg text-sm text-slate-400 bg-slate-800/60 hover:bg-slate-800 hover:text-white transition-colors"
+        >
+          <Search className="w-4 h-4" />
+          <span className="flex-1 text-left">Rechercher...</span>
+          <kbd className="text-[10px] border border-slate-600 rounded px-1.5 py-0.5">⌘K</kbd>
+        </button>
+
         {mainNav.map((item) => {
           const active = pathname.startsWith(item.href);
           return (

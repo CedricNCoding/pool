@@ -79,6 +79,13 @@ export async function PUT(
       interventionRadiusKm:
         body.interventionRadiusKm ?? existing.interventionRadiusKm,
       isActive: body.isActive ?? existing.isActive,
+      availabilityStatus: body.availabilityStatus ?? existing.availabilityStatus,
+      availableUntil:
+        body.availableUntil !== undefined
+          ? body.availableUntil
+            ? new Date(body.availableUntil)
+            : null
+          : existing.availableUntil,
       departureDate: body.departureDate
         ? new Date(body.departureDate)
         : existing.departureDate,
