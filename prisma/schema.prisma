@@ -99,6 +99,7 @@ model Technician {
   projects            Project[]
   trainingAssignments TrainingAssignment[]
   documents           Document[]
+  tags                Tag[]
 
   @@map("technicians")
 }
@@ -233,6 +234,18 @@ model Setting {
   value String
 
   @@map("settings")
+}
+
+// Etiquettes / attributs libres (vehicule, habilite hauteur, anglais, permis...)
+model Tag {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  color       String       @default("#64748B")
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  technicians Technician[]
+
+  @@map("tags")
 }
 
 // Coffre-fort : documents rattaches a un technicien (contrat, identite,

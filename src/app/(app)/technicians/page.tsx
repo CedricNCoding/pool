@@ -89,6 +89,7 @@ interface Technician {
   agency: { id: string; name: string; city: string } | null;
   skills: TechSkill[];
   certifications: TechCert[];
+  tags: { id: string; name: string }[];
 }
 
 interface Pagination {
@@ -148,6 +149,7 @@ export default function TechniciansPage() {
   });
   const [companies, setCompanies] = useState<Company[]>([]);
   const [skillCategories, setSkillCategories] = useState<SkillCategory[]>([]);
+  const [allTags, setAllTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filters
@@ -156,6 +158,7 @@ export default function TechniciansPage() {
   const [service, setService] = useState("");
   const [contractType, setContractType] = useState("");
   const [skillCategoryId, setSkillCategoryId] = useState("");
+  const [tagFilter, setTagFilter] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [page, setPage] = useState(1);
 
@@ -171,9 +174,11 @@ export default function TechniciansPage() {
     Promise.all([
       fetch("/api/companies").then((r) => r.json()),
       fetch("/api/skills/categories").then((r) => r.json()),
-    ]).then(([companiesData, categoriesData]) => {
+      fetch("/api/tags").then((r) => r.json()),
+    ]).then(([companiesData, categoriesData, tagsData]) => {
       setCompanies(companiesData);
       setSkillCategories(categoriesData);
+      setAllTags((tagsData as { name: string }[]).map((t) => t.name));
     });
   }, []);
 
@@ -185,6 +190,7 @@ export default function TechniciansPage() {
     if (companyId) params.set("companyId", companyId);
     if (service) params.set("service", service);
     if (contractType) params.set("contractType", contractType);
+    if (tagFilter) params.set("tag", tagFilter);
     params.set("isActive", String(isActive));
     params.set("page", String(page));
     params.set("limit", String(ITEMS_PER_PAGE));
@@ -205,7 +211,7 @@ export default function TechniciansPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, companyId, service, contractType, isActive, page]);
+  }, [debouncedSearch, companyId, service, contractType, tagFilter, isActive, page]);
 
   useEffect(() => {
     fetchTechnicians();
@@ -214,7 +220,7 @@ export default function TechniciansPage() {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, companyId, service, contractType, skillCategoryId, isActive]);
+  }, [debouncedSearch, companyId, service, contractType, skillCategoryId, tagFilter, isActive]);
 
   // Client-side skill category filter
   const filteredTechnicians = skillCategoryId
@@ -230,6 +236,7 @@ export default function TechniciansPage() {
     setService("");
     setContractType("");
     setSkillCategoryId("");
+    setTagFilter("");
     setIsActive(true);
     setPage(1);
   }
@@ -239,6 +246,7 @@ export default function TechniciansPage() {
     companyId !== "" ||
     service !== "" ||
     contractType !== "" ||
+    tagFilter !== "" ||
     skillCategoryId !== "" ||
     !isActive;
 
@@ -375,6 +383,20 @@ export default function TechniciansPage() {
               </SelectContent>
             </Select>
 
+            {/* Tag filter */}
+            {allTags.length > 0 && (
+              <Select value={tagFilter} onValueChange={setTagFilter}>
+                <SelectTrigger className="w-[170px]">
+                  <SelectValue placeholder="Etiquette" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allTags.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
             {/* Active toggle */}
             <div className="flex items-center gap-2">
               <Switch
@@ -453,6 +475,18 @@ export default function TechniciansPage() {
                               {tech.firstName} {tech.lastName}
                             </div>
                             <div className="text-sm text-slate-400">{tech.email}</div>
+                            {tech.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {tech.tags.slice(0, 3).map((t) => (
+                                  <span key={t.id} className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-700/70 text-slate-300">
+                                    {t.name}
+                                  </span>
+                                ))}
+                                {tech.tags.length > 3 && (
+                                  <span className="text-[10px] text-slate-500 self-center">+{tech.tags.length - 3}</span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </TableCell>

@@ -134,6 +134,7 @@ interface Technician {
   agency: { id: string; name: string; city: string | null } | null;
   skills: TechSkill[];
   certifications: TechCert[];
+  tags: { id: string; name: string; color: string }[];
 }
 
 interface CertOption {
@@ -593,6 +594,19 @@ export default function TechnicianDetailPage() {
                   </span>
                 )}
               </div>
+
+              {tech.tags.length > 0 && (
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  {tech.tags.map((t) => (
+                    <span
+                      key={t.id}
+                      className="text-xs px-2 py-0.5 rounded-full bg-slate-700/70 text-slate-200"
+                    >
+                      {t.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

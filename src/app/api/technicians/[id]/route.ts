@@ -23,6 +23,7 @@ export async function GET(
         include: { certification: true },
         orderBy: { certification: { category: "asc" } },
       },
+      tags: { orderBy: { name: "asc" } },
     },
   });
 
@@ -82,6 +83,21 @@ export async function PUT(
         ? new Date(body.departureDate)
         : existing.departureDate,
       notes: body.notes !== undefined ? body.notes : existing.notes,
+      // Etiquettes : remplace l'ensemble par les noms fournis (cree les manquants)
+      ...(Array.isArray(body.tags)
+        ? {
+            tags: {
+              set: [],
+              connectOrCreate: [
+                ...new Set(
+                  (body.tags as string[])
+                    .map((t) => String(t).trim())
+                    .filter(Boolean)
+                ),
+              ].map((name) => ({ where: { name }, create: { name } })),
+            },
+          }
+        : {}),
     },
     include: { company: true, agency: true },
   });

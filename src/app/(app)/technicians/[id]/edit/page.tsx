@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Save, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Trash2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -48,6 +48,7 @@ interface Technician {
   companyId: string;
   agencyId: string | null;
   company: { id: string; name: string; color: string };
+  tags?: { name: string }[];
 }
 
 function isoToInput(d: string | null): string {
@@ -65,6 +66,10 @@ export default function EditTechnicianPage() {
   const [error, setError] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -84,6 +89,15 @@ export default function EditTechnicianPage() {
     isActive: true,
     departureDate: "",
   });
+
+  function addTag(name: string) {
+    const n = name.trim();
+    if (n && !tags.includes(n)) setTags((t) => [...t, n]);
+    setTagInput("");
+  }
+  function removeTag(name: string) {
+    setTags((t) => t.filter((x) => x !== name));
+  }
 
   const fetchTech = useCallback(async () => {
     try {
@@ -112,6 +126,7 @@ export default function EditTechnicianPage() {
         isActive: tech.isActive,
         departureDate: isoToInput(tech.departureDate),
       });
+      setTags((tech.tags ?? []).map((t) => t.name));
     } catch {
       setError("Erreur reseau");
     } finally {
@@ -127,6 +142,10 @@ export default function EditTechnicianPage() {
     fetch("/api/companies")
       .then((r) => r.json())
       .then(setCompanies)
+      .catch(() => {});
+    fetch("/api/tags")
+      .then((r) => r.json())
+      .then((d: { name: string }[]) => setTagSuggestions(d.map((t) => t.name)))
       .catch(() => {});
   }, []);
 
@@ -174,6 +193,7 @@ export default function EditTechnicianPage() {
         notes: form.notes || null,
         isActive: form.isActive,
         departureDate: form.departureDate || null,
+        tags,
       }),
     });
 
@@ -470,6 +490,43 @@ export default function EditTechnicianPage() {
                 }
               />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Etiquettes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {tags.map((t) => (
+                <span key={t} className="flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-slate-700 text-slate-100">
+                  {t}
+                  <button type="button" onClick={() => removeTag(t)} className="text-slate-400 hover:text-red-400">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              {tags.length === 0 && <span className="text-xs text-slate-500">Aucune etiquette.</span>}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                list="tag-suggestions"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); addTag(tagInput); }
+                }}
+                placeholder="ex: vehicule, habilite hauteur, anglais, permis B..."
+              />
+              <datalist id="tag-suggestions">
+                {tagSuggestions.map((s) => <option key={s} value={s} />)}
+              </datalist>
+              <Button type="button" variant="outline" onClick={() => addTag(tagInput)} disabled={!tagInput.trim()}>
+                Ajouter
+              </Button>
+            </div>
+            <p className="text-xs text-slate-500">Entree ou « Ajouter ». Les etiquettes sont cherchables.</p>
           </CardContent>
         </Card>
 

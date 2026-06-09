@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
   const skillLevel = url.searchParams.get("skillLevel");
   const certificationId = url.searchParams.get("certificationId");
   const contractType = url.searchParams.get("contractType");
+  const tag = url.searchParams.get("tag");
   const isActive = url.searchParams.get("isActive");
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = Math.min(parseInt(url.searchParams.get("limit") || "50"), 100);
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
 
   if (service) where.service = service;
   if (contractType) where.contractType = contractType;
+  if (tag) where.tags = { some: { name: tag } };
   if (isActive !== null && isActive !== undefined && isActive !== "") {
     where.isActive = isActive === "true";
   }
@@ -92,6 +94,7 @@ export async function GET(req: NextRequest) {
     agency: { select: { id: true, name: true, city: true } },
     skills: { include: { skill: { include: { category: true } } } },
     certifications: { include: { certification: true } },
+    tags: { select: { id: true, name: true, color: true } },
   } as const;
 
   // --- Recherche par zone geographique --------------------------------------
