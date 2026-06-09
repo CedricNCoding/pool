@@ -39,10 +39,35 @@ interface TechResult {
   service: string;
   contractType: string;
   interventionRadiusKm: number;
+  distanceKm?: number;
   company: { id: string; name: string; color: string };
   skills: { level: number; skill: { name: string; category: { name: string; color: string } } }[];
   certifications: { status: string; certification: { name: string; color: string } }[];
 }
+
+// Villes francaises pour la recherche par zone (lat, lng)
+const CITIES: { name: string; lat: number; lng: number }[] = [
+  { name: "Paris", lat: 48.8566, lng: 2.3522 },
+  { name: "Lyon", lat: 45.764, lng: 4.8357 },
+  { name: "Marseille", lat: 43.2965, lng: 5.3698 },
+  { name: "Toulouse", lat: 43.6047, lng: 1.4442 },
+  { name: "Nice", lat: 43.7102, lng: 7.262 },
+  { name: "Nantes", lat: 47.2184, lng: -1.5536 },
+  { name: "Strasbourg", lat: 48.5734, lng: 7.7521 },
+  { name: "Montpellier", lat: 43.6108, lng: 3.8767 },
+  { name: "Bordeaux", lat: 44.8378, lng: -0.5792 },
+  { name: "Lille", lat: 50.6292, lng: 3.0573 },
+  { name: "Rennes", lat: 48.1173, lng: -1.6778 },
+  { name: "Reims", lat: 49.2583, lng: 4.0317 },
+  { name: "Dijon", lat: 47.322, lng: 5.0415 },
+  { name: "Grenoble", lat: 45.1885, lng: 5.7245 },
+  { name: "Angers", lat: 47.4784, lng: -0.5632 },
+  { name: "Nancy", lat: 48.6921, lng: 6.1844 },
+  { name: "Clermont-Ferrand", lat: 45.7772, lng: 3.087 },
+  { name: "Tours", lat: 47.3941, lng: 0.6848 },
+  { name: "Le Havre", lat: 49.4944, lng: 0.1079 },
+  { name: "Rouen", lat: 49.4431, lng: 1.0993 },
+];
 
 export default function SearchPage() {
   const [categories, setCategories] = useState<SkillCategory[]>([]);
@@ -59,6 +84,9 @@ export default function SearchPage() {
     skillLevel: "",
     certificationId: "",
     isActive: "true",
+    geoCity: "",
+    geoMode: "cover", // cover = zone couvre le lieu ; near = base a proximite
+    geoRadius: "50",
   });
 
   useEffect(() => {
@@ -85,6 +113,13 @@ export default function SearchPage() {
     if (filters.skillLevel) params.set("skillLevel", filters.skillLevel);
     if (filters.certificationId) params.set("certificationId", filters.certificationId);
     if (filters.isActive) params.set("isActive", filters.isActive);
+    const city = CITIES.find((c) => c.name === filters.geoCity);
+    if (city) {
+      params.set("lat", String(city.lat));
+      params.set("lng", String(city.lng));
+      params.set("geoMode", filters.geoMode);
+      params.set("geoRadius", filters.geoRadius);
+    }
     params.set("limit", "100");
 
     const res = await fetch(`/api/technicians?${params}`);
@@ -94,7 +129,17 @@ export default function SearchPage() {
   }
 
   function clearFilters() {
-    setFilters({ search: "", companyId: "", skillId: "", skillLevel: "", certificationId: "", isActive: "true" });
+    setFilters({
+      search: "",
+      companyId: "",
+      skillId: "",
+      skillLevel: "",
+      certificationId: "",
+      isActive: "true",
+      geoCity: "",
+      geoMode: "cover",
+      geoRadius: "50",
+    });
     setResults([]);
     setSearched(false);
   }
@@ -207,6 +252,53 @@ export default function SearchPage() {
                   </select>
                 </div>
 
+                {/* Zone geographique */}
+                <div className="border-t border-slate-700 pt-3 space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-medium text-slate-300">
+                    <MapPin className="w-4 h-4" />
+                    Zone geographique
+                  </div>
+                  <div>
+                    <Label>Lieu</Label>
+                    <select
+                      className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                      value={filters.geoCity}
+                      onChange={(e) => setFilters((f) => ({ ...f, geoCity: e.target.value }))}
+                    >
+                      <option value="">Toute la France</option>
+                      {CITIES.map((c) => (
+                        <option key={c.name} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {filters.geoCity && (
+                    <>
+                      <div>
+                        <Label>Critere</Label>
+                        <select
+                          className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                          value={filters.geoMode}
+                          onChange={(e) => setFilters((f) => ({ ...f, geoMode: e.target.value }))}
+                        >
+                          <option value="cover">Peut intervenir sur ce lieu</option>
+                          <option value="near">Base a proximite du lieu</option>
+                        </select>
+                      </div>
+                      {filters.geoMode === "near" && (
+                        <div>
+                          <Label>Rayon (km)</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            value={filters.geoRadius}
+                            onChange={(e) => setFilters((f) => ({ ...f, geoRadius: e.target.value }))}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
                 <div className="space-y-2 pt-2">
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Search className="w-4 h-4 mr-2" />}
@@ -267,6 +359,15 @@ export default function SearchPage() {
                               <p className="text-sm text-slate-500">
                                 {tech.company.name} - {tech.service}
                               </p>
+                              {tech.distanceKm !== undefined && (
+                                <p className="text-xs text-blue-400 flex items-center gap-1 mt-0.5">
+                                  <MapPin className="w-3 h-3" />
+                                  a {tech.distanceKm} km du lieu
+                                  <span className="text-slate-500">
+                                    (zone {tech.interventionRadiusKm} km)
+                                  </span>
+                                </p>
+                              )}
                             </div>
                           </div>
 

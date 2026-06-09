@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, canAccessCompany } from "@/lib/auth";
 import { auditLog } from "@/lib/audit";
+import { haversineDistance } from "@/lib/geo";
 
 export async function GET(req: NextRequest) {
   const session = await requireSession();
@@ -55,15 +56,56 @@ export async function GET(req: NextRequest) {
     };
   }
 
+  const include = {
+    company: { select: { id: true, name: true, color: true } },
+    agency: { select: { id: true, name: true, city: true } },
+    skills: { include: { skill: { include: { category: true } } } },
+    certifications: { include: { certification: true } },
+  } as const;
+
+  // --- Recherche par zone geographique --------------------------------------
+  // lat/lng = point recherche. geoMode "cover" (defaut) = techniciens dont la
+  // zone d'intervention couvre ce point ; "near" = bases a <= geoRadius km.
+  const lat = parseFloat(url.searchParams.get("lat") || "");
+  const lng = parseFloat(url.searchParams.get("lng") || "");
+  const geoRadius = parseFloat(url.searchParams.get("geoRadius") || "50");
+  const geoMode = url.searchParams.get("geoMode") === "near" ? "near" : "cover";
+
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    const all = await prisma.technician.findMany({
+      where,
+      include,
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+    });
+
+    const matched = all
+      .filter((t) => t.interventionCenterLat != null && t.interventionCenterLng != null)
+      .map((t) => ({
+        ...t,
+        distanceKm:
+          Math.round(
+            haversineDistance(t.interventionCenterLat!, t.interventionCenterLng!, lat, lng) * 10
+          ) / 10,
+      }))
+      .filter((t) =>
+        geoMode === "near"
+          ? t.distanceKm <= geoRadius
+          : t.distanceKm <= t.interventionRadiusKm
+      )
+      .sort((a, b) => a.distanceKm - b.distanceKm);
+
+    const total = matched.length;
+    const data = matched.slice((page - 1) * limit, (page - 1) * limit + limit);
+    return NextResponse.json({
+      data,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
+  }
+
   const [technicians, total] = await Promise.all([
     prisma.technician.findMany({
       where,
-      include: {
-        company: { select: { id: true, name: true, color: true } },
-        agency: { select: { id: true, name: true, city: true } },
-        skills: { include: { skill: { include: { category: true } } } },
-        certifications: { include: { certification: true } },
-      },
+      include,
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
       skip: (page - 1) * limit,
       take: limit,
