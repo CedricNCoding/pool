@@ -1,13 +1,15 @@
 # =============================================================================
-# Traefik — config dynamique pour AV Pool (sous-domaine demo temporaire)
-# A deposer dans le repertoire de config dynamique du LXC Traefik (192.168.1.2),
-# p.ex.  /etc/traefik/dynamic/avpool.yml  — Traefik le recharge a chaud.
+# Traefik — config dynamique pour AV Pool (sous-domaine demo temporaire).
+#
+# Si ta config dynamique est UN SEUL FICHIER (ex: /etc/traefik/dynamic_conf.yaml)
+# qui contient deja un bloc `http:`, NE colle PAS un 2e `http:`. Fusionne les
+# entrees ci-dessous sous tes clefs existantes http.routers / http.services /
+# http.middlewares (YAML interdit les clefs dupliquees au meme niveau).
 #
 # Adapter :
-#   - VM_LAN_IP        -> IP LAN de la VM qui heberge avpool (ex: 192.168.1.40)
-#   - certResolver     -> ton resolver ACME existant (ou un cert wildcard *.spektalis.net)
-#   - middlewares      -> reutilise tes middlewares globaux SI tu en as deja,
-#                         MAIS garde la CSP ci-dessous (compatible Leaflet/OSM).
+#   - entryPoints / tls -> recopier le bloc d'un routeur existant (atlas/vigie...)
+#   - middlewares       -> utiliser avpool-headers (CSP compatible Leaflet/OSM),
+#                          ne PAS appliquer ta CSP globale durcie a ce routeur.
 # =============================================================================
 http:
   routers:
@@ -27,7 +29,7 @@ http:
       loadBalancer:
         passHostHeader: true
         servers:
-          - url: "http://VM_LAN_IP:3000"   # <-- IP LAN de la VM avpool
+          - url: "http://192.168.1.214:3000"   # VM avpool
 
   middlewares:
     # --- En-tetes de securite -------------------------------------------------

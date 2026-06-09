@@ -121,8 +121,11 @@ app() { sudo -u "$APP_USER" env NODE_ENV=production DATABASE_URL="$DATABASE_URL"
 cd "$APP_DIR"
 
 # --- 6. Dependances npm + Prisma ------------------------------------------
-echo "==> [6/9] npm ci (installation des dependances)"
-app npm ci
+echo "==> [6/9] npm ci (toutes deps, dont devDeps requis par le build)"
+# IMPORTANT : inclure les devDependencies (@tailwindcss/postcss, typescript,
+# tsx...) necessaires a `next build`. Ne PAS forcer NODE_ENV=production ici,
+# sinon npm les omet et le build echoue ("Cannot find module @tailwindcss/postcss").
+sudo -u "$APP_USER" npm ci --include=dev
 
 echo "==> [7/9] Prisma (generate + migrate deploy)"
 app npx prisma generate

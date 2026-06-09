@@ -92,7 +92,7 @@ openssl rand -base64 18 | tr -d '/+=' | cut -c1-20   # -> ADMIN_PASSWORD
 cd /opt/avpool
 set -a; . ./.env.production; set +a; export NODE_ENV=production
 
-sudo -u avpool --preserve-env=NODE_ENV,DATABASE_URL npm ci
+sudo -u avpool npm ci --include=dev    # devDeps (@tailwindcss/postcss, tsx...) requis par le build
 sudo -u avpool --preserve-env=NODE_ENV,DATABASE_URL npx prisma generate
 sudo -u avpool --preserve-env=NODE_ENV,DATABASE_URL npx prisma migrate deploy
 

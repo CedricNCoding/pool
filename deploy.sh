@@ -28,8 +28,10 @@ run() {
 echo "==> [1/6] git pull"
 sudo -u "$APP_USER" git -C "$APP_DIR" pull --ff-only 2>/dev/null || echo "    (pas de remote git, on garde le code en place)"
 
-echo "==> [2/6] npm ci"
-run npm ci
+echo "==> [2/6] npm ci (inclut devDeps requis par le build)"
+# --include=dev : @tailwindcss/postcss, typescript, tsx... sont en devDependencies
+# et indispensables a `next build`. Sans ca (NODE_ENV=production) le build echoue.
+sudo -u "$APP_USER" npm ci --include=dev
 
 echo "==> [3/6] prisma generate"
 run npx prisma generate
