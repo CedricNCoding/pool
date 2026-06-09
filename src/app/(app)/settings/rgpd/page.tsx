@@ -66,7 +66,7 @@ export default function RgpdPage() {
   return (
     <div className="p-8 max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
-        <Shield className="w-6 h-6 text-slate-700" />
+        <Shield className="w-6 h-6 text-slate-300" />
         <h1 className="text-2xl font-bold">Conformite RGPD</h1>
       </div>
 

@@ -73,7 +73,7 @@ export default function UsersPage() {
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <UserCog className="w-6 h-6 text-slate-700" />
+          <UserCog className="w-6 h-6 text-slate-300" />
           <h1 className="text-2xl font-bold">Utilisateurs</h1>
         </div>
         <Dialog open={showNew} onOpenChange={setShowNew}>
@@ -97,7 +97,7 @@ export default function UsersPage() {
               </div>
               <div>
                 <Label>Role</Label>
-                <select className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm" value={form.role} onChange={(e) => setForm(f => ({ ...f, role: e.target.value }))}>
+                <select className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm" value={form.role} onChange={(e) => setForm(f => ({ ...f, role: e.target.value }))}>
                   <option value="admin">Administrateur</option>
                   <option value="manager">Gestionnaire</option>
                 </select>
@@ -105,7 +105,7 @@ export default function UsersPage() {
               {form.role === "manager" && (
                 <div>
                   <Label>Entreprise *</Label>
-                  <select className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm" value={form.companyId} onChange={(e) => setForm(f => ({ ...f, companyId: e.target.value }))} required>
+                  <select className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm" value={form.companyId} onChange={(e) => setForm(f => ({ ...f, companyId: e.target.value }))} required>
                     <option value="">Selectionner...</option>
                     {companies.map((c) => (
                       <option key={c.id} value={c.id}>{c.name}</option>

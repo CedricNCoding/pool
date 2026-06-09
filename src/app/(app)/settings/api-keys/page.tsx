@@ -95,7 +95,7 @@ export default function ApiKeysPage() {
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Key className="w-6 h-6 text-slate-700" />
+          <Key className="w-6 h-6 text-slate-300" />
           <h1 className="text-2xl font-bold">Cles API</h1>
         </div>
         <Dialog open={showNew} onOpenChange={(open) => { setShowNew(open); if (!open) { setNewKey(null); setForm({ name: "", permissions: "read", expiresInDays: "" }); } }}>
@@ -127,7 +127,7 @@ export default function ApiKeysPage() {
                 </div>
                 <div>
                   <Label>Permissions</Label>
-                  <select className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm" value={form.permissions} onChange={(e) => setForm(f => ({ ...f, permissions: e.target.value }))}>
+                  <select className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm" value={form.permissions} onChange={(e) => setForm(f => ({ ...f, permissions: e.target.value }))}>
                     <option value="read">Lecture seule</option>
                     <option value="write">Lecture + ecriture</option>
                   </select>

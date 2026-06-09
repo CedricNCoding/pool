@@ -86,7 +86,7 @@ export default function CompaniesPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Building2 className="w-6 h-6 text-slate-700" />
+          <Building2 className="w-6 h-6 text-slate-300" />
           <h1 className="text-2xl font-bold">Entreprises</h1>
           <Badge variant="secondary">{companies.length}</Badge>
         </div>
@@ -126,7 +126,7 @@ export default function CompaniesPage() {
                   </div>
                   <div>
                     <Label>Pays</Label>
-                    <select className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm" value={form.country} onChange={(e) => setForm(f => ({ ...f, country: e.target.value }))}>
+                    <select className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm" value={form.country} onChange={(e) => setForm(f => ({ ...f, country: e.target.value }))}>
                       {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>

@@ -102,7 +102,7 @@ export default function SearchPage() {
   return (
     <div className="p-8">
       <div className="flex items-center gap-3 mb-8">
-        <Search className="w-6 h-6 text-slate-700" />
+        <Search className="w-6 h-6 text-slate-300" />
         <h1 className="text-2xl font-bold">Recherche avancee</h1>
       </div>
 
