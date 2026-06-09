@@ -301,6 +301,24 @@ async function main() {
     { name: "Certified Video Engineer", issuer: "Poly/HP", description: "Poly Certified Video Engineer - systemes de visioconference Poly Studio, G7500", validityMonths: null, category: "visioconference", color: "#06B6D4", level: "standard", order: ++certOrder },
   );
 
+  // Securite / Habilitations (France) — obligatoires sur de nombreux chantiers AV
+  certifications.push(
+    { name: "Habilitation electrique B0/H0/H0V", issuer: "Employeur (NF C18-510)", description: "Travaux d'ordre non electrique en zone basse/haute tension (executant)", validityMonths: 36, category: "securite", color: "#EF4444", level: "foundation", order: ++certOrder },
+    { name: "Habilitation electrique B1/B1V", issuer: "Employeur (NF C18-510)", description: "Executant de travaux d'ordre electrique basse tension", validityMonths: 36, category: "securite", color: "#EF4444", level: "standard", order: ++certOrder },
+    { name: "Habilitation electrique B2/B2V", issuer: "Employeur (NF C18-510)", description: "Charge de travaux d'ordre electrique basse tension", validityMonths: 36, category: "securite", color: "#EF4444", level: "advanced", order: ++certOrder },
+    { name: "Habilitation electrique BR", issuer: "Employeur (NF C18-510)", description: "Interventions BT generales (depannage, mesurage, raccordement)", validityMonths: 36, category: "securite", color: "#EF4444", level: "advanced", order: ++certOrder },
+    { name: "Habilitation electrique BC", issuer: "Employeur (NF C18-510)", description: "Consignation electrique basse tension", validityMonths: 36, category: "securite", color: "#EF4444", level: "advanced", order: ++certOrder },
+    { name: "Habilitation electrique BE Manoeuvre", issuer: "Employeur (NF C18-510)", description: "Manoeuvres d'exploitation basse tension", validityMonths: 36, category: "securite", color: "#EF4444", level: "standard", order: ++certOrder },
+    { name: "Habilitation electrique H1/H2/HC", issuer: "Employeur (NF C18-510)", description: "Travaux et consignation en haute tension", validityMonths: 36, category: "securite", color: "#EF4444", level: "advanced", order: ++certOrder },
+    { name: "Travail en hauteur / port du harnais", issuer: "Organisme agree", description: "Travaux en hauteur et utilisation des EPI antichute", validityMonths: 24, category: "securite", color: "#EF4444", level: "standard", order: ++certOrder },
+    { name: "Montage echafaudage (R408)", issuer: "Organisme agree", description: "Montage, demontage et verification d'echafaudages", validityMonths: 36, category: "securite", color: "#EF4444", level: "standard", order: ++certOrder },
+    { name: "CACES R486 (PEMP / nacelle)", issuer: "Organisme certifie", description: "Conduite de plateformes elevatrices mobiles de personnes (cat. A/B)", validityMonths: 60, category: "securite", color: "#EF4444", level: "standard", order: ++certOrder },
+    { name: "CACES R489 (chariot elevateur)", issuer: "Organisme certifie", description: "Conduite de chariots de manutention a conducteur porte", validityMonths: 60, category: "securite", color: "#EF4444", level: "standard", order: ++certOrder },
+    { name: "AIPR", issuer: "Employeur (examen QCM)", description: "Autorisation d'intervention a proximite des reseaux", validityMonths: 60, category: "securite", color: "#EF4444", level: "foundation", order: ++certOrder },
+    { name: "SST (Sauveteur Secouriste du Travail)", issuer: "INRS / organisme habilite", description: "Premiers secours en milieu professionnel", validityMonths: 24, category: "securite", color: "#EF4444", level: "foundation", order: ++certOrder },
+    { name: "Habilitation travail isole (DATI/PTI)", issuer: "Employeur", description: "Procedures et dispositifs pour le travail isole", validityMonths: 24, category: "securite", color: "#EF4444", level: "foundation", order: ++certOrder },
+  );
+
   for (const cert of certifications) {
     await prisma.certification.upsert({
       where: { name_issuer: { name: cert.name, issuer: cert.issuer } },

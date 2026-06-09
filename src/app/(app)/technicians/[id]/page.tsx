@@ -42,8 +42,10 @@ import {
   Clock,
   FileText,
   FileDown,
+  GraduationCap,
 } from "lucide-react";
 import TechnicianDocuments from "@/components/TechnicianDocuments";
+import TechnicianFormation from "@/components/TechnicianFormation";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -667,6 +669,10 @@ export default function TechnicianDetailPage() {
               <Clock className="w-3.5 h-3.5 mr-1" />
               Historique
             </TabsTrigger>
+            <TabsTrigger value="formation">
+              <GraduationCap className="w-3.5 h-3.5 mr-1" />
+              Formation
+            </TabsTrigger>
             <TabsTrigger value="certifications">
               <Award className="w-3.5 h-3.5 mr-1" />
               Certifications
@@ -886,6 +892,13 @@ export default function TechnicianDetailPage() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* ----------------------------------------------------------- */}
+          {/* TAB: Formation                                              */}
+          {/* ----------------------------------------------------------- */}
+          <TabsContent value="formation" className="space-y-6">
+            <TechnicianFormation technicianId={tech.id} />
           </TabsContent>
 
           {/* ----------------------------------------------------------- */}

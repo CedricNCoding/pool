@@ -27,6 +27,7 @@ import {
   FolderPlus,
   Loader2,
   Search as SearchIcon,
+  Tag as TagIcon,
 } from "lucide-react";
 import { SKILL_LEVELS, CERT_CATEGORIES } from "@/lib/constants";
 import { useSession } from "@/lib/hooks";
@@ -65,7 +66,7 @@ interface TechResult {
 }
 
 type Criterion = {
-  type: "skill" | "cert";
+  type: "skill" | "cert" | "tag";
   id: string;
   label: string;
   color: string;
@@ -102,8 +103,9 @@ export default function TeamSearchPage() {
   const [results, setResults] = useState<TechResult[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [allTags, setAllTags] = useState<{ name: string; color: string }[]>([]);
   const [criteria, setCriteria] = useState<Criterion[]>([]);
-  const [paletteTab, setPaletteTab] = useState<"skill" | "cert">("skill");
+  const [paletteTab, setPaletteTab] = useState<"skill" | "cert" | "tag">("skill");
   const [paletteFilter, setPaletteFilter] = useState("");
   const [companyId, setCompanyId] = useState("");
   const [geoCity, setGeoCity] = useState("");
@@ -120,10 +122,14 @@ export default function TeamSearchPage() {
       fetch("/api/skills/categories").then((r) => r.json()),
       fetch("/api/certifications").then((r) => r.json()),
       fetch("/api/companies").then((r) => r.json()),
-    ]).then(([cats, certs, comps]) => {
+      fetch("/api/tags").then((r) => r.json()),
+    ]).then(([cats, certs, comps, tagsData]) => {
       setCategories(cats);
       setCertifications(certs);
       setCompanies(comps);
+      setAllTags(
+        (tagsData as { name: string; color: string }[]).map((t) => ({ name: t.name, color: t.color }))
+      );
     });
   }, []);
 
@@ -141,8 +147,13 @@ export default function TeamSearchPage() {
         .filter((c) => c.type === "cert")
         .map((c) => c.id)
         .join(",");
+      const tagsAll = criteria
+        .filter((c) => c.type === "tag")
+        .map((c) => c.id)
+        .join(",");
       if (skillsAll) params.set("skillsAll", skillsAll);
       if (certsAll) params.set("certsAll", certsAll);
+      if (tagsAll) params.set("tagsAll", tagsAll);
       if (companyId) params.set("companyId", companyId);
       const city = CITIES.find((c) => c.name === geoCity);
       if (city) {
@@ -286,8 +297,10 @@ export default function TeamSearchPage() {
                   >
                     {c.type === "skill" ? (
                       <Wrench className="w-3 h-3 flex-shrink-0" style={{ color: c.color }} />
-                    ) : (
+                    ) : c.type === "cert" ? (
                       <Award className="w-3 h-3 flex-shrink-0" style={{ color: c.color }} />
+                    ) : (
+                      <TagIcon className="w-3 h-3 flex-shrink-0" style={{ color: c.color }} />
                     )}
                     <span className="flex-1 truncate" style={{ color: c.color }}>
                       {c.label}
@@ -374,7 +387,13 @@ export default function TeamSearchPage() {
                   onClick={() => setPaletteTab("cert")}
                   className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "cert" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400"}`}
                 >
-                  Certifications
+                  Certifs
+                </button>
+                <button
+                  onClick={() => setPaletteTab("tag")}
+                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "tag" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400"}`}
+                >
+                  Etiquettes
                 </button>
               </div>
             </CardHeader>
@@ -418,7 +437,8 @@ export default function TeamSearchPage() {
                         </div>
                       </div>
                     ))
-                  : filteredCertCats.map((g) => (
+                  : paletteTab === "cert"
+                  ? filteredCertCats.map((g) => (
                       <div key={g.value}>
                         <p className="text-[11px] font-semibold mb-1" style={{ color: g.color }}>
                           {g.label}
@@ -446,7 +466,37 @@ export default function TeamSearchPage() {
                           ))}
                         </div>
                       </div>
-                    ))}
+                    ))
+                  : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {allTags
+                        .filter((t) =>
+                          t.name.toLowerCase().includes(paletteFilter.toLowerCase())
+                        )
+                        .map((t) => (
+                          <button
+                            key={t.name}
+                            draggable
+                            onDragStart={(e) =>
+                              e.dataTransfer.setData(
+                                "application/json",
+                                JSON.stringify({ type: "tag", id: t.name, label: t.name, color: t.color })
+                              )
+                            }
+                            onClick={() =>
+                              addCriterion({ type: "tag", id: t.name, label: t.name, color: t.color })
+                            }
+                            className="text-[11px] px-2 py-0.5 rounded-full border cursor-grab active:cursor-grabbing hover:scale-105 transition"
+                            style={{ borderColor: t.color + "66", color: t.color }}
+                          >
+                            {t.name}
+                          </button>
+                        ))}
+                      {allTags.length === 0 && (
+                        <span className="text-xs text-slate-500">Aucune etiquette creee.</span>
+                      )}
+                    </div>
+                  )}
               </div>
             </CardContent>
           </Card>

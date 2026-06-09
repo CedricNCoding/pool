@@ -3,12 +3,14 @@ import { prisma } from "@/lib/db";
 import { requireSession, canAccessCompany } from "@/lib/auth";
 import { auditLog } from "@/lib/audit";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await requireSession();
-  const where =
+  const technicianId = new URL(req.url).searchParams.get("technicianId");
+  const where: Record<string, unknown> =
     session.role === "admin"
       ? {}
       : { technician: { companyId: session.companyId ?? "__none__" } };
+  if (technicianId) where.technicianId = technicianId;
 
   const assignments = await prisma.trainingAssignment.findMany({
     where,

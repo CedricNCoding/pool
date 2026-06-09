@@ -87,6 +87,13 @@ export async function GET(req: NextRequest) {
       });
     }
   }
+  // Etiquettes en ET : tagsAll = "nom,nom"
+  const tagsAll = url.searchParams.get("tagsAll");
+  if (tagsAll) {
+    for (const name of tagsAll.split(",").filter(Boolean)) {
+      andClauses.push({ tags: { some: { name } } });
+    }
+  }
   if (andClauses.length > 0) where.AND = andClauses;
 
   const include = {
