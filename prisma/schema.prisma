@@ -93,10 +93,11 @@ model Technician {
 
   company        Company                   @relation(fields: [companyId], references: [id])
   agency         Agency?                   @relation(fields: [agencyId], references: [id])
-  skills         TechnicianSkill[]
-  certifications TechnicianCertification[]
-  skillHistory   TechnicianSkillHistory[]
-  projects       Project[]
+  skills              TechnicianSkill[]
+  certifications      TechnicianCertification[]
+  skillHistory        TechnicianSkillHistory[]
+  projects            Project[]
+  trainingAssignments TrainingAssignment[]
 
   @@map("technicians")
 }
@@ -120,9 +121,10 @@ model Skill {
   description String?
   order       Int     @default(0)
 
-  category    SkillCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  technicians TechnicianSkill[]
-  history     TechnicianSkillHistory[]
+  category        SkillCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  technicians     TechnicianSkill[]
+  history         TechnicianSkillHistory[]
+  trainingModules TrainingModule[]
 
   @@unique([name, categoryId])
   @@map("skills")
@@ -248,4 +250,69 @@ model Project {
   technicians Technician[]
 
   @@map("projects")
+}
+
+// ----- Formation -----------------------------------------------------------
+
+// Modele de formation : developpe une ou plusieurs competences.
+model TrainingModule {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  durationHours Int?     @map("duration_hours")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  targetSkills Skill[]
+  assignments  TrainingAssignment[]
+  pathModules  TrainingPathModule[]
+
+  @@map("training_modules")
+}
+
+// Parcours : suite ordonnee de modules.
+model TrainingPath {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  modules     TrainingPathModule[]
+  assignments TrainingAssignment[]
+
+  @@map("training_paths")
+}
+
+model TrainingPathModule {
+  id       String @id @default(uuid())
+  pathId   String @map("path_id")
+  moduleId String @map("module_id")
+  order    Int    @default(0)
+
+  path   TrainingPath   @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  module TrainingModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@map("training_path_modules")
+}
+
+// Affectation d'un technicien a un module ou parcours, avec validation.
+model TrainingAssignment {
+  id            String    @id @default(uuid())
+  technicianId  String    @map("technician_id")
+  moduleId      String?   @map("module_id")
+  pathId        String?   @map("path_id")
+  status        String    @default("propose") // propose | en_cours | valide | annule
+  note          String?
+  assignedById  String?   @map("assigned_by_id")
+  validatedById String?   @map("validated_by_id")
+  validatedAt   DateTime? @map("validated_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  technician Technician      @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  module     TrainingModule? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  path       TrainingPath?   @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
+  @@map("training_assignments")
 }
