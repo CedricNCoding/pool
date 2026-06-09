@@ -1,67 +1,49 @@
 # =============================================================================
-# Traefik — config dynamique pour AV Pool (sous-domaine demo temporaire).
+# Traefik — entrees a fusionner dans /etc/traefik/dynamic_conf.yaml
 #
-# Si ta config dynamique est UN SEUL FICHIER (ex: /etc/traefik/dynamic_conf.yaml)
-# qui contient deja un bloc `http:`, NE colle PAS un 2e `http:`. Fusionne les
-# entrees ci-dessous sous tes clefs existantes http.routers / http.services /
-# http.middlewares (YAML interdit les clefs dupliquees au meme niveau).
+# Fichier unique => NE PAS coller un 2e bloc `http:`. Ajouter ces entrees sous
+# tes clefs existantes http.routers / http.services / http.middlewares.
 #
-# Adapter :
-#   - entryPoints / tls -> recopier le bloc d'un routeur existant (atlas/vigie...)
-#   - middlewares       -> utiliser avpool-headers (CSP compatible Leaflet/OSM),
-#                          ne PAS appliquer ta CSP globale durcie a ce routeur.
+# Aligne sur la convention Spektalis (cf routeur Spektalis-atlas).
+# Domaine : pool.spektalis.net  |  VM : 192.168.1.214:3000  |  sans rate limit.
+#
+# /!\ On utilise `pool-headers` et NON `secure-headers` : la CSP globale durcie
+#     bloquerait les tuiles OpenStreetMap (carte blanche) et, si elle contient
+#     `require-trusted-types-for`, casserait Leaflet/Recharts (cf bug Atlas).
+#     `pool-headers` garde HSTS/nosniff/referrer/permissions mais avec une CSP
+#     compatible carte. `crowdsec` est conserve (aucun conflit).
 # =============================================================================
 http:
   routers:
-    avpool:
-      rule: "Host(`avpool.spektalis.net`)"
+    Spektalis-pool:
+      rule: "Host(`pool.spektalis.net`)"
       entryPoints:
         - websecure
+      service: Spektalis-pool
       tls:
-        certResolver: letsencrypt   # <-- adapter (ou retirer si cert wildcard fourni par defaut)
-      service: avpool
+        certResolver: letsencrypt
+        options: modern
       middlewares:
-        - avpool-headers
-        - avpool-ratelimit
+        - crowdsec
+        - pool-headers
 
   services:
-    avpool:
+    Spektalis-pool:
       loadBalancer:
         passHostHeader: true
         servers:
-          - url: "http://192.168.1.214:3000"   # VM avpool
+          - url: "http://192.168.1.214:3000"
 
   middlewares:
-    # --- En-tetes de securite -------------------------------------------------
-    # CSP volontairement compatible avec la carte (Leaflet + tuiles OSM).
-    # NE PAS ajouter `require-trusted-types-for` : Leaflet/Recharts ne sont pas
-    # compatibles Trusted Types (c'est ce qui avait casse Atlas post-hardening).
-    avpool-headers:
+    pool-headers:
       headers:
         stsSeconds: 31536000
         stsIncludeSubdomains: true
         stsPreload: true
         contentTypeNosniff: true
-        browserXssFilter: true
         referrerPolicy: "strict-origin-when-cross-origin"
         customResponseHeaders:
-          X-Powered-By: ""        # strip
-          Server: ""              # strip
+          X-Powered-By: ""
+          Server: ""
           Permissions-Policy: "geolocation=(self), camera=(), microphone=(), payment=()"
-          Content-Security-Policy: >-
-            default-src 'self';
-            base-uri 'self';
-            frame-ancestors 'none';
-            form-action 'self';
-            img-src 'self' data: https://*.tile.openstreetmap.org;
-            script-src 'self' 'unsafe-inline';
-            style-src 'self' 'unsafe-inline';
-            font-src 'self' data:;
-            connect-src 'self';
-            object-src 'none'
-
-    # --- Limitation de debit (aligne sur spektalis-rate-limit 100/s) ----------
-    avpool-ratelimit:
-      rateLimit:
-        average: 100
-        burst: 50
+          Content-Security-Policy: "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https://*.tile.openstreetmap.org; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; object-src 'none'"

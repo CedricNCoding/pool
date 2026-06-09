@@ -29,8 +29,8 @@ echo "  AV Pool — installation"
 echo "============================================================"
 
 # --- 1. Saisie interactive (tout en amont, puis install non-interactive) ---
-read -rp "Domaine public [avpool.spektalis.net] : " DOMAIN
-DOMAIN=${DOMAIN:-avpool.spektalis.net}
+read -rp "Domaine public [pool.spektalis.net] : " DOMAIN
+DOMAIN=${DOMAIN:-pool.spektalis.net}
 
 echo
 echo "--- Compte administrateur ---"

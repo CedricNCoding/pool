@@ -1,4 +1,4 @@
-# Déploiement AV Pool — sous-domaine démo `avpool.spektalis.net`
+# Déploiement AV Pool — sous-domaine démo `pool.spektalis.net`
 
 Cible : **VM Proxmox** derrière le **LXC Traefik** (`192.168.1.2`) + **Cloudflare**,
 aligné sur le pattern des 4 apps Spektalis (`/opt/<app>`, user dédié, systemd, Node 22).
@@ -11,7 +11,7 @@ Variables utilisées ci-dessous (à adapter) :
 
 | Variable | Valeur exemple |
 |---|---|
-| `DOMAIN` | `avpool.spektalis.net` |
+| `DOMAIN` | `pool.spektalis.net` |
 | `VM_IP` | `192.168.1.40` (IP LAN de la VM avpool) |
 | `TRAEFIK` | `192.168.1.2` (LXC Traefik) |
 
@@ -131,19 +131,21 @@ sudo ufw enable
 
 ## 8. Traefik (sur le LXC `192.168.1.2`)
 
-```bash
-# Copier la config dynamique (adapter VM_LAN_IP + certResolver dans le fichier)
-scp deploy/traefik/avpool.yml root@192.168.1.2:/etc/traefik/dynamic/avpool.yml
-```
+Config dynamique dans un **fichier unique** (`/etc/traefik/dynamic_conf.yaml`) :
+fusionner les entrées de [`deploy/traefik/avpool.yml`](deploy/traefik/avpool.yml)
+sous les clefs existantes `http.routers` / `http.services` / `http.middlewares`
+(ne pas coller un 2e bloc `http:`). Convention `Spektalis-pool`, `certResolver:
+letsencrypt` + `options: modern`, service → `http://192.168.1.214:3000`.
 
-- Vérifie le router dans le dashboard Traefik (`avpool@file` → service `avpool`).
-- Si tu as déjà des middlewares globaux (headers/rate-limit), tu peux les substituer —
-  **mais garde la CSP fournie** (compatible Leaflet/tuiles OSM) et **n'ajoute pas
-  `require-trusted-types-for`** à ce sous-domaine.
+- Middlewares : `crowdsec` + `pool-headers` (**pas** `secure-headers` : la CSP
+  durcie globale bloquerait les tuiles OSM / casserait Leaflet — cf bug Atlas).
+  Pas de rate limit.
+- Traefik recharge le fichier à chaud. Vérifie `Spektalis-pool@file` dans le
+  dashboard et `journalctl -u traefik -n 20` (pas d'erreur de parsing).
 
 ## 9. Cloudflare
 
-- DNS : enregistrement `avpool` → IP publique de ta box, **Proxied** (nuage orange).
+- DNS : enregistrement `pool` → IP publique de ta box, **Proxied** (nuage orange).
 - SSL/TLS : mode **Full (strict)**.
 - Si ton ingress est verrouillé Cloudflare-only (UFW Origin Pull), lance ton
   `cloudflare-ufw-sync.sh` pour que la nouvelle entrée soit couverte.
@@ -153,7 +155,7 @@ scp deploy/traefik/avpool.yml root@192.168.1.2:/etc/traefik/dynamic/avpool.yml
 Pour que la résolution LAN court-circuite le NAT loopback Freebox :
 
 ```bash
-echo 'address=/avpool.spektalis.net/192.168.1.2' | sudo tee -a /etc/dnsmasq.d/spektalis.conf
+echo 'address=/pool.spektalis.net/192.168.1.2' | sudo tee -a /etc/dnsmasq.d/spektalis.conf
 sudo systemctl restart dnsmasq
 ```
 
@@ -161,10 +163,10 @@ sudo systemctl restart dnsmasq
 
 ```bash
 # Depuis le LAN
-curl -sI https://avpool.spektalis.net | head -5
+curl -sI https://pool.spektalis.net | head -5
 ```
 
-Puis dans le navigateur : `https://avpool.spektalis.net` → page de login →
+Puis dans le navigateur : `https://pool.spektalis.net` → page de login →
 connexion avec `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 **Changer le mot de passe admin** immédiatement (Administration → Utilisateurs).
 
