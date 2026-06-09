@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -183,7 +184,8 @@ export default function CompaniesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {companies.map((company) => (
-            <Card key={company.id} className="hover:shadow-lg transition-shadow">
+            <Link key={company.id} href={`/companies/${company.id}`} className="block">
+            <Card className="hover:shadow-lg hover:border-slate-600 transition cursor-pointer h-full">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -222,6 +224,7 @@ export default function CompaniesPage() {
                 )}
               </CardContent>
             </Card>
+            </Link>
           ))}
         </div>
       )}
