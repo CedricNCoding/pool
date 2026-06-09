@@ -1,10 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useFetch } from "@/lib/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Award, AlertTriangle, Building2, Clock } from "lucide-react";
+import { Users, Award, AlertTriangle, Building2, Clock, MapPin } from "lucide-react";
+
+const TechniciansMap = dynamic(() => import("@/components/TechniciansMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[360px] items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-sm text-slate-500">
+      Chargement de la carte...
+    </div>
+  ),
+});
+
+interface TechLocation {
+  id: string;
+  name: string;
+  service: string;
+  lat: number | null;
+  lng: number | null;
+  company: string;
+  color: string;
+}
 import {
   BarChart,
   Bar,
@@ -185,7 +206,9 @@ function CustomPieTooltip({
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { data, loading, error } = useFetch<DashboardData>("/api/dashboard");
+  const { data: locations } = useFetch<TechLocation[]>("/api/technicians/locations");
 
   if (error) {
     return (
@@ -250,6 +273,27 @@ export default function DashboardPage() {
           </>
         ) : null}
       </div>
+
+      {/* Carte des techniciens */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg text-slate-50">
+            <MapPin className="h-5 w-5 text-blue-400" />
+            Carte des techniciens
+            {locations && (
+              <Badge variant="secondary">{locations.length} localises</Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[360px] w-full overflow-hidden rounded-lg border border-slate-700">
+            <TechniciansMap
+              points={locations ?? []}
+              onSelect={(techId) => router.push(`/technicians/${techId}`)}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Main grid: charts left, alerts right */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
