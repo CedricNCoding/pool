@@ -101,6 +101,7 @@ export async function GET() {
     const expiringCertifications = expiringCerts.map(
       (tc: {
         id: string;
+        technicianId: string;
         expiryDate: Date | null;
         technician: { firstName: string; lastName: string };
         certification: { name: string };
@@ -111,6 +112,7 @@ export async function GET() {
         );
         return {
           id: tc.id,
+          techId: tc.technicianId,
           techName: `${tc.technician.firstName} ${tc.technician.lastName}`,
           certName: tc.certification.name,
           expiryDate: tc.expiryDate,

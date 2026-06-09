@@ -168,40 +168,29 @@ function certCategoryColor(c: string) {
   return CERT_CATEGORIES.find((cc) => cc.value === c)?.color ?? "#6366F1";
 }
 
-// The 8 radar axes expected (mapped from SkillCategory names)
-const RADAR_AXES = [
-  "Audio",
-  "Video",
-  "Eclairage",
-  "Reseau",
-  "Integration",
-  "Controle",
-  "Visio",
-  "Conception",
-];
-
-function buildRadarData(skills: TechSkill[]) {
-  // Group by category name, compute average level
-  const groups: Record<string, { sum: number; count: number }> = {};
+// Radar axes = the REAL skill categories (no hardcoded list). One axis per
+// family, in `order`, so the radar matches the barometer exactly (les memes
+// familles : Audio, Reseau IT, Controle/Programmation, Visioconference/UC...).
+function buildRadarData(skills: TechSkill[], categories: SkillCategory[]) {
+  // Average level per category id
+  const groups: Record<string, { sum: number; count: number; name: string }> = {};
   for (const s of skills) {
-    const cat = s.skill.category.name;
-    if (!groups[cat]) groups[cat] = { sum: 0, count: 0 };
-    groups[cat].sum += s.level;
-    groups[cat].count += 1;
+    const id = s.skill.category.id;
+    if (!groups[id]) groups[id] = { sum: 0, count: 0, name: s.skill.category.name };
+    groups[id].sum += s.level;
+    groups[id].count += 1;
   }
 
-  // Build radar from all unique categories present, falling back to RADAR_AXES order
-  const categoryNames = new Set<string>();
-  for (const axis of RADAR_AXES) {
-    categoryNames.add(axis);
-  }
-  for (const s of skills) {
-    categoryNames.add(s.skill.category.name);
-  }
+  // Canonical list when loaded, sinon on derive des familles presentes.
+  const axes = categories.length
+    ? categories
+    : Object.entries(groups).map(([id, g]) => ({ id, name: g.name }));
 
-  return Array.from(categoryNames).map((name) => ({
-    category: name,
-    level: groups[name] ? Math.round((groups[name].sum / groups[name].count) * 10) / 10 : 0,
+  return axes.map((cat) => ({
+    category: cat.name,
+    level: groups[cat.id]
+      ? Math.round((groups[cat.id].sum / groups[cat.id].count) * 10) / 10
+      : 0,
     fullMark: 4,
   }));
 }
@@ -245,6 +234,7 @@ export default function TechnicianDetailPage() {
   const router = useRouter();
 
   const [tech, setTech] = useState<Technician | null>(null);
+  const [skillCategories, setSkillCategories] = useState<SkillCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -303,6 +293,14 @@ export default function TechnicianDetailPage() {
     fetch("/api/certifications")
       .then((r) => r.json())
       .then(setCertOptions)
+      .catch(() => {});
+  }, []);
+
+  // Familles de competences (axes du radar, dans l'ordre)
+  useEffect(() => {
+    fetch("/api/skills/categories")
+      .then((r) => r.json())
+      .then(setSkillCategories)
       .catch(() => {});
   }, []);
 
@@ -425,7 +423,7 @@ export default function TechnicianDetailPage() {
   }
 
   // Radar data
-  const radarData = buildRadarData(tech.skills);
+  const radarData = buildRadarData(tech.skills, skillCategories);
 
   // Certs grouped by category
   const certsByCategory: Record<string, TechCert[]> = {};

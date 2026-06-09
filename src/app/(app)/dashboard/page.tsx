@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useFetch } from "@/lib/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ interface DashboardData {
   expiringSoon: number;
   expiringCertifications: {
     id: string;
+    techId: string;
     techName: string;
     certName: string;
     expiryDate: string;
@@ -388,9 +390,10 @@ export default function DashboardPage() {
               ) : data && data.expiringCertifications.length > 0 ? (
                 <div className="max-h-[460px] space-y-3 overflow-y-auto pr-1">
                   {data.expiringCertifications.map((cert) => (
-                    <div
+                    <Link
                       key={cert.id}
-                      className="flex items-start justify-between rounded-lg border border-slate-700/50 bg-slate-800/50 p-3"
+                      href={`/technicians/${cert.techId}`}
+                      className="flex items-start justify-between rounded-lg border border-slate-700/50 bg-slate-800/50 p-3 transition-colors hover:border-slate-600 hover:bg-slate-800"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium text-slate-200">
@@ -414,7 +417,7 @@ export default function DashboardPage() {
                       <div className="ml-3 flex-shrink-0">
                         <ExpiryBadge daysLeft={cert.daysLeft} />
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (

@@ -266,10 +266,10 @@ export default function TechniciansPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" asChild>
-            <Link href="/api/export?format=csv">
+            <a href="/api/export?format=csv" download>
               <Download className="w-4 h-4 mr-2" />
               Exporter CSV
-            </Link>
+            </a>
           </Button>
           <Button variant="outline" asChild>
             <Link href="/technicians/import">

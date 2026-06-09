@@ -16,6 +16,7 @@ import {
   Mail,
   UserCog,
   FileDown,
+  Layers,
 } from "lucide-react";
 import { useSession } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ const mainNav = [
   { href: "/technicians", label: "Techniciens", icon: Users },
   { href: "/companies", label: "Entreprises", icon: Building2 },
   { href: "/certifications", label: "Certifications", icon: Award },
+  { href: "/competences", label: "Competences", icon: Layers },
   { href: "/search", label: "Recherche avancee", icon: Search },
 ];
 
