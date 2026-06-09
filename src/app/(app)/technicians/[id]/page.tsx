@@ -65,6 +65,8 @@ interface SkillCategory {
   name: string;
   color: string;
   icon: string;
+  // Present quand la categorie vient de /api/skills/categories (catalogue complet)
+  skills?: { id: string; name: string }[];
 }
 
 interface SkillDef {
@@ -168,31 +170,26 @@ function certCategoryColor(c: string) {
   return CERT_CATEGORIES.find((cc) => cc.value === c)?.color ?? "#6366F1";
 }
 
-// Radar axes = the REAL skill categories (no hardcoded list). One axis per
-// family, in `order`, so the radar matches the barometer exactly (les memes
-// familles : Audio, Reseau IT, Controle/Programmation, Visioconference/UC...).
-function buildRadarData(skills: TechSkill[], categories: SkillCategory[]) {
-  // Average level per category id
-  const groups: Record<string, { sum: number; count: number; name: string }> = {};
-  for (const s of skills) {
-    const id = s.skill.category.id;
-    if (!groups[id]) groups[id] = { sum: 0, count: 0, name: s.skill.category.name };
-    groups[id].sum += s.level;
-    groups[id].count += 1;
-  }
-
-  // Canonical list when loaded, sinon on derive des familles presentes.
-  const axes = categories.length
-    ? categories
-    : Object.entries(groups).map(([id, g]) => ({ id, name: g.name }));
-
-  return axes.map((cat) => ({
-    category: cat.name,
-    level: groups[cat.id]
-      ? Math.round((groups[cat.id].sum / groups[cat.id].count) * 10) / 10
-      : 0,
-    fullMark: 4,
-  }));
+// Radar axes = les VRAIES familles (catalogue complet), une par famille dans
+// l'ordre, calculees a partir des niveaux EDITES (skillEdits) -> le radar suit
+// le barometre en direct et reste aligne avec lui.
+function buildRadarData(
+  skillEdits: Record<string, number>,
+  categories: SkillCategory[]
+) {
+  return categories.map((cat) => {
+    const levels = (cat.skills ?? [])
+      .map((s) => skillEdits[s.id] ?? 0)
+      .filter((l) => l >= 1);
+    const avg = levels.length
+      ? levels.reduce((a, b) => a + b, 0) / levels.length
+      : 0;
+    return {
+      category: cat.name,
+      level: Math.round(avg * 10) / 10,
+      fullMark: 4,
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -212,8 +209,8 @@ function SkillLevelSelector({
         <button
           key={sl.value}
           type="button"
-          title={sl.label}
-          onClick={() => onChange(sl.value)}
+          title={`${sl.label}${level === sl.value ? " (recliquer pour retirer)" : ""}`}
+          onClick={() => onChange(sl.value === level ? 0 : sl.value)}
           className="h-6 flex-1 rounded-sm transition-all hover:scale-110 cursor-pointer"
           style={{
             backgroundColor: level >= sl.value ? sl.color : "#334155",
@@ -316,10 +313,11 @@ export default function TechnicianDetailPage() {
   async function saveSkills() {
     if (!tech) return;
     setSavingSkills(true);
-    const payload = Object.entries(skillEdits).map(([skillId, level]) => ({
-      skillId,
-      level,
-    }));
+    // On n'envoie que les competences attribuees (niveau >= 1). Le PUT remplace
+    // tout : les competences remises a 0 sont donc retirees du technicien.
+    const payload = Object.entries(skillEdits)
+      .filter(([, level]) => level >= 1)
+      .map(([skillId, level]) => ({ skillId, level }));
 
     try {
       const res = await fetch(`/api/technicians/${id}/skills`, {
@@ -414,16 +412,8 @@ export default function TechnicianDetailPage() {
   const fullName = `${tech.firstName} ${tech.lastName}`;
   const contractMeta = CONTRACT_TYPES.find((c) => c.value === tech.contractType);
 
-  // Skills grouped by category
-  const skillsByCategory: Record<string, TechSkill[]> = {};
-  for (const s of tech.skills) {
-    const cat = s.skill.category.name;
-    if (!skillsByCategory[cat]) skillsByCategory[cat] = [];
-    skillsByCategory[cat].push(s);
-  }
-
-  // Radar data
-  const radarData = buildRadarData(tech.skills, skillCategories);
+  // Radar data (calcule depuis les niveaux edites + le catalogue complet)
+  const radarData = buildRadarData(skillEdits, skillCategories);
 
   // Certs grouped by category
   const certsByCategory: Record<string, TechCert[]> = {};
@@ -617,15 +607,21 @@ export default function TechnicianDetailPage() {
                 </Button>
               </CardHeader>
               <CardContent className="space-y-6">
-                {Object.entries(skillsByCategory).length === 0 && (
+                <p className="text-xs text-slate-500 -mt-2 no-print">
+                  Cliquez un niveau pour attribuer une competence ; recliquez le
+                  niveau actif pour la retirer. Pensez a « Mettre a jour ».
+                </p>
+                {skillCategories.length === 0 && (
                   <p className="text-sm text-slate-500">
-                    Aucune competence renseignee.
+                    Chargement du referentiel...
                   </p>
                 )}
-                {Object.entries(skillsByCategory).map(([catName, skills]) => {
-                  const catColor = skills[0]?.skill.category.color ?? "#6366F1";
+                {/* Tout le catalogue : chaque famille + toutes ses competences,
+                    meme celles non encore attribuees (niveau 0). */}
+                {skillCategories.map((cat) => {
+                  const catColor = cat.color ?? "#6366F1";
                   return (
-                    <div key={catName}>
+                    <div key={cat.id}>
                       <div className="flex items-center gap-2 mb-3">
                         <span
                           className="w-3 h-3 rounded-full inline-block"
@@ -635,37 +631,36 @@ export default function TechnicianDetailPage() {
                           className="text-sm font-semibold"
                           style={{ color: catColor }}
                         >
-                          {catName}
+                          {cat.name}
                         </h3>
                       </div>
                       <div className="space-y-2 pl-5">
-                        {skills.map((s) => {
-                          const currentLevel =
-                            skillEdits[s.skillId] ?? s.level;
+                        {(cat.skills ?? []).map((skill) => {
+                          const currentLevel = skillEdits[skill.id] ?? 0;
                           const levelMeta = SKILL_LEVELS.find(
                             (l) => l.value === currentLevel
                           );
                           return (
                             <div
-                              key={s.id}
+                              key={skill.id}
                               className="flex items-center gap-4"
                             >
                               <span className="text-sm text-slate-300 w-48 truncate">
-                                {s.skill.name}
+                                {skill.name}
                               </span>
                               <div className="w-40">
                                 <SkillLevelSelector
                                   level={currentLevel}
                                   onChange={(l) =>
-                                    handleSkillChange(s.skillId, l)
+                                    handleSkillChange(skill.id, l)
                                   }
                                 />
                               </div>
                               <span
-                                className="text-xs font-medium min-w-[70px]"
-                                style={{ color: levelMeta?.color ?? "#94A3B8" }}
+                                className="text-xs font-medium min-w-[90px]"
+                                style={{ color: levelMeta?.color ?? "#64748B" }}
                               >
-                                {levelMeta?.label ?? "-"}
+                                {levelMeta?.label ?? "Non renseigne"}
                               </span>
                             </div>
                           );
