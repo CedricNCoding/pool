@@ -22,6 +22,7 @@ export async function GET() {
       skillDistribution,
       contractDistribution,
       recentActivity,
+      expiringDocs,
     ] = await Promise.all([
       // Total active technicians
       prisma.technician.count({
@@ -95,6 +96,19 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
         take: 10,
       }),
+
+      // Documents qui expirent dans 90 jours (visite medicale, habilitation...)
+      prisma.document.findMany({
+        where: {
+          expiryDate: { gte: now, lte: in90Days },
+          technician: { isActive: true, ...companyFilter },
+        },
+        include: {
+          technician: { select: { id: true, firstName: true, lastName: true } },
+        },
+        orderBy: { expiryDate: "asc" },
+        take: 20,
+      }),
     ]);
 
     // Compute days left for expiring certs
@@ -121,6 +135,36 @@ export async function GET() {
       }
     );
 
+    // Documents qui expirent (medical, habilitation...) -> meme format
+    const expiringDocuments = expiringDocs.map(
+      (d: {
+        id: string;
+        title: string;
+        category: string;
+        expiryDate: Date | null;
+        technician: { id: string; firstName: string; lastName: string };
+      }) => {
+        const daysLeft = Math.ceil(
+          (new Date(d.expiryDate!).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        return {
+          id: d.id,
+          techId: d.technician.id,
+          techName: `${d.technician.firstName} ${d.technician.lastName}`,
+          certName: d.title,
+          category: d.category,
+          expiryDate: d.expiryDate,
+          daysLeft,
+        };
+      }
+    );
+
+    // Liste unifiee "a renouveler" (certifs + documents), triee par echeance
+    const renewals = [
+      ...expiringCertifications.map((c) => ({ ...c, kind: "cert" as const })),
+      ...expiringDocuments.map((d) => ({ ...d, kind: "doc" as const })),
+    ].sort((a, b) => a.daysLeft - b.daysLeft);
+
     // Flatten skill distribution
     const skills = skillDistribution.map(
       (cat: {
@@ -146,10 +190,8 @@ export async function GET() {
       })
     );
 
-    // Count expiring within 30 days for the stat card
-    const expiringSoon = expiringCertifications.filter(
-      (c: { daysLeft: number }) => c.daysLeft <= 30
-    ).length;
+    // Count expiring within 30 days for the stat card (certifs + documents)
+    const expiringSoon = renewals.filter((c) => c.daysLeft <= 30).length;
 
     return NextResponse.json({
       totalTechnicians,
@@ -157,6 +199,7 @@ export async function GET() {
       activeCertifications,
       expiringSoon,
       expiringCertifications,
+      renewals,
       skillDistribution: skills,
       contractDistribution: contracts,
       recentActivity: recentActivity.map(

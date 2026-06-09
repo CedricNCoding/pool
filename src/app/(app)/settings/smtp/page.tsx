@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Mail, Save, TestTube, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Mail, Save, TestTube, Loader2, CheckCircle, AlertCircle, Send } from "lucide-react";
 
 export default function SmtpPage() {
   const [form, setForm] = useState({
@@ -19,7 +19,30 @@ export default function SmtpPage() {
   });
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  async function handleDigest() {
+    setSending(true);
+    setMessage(null);
+    const res = await fetch("/api/reminders/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ days: 90 }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setMessage({
+        type: "success",
+        text: data.sent
+          ? `Digest envoye a ${data.to} (${data.count} echeance(s))`
+          : data.message || "Aucune echeance a signaler",
+      });
+    } else {
+      setMessage({ type: "error", text: data.error || "Echec de l'envoi" });
+    }
+    setSending(false);
+  }
 
   useEffect(() => {
     fetch("/api/settings/smtp")
@@ -163,7 +186,17 @@ export default function SmtpPage() {
                 <TestTube className="w-4 h-4 mr-2" />
                 Tester la connexion
               </Button>
+              <Button type="button" variant="outline" onClick={handleDigest} disabled={sending}>
+                {sending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                <Send className="w-4 h-4 mr-2" />
+                Envoyer le digest des echeances
+              </Button>
             </div>
+            <p className="text-xs text-slate-500">
+              Le digest recapitule les certifications et documents (visite medicale,
+              habilitations...) arrivant a echeance sous 90 jours, envoye a l&apos;adresse
+              expediteur. A automatiser par cron en production.
+            </p>
           </form>
         </CardContent>
       </Card>

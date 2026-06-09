@@ -72,3 +72,43 @@ export async function sendCertExpiryReminder(params: {
     `,
   });
 }
+
+// Digest recapitulatif des echeances (certifs + documents) envoye au gestionnaire.
+export async function sendExpiryDigest(params: {
+  to: string;
+  items: { techName: string; label: string; kind: string; daysLeft: number; expiryDate: Date }[];
+}) {
+  const rows = params.items
+    .map((i) => {
+      const color = i.daysLeft <= 30 ? "#EF4444" : i.daysLeft <= 60 ? "#F59E0B" : "#10B981";
+      return `<tr>
+        <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;">${i.techName}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;">${i.kind === "doc" ? "Document" : "Certification"}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;">${i.label}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;">${i.expiryDate.toLocaleDateString("fr-FR")}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;color:${color};font-weight:600;">${i.daysLeft} j</td>
+      </tr>`;
+    })
+    .join("");
+
+  await sendMail({
+    to: params.to,
+    subject: `[AV Pool] ${params.items.length} echeance(s) a renouveler`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 680px; margin: 0 auto;">
+        <h2 style="color:#1E293B;">Echeances a renouveler</h2>
+        <p>${params.items.length} certification(s) / document(s) arrivent a echeance prochainement :</p>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead><tr style="text-align:left;color:#64748B;">
+            <th style="padding:6px 10px;">Technicien</th><th style="padding:6px 10px;">Type</th>
+            <th style="padding:6px 10px;">Intitule</th><th style="padding:6px 10px;">Expiration</th>
+            <th style="padding:6px 10px;">Reste</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <hr style="border:none;border-top:1px solid #E2E8F0;margin:24px 0;" />
+        <p style="color:#94A3B8;font-size:12px;">AV Pool - Gestion du pool techniciens audiovisuel</p>
+      </div>
+    `,
+  });
+}

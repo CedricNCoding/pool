@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useFetch } from "@/lib/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Award, AlertTriangle, Building2, Clock, MapPin } from "lucide-react";
+import { Users, Award, AlertTriangle, Building2, Clock, MapPin, FileText } from "lucide-react";
 
 const TechniciansMap = dynamic(() => import("@/components/TechniciansMap"), {
   ssr: false,
@@ -45,13 +45,14 @@ interface DashboardData {
   totalCompanies: number;
   activeCertifications: number;
   expiringSoon: number;
-  expiringCertifications: {
+  renewals: {
     id: string;
     techId: string;
     techName: string;
     certName: string;
     expiryDate: string;
     daysLeft: number;
+    kind: "cert" | "doc";
   }[];
   skillDistribution: { name: string; color: string; count: number }[];
   contractDistribution: { name: string; value: number }[];
@@ -418,7 +419,7 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg text-slate-50">
                 <AlertTriangle className="h-5 w-5 text-amber-400" />
-                Certifications a renouveler
+A renouveler (certifs + documents)
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -431,11 +432,11 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
-              ) : data && data.expiringCertifications.length > 0 ? (
+              ) : data && data.renewals.length > 0 ? (
                 <div className="max-h-[460px] space-y-3 overflow-y-auto pr-1">
-                  {data.expiringCertifications.map((cert) => (
+                  {data.renewals.map((cert) => (
                     <Link
-                      key={cert.id}
+                      key={cert.kind + cert.id}
                       href={`/technicians/${cert.techId}`}
                       className="flex items-start justify-between rounded-lg border border-slate-700/50 bg-slate-800/50 p-3 transition-colors hover:border-slate-600 hover:bg-slate-800"
                     >
@@ -443,7 +444,12 @@ export default function DashboardPage() {
                         <p className="truncate text-sm font-medium text-slate-200">
                           {cert.techName}
                         </p>
-                        <p className="mt-0.5 truncate text-xs text-slate-400">
+                        <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-slate-400">
+                          {cert.kind === "doc" ? (
+                            <FileText className="h-3 w-3 flex-shrink-0 text-cyan-400" />
+                          ) : (
+                            <Award className="h-3 w-3 flex-shrink-0 text-emerald-400" />
+                          )}
                           {cert.certName}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
@@ -468,7 +474,7 @@ export default function DashboardPage() {
                 <div className="py-8 text-center">
                   <Award className="mx-auto h-8 w-8 text-slate-600" />
                   <p className="mt-2 text-sm text-slate-500">
-                    Aucune certification a renouveler prochainement
+                    Rien a renouveler prochainement
                   </p>
                 </div>
               )}
