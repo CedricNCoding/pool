@@ -47,6 +47,7 @@ import {
 import TechnicianDocuments from "@/components/TechnicianDocuments";
 import TechnicianFormation from "@/components/TechnicianFormation";
 import TechnicianEvents from "@/components/TechnicianEvents";
+import AiImport from "@/components/AiImport";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -622,6 +623,7 @@ export default function TechnicianDetailPage() {
           </div>
 
           <div className="flex items-center gap-2 no-print">
+            <AiImport technicianId={tech.id} onApplied={fetchTech} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
