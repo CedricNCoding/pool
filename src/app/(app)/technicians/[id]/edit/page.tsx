@@ -1,0 +1,533 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Save, Loader2, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { CONTRACT_TYPES, SERVICES } from "@/lib/constants";
+
+interface Company {
+  id: string;
+  name: string;
+  color: string;
+  lat: number | null;
+  lng: number | null;
+  agencies: { id: string; name: string; lat: number | null; lng: number | null }[];
+}
+
+interface Technician {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  service: string;
+  contractType: string;
+  contractStart: string | null;
+  contractEnd: string | null;
+  isActive: boolean;
+  departureDate: string | null;
+  notes: string | null;
+  interventionCenterLat: number | null;
+  interventionCenterLng: number | null;
+  interventionRadiusKm: number;
+  companyId: string;
+  agencyId: string | null;
+  company: { id: string; name: string; color: string };
+}
+
+function isoToInput(d: string | null): string {
+  if (!d) return "";
+  return new Date(d).toISOString().split("T")[0];
+}
+
+export default function EditTechnicianPage() {
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    companyId: "",
+    agencyId: "",
+    service: "tech",
+    contractType: "CDI",
+    contractStart: "",
+    contractEnd: "",
+    interventionCenterLat: "",
+    interventionCenterLng: "",
+    interventionRadiusKm: "50",
+    notes: "",
+    isActive: true,
+    departureDate: "",
+  });
+
+  const fetchTech = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/technicians/${id}`);
+      if (!res.ok) {
+        setError("Technicien introuvable");
+        setLoading(false);
+        return;
+      }
+      const tech: Technician = await res.json();
+      setForm({
+        firstName: tech.firstName,
+        lastName: tech.lastName,
+        email: tech.email,
+        phone: tech.phone || "",
+        companyId: tech.companyId,
+        agencyId: tech.agencyId || "",
+        service: tech.service,
+        contractType: tech.contractType,
+        contractStart: isoToInput(tech.contractStart),
+        contractEnd: isoToInput(tech.contractEnd),
+        interventionCenterLat: tech.interventionCenterLat?.toString() || "",
+        interventionCenterLng: tech.interventionCenterLng?.toString() || "",
+        interventionRadiusKm: tech.interventionRadiusKm.toString(),
+        notes: tech.notes || "",
+        isActive: tech.isActive,
+        departureDate: isoToInput(tech.departureDate),
+      });
+    } catch {
+      setError("Erreur reseau");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchTech();
+  }, [fetchTech]);
+
+  useEffect(() => {
+    fetch("/api/companies")
+      .then((r) => r.json())
+      .then(setCompanies)
+      .catch(() => {});
+  }, []);
+
+  const selectedCompany = companies.find((c) => c.id === form.companyId);
+
+  function handleAgencyChange(agencyId: string) {
+    const agency = selectedCompany?.agencies.find((a) => a.id === agencyId);
+    if (agency?.lat && agency?.lng) {
+      setForm((f) => ({
+        ...f,
+        agencyId,
+        interventionCenterLat: agency.lat!.toString(),
+        interventionCenterLng: agency.lng!.toString(),
+      }));
+    } else {
+      setForm((f) => ({ ...f, agencyId }));
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+
+    const res = await fetch(`/api/technicians/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        phone: form.phone || null,
+        agencyId: form.agencyId || null,
+        service: form.service,
+        contractType: form.contractType,
+        contractStart: form.contractStart || null,
+        contractEnd: form.contractEnd || null,
+        interventionCenterLat: form.interventionCenterLat
+          ? parseFloat(form.interventionCenterLat)
+          : null,
+        interventionCenterLng: form.interventionCenterLng
+          ? parseFloat(form.interventionCenterLng)
+          : null,
+        interventionRadiusKm: parseInt(form.interventionRadiusKm) || 50,
+        notes: form.notes || null,
+        isActive: form.isActive,
+        departureDate: form.departureDate || null,
+      }),
+    });
+
+    if (res.ok) {
+      router.push(`/technicians/${id}`);
+    } else {
+      const data = await res.json();
+      setError(data.error || "Erreur lors de la mise a jour");
+    }
+    setSaving(false);
+  }
+
+  async function handleDelete() {
+    setDeleting(true);
+    const res = await fetch(`/api/technicians/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      router.push("/technicians");
+    } else {
+      setError("Erreur lors de la suppression");
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-8 max-w-4xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <Link href={`/technicians/${id}`}>
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold">Modifier le technicien</h1>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-red-400 border-red-400/30 hover:bg-red-400/10"
+          onClick={() => setDeleteDialogOpen(true)}
+        >
+          <Trash2 className="w-4 h-4 mr-1" />
+          Supprimer
+        </Button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="bg-red-900/30 text-red-400 px-4 py-3 rounded-lg text-sm border border-red-800/50">
+            {error}
+          </div>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              Identite
+              <Badge
+                variant="outline"
+                style={{
+                  backgroundColor: form.isActive ? "#10B98120" : "#EF444420",
+                  color: form.isActive ? "#10B981" : "#EF4444",
+                  borderColor: form.isActive ? "#10B98140" : "#EF444440",
+                }}
+              >
+                {form.isActive ? "Actif" : "Inactif"}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Prenom *</Label>
+              <Input
+                value={form.firstName}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, firstName: e.target.value }))
+                }
+                required
+              />
+            </div>
+            <div>
+              <Label>Nom *</Label>
+              <Input
+                value={form.lastName}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, lastName: e.target.value }))
+                }
+                required
+              />
+            </div>
+            <div>
+              <Label>Email *</Label>
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, email: e.target.value }))
+                }
+                required
+              />
+            </div>
+            <div>
+              <Label>Telephone</Label>
+              <Input
+                value={form.phone}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, phone: e.target.value }))
+                }
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Entreprise & Poste</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Entreprise</Label>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/50 text-sm">
+                {selectedCompany && (
+                  <span
+                    className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
+                    style={{ backgroundColor: selectedCompany.color }}
+                  />
+                )}
+                <span>{selectedCompany?.name || "..."}</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Le changement d&apos;entreprise n&apos;est pas permis. Recrez la fiche si necessaire.
+              </p>
+            </div>
+            <div>
+              <Label>Agence</Label>
+              <select
+                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                value={form.agencyId}
+                onChange={(e) => handleAgencyChange(e.target.value)}
+                disabled={!selectedCompany?.agencies.length}
+              >
+                <option value="">Siege / Aucune</option>
+                {selectedCompany?.agencies.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>Service</Label>
+              <select
+                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                value={form.service}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, service: e.target.value }))
+                }
+              >
+                {SERVICES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>Type de contrat</Label>
+              <select
+                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                value={form.contractType}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, contractType: e.target.value }))
+                }
+              >
+                {CONTRACT_TYPES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>Date debut contrat</Label>
+              <Input
+                type="date"
+                value={form.contractStart}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, contractStart: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label>Date fin contrat</Label>
+              <Input
+                type="date"
+                value={form.contractEnd}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, contractEnd: e.target.value }))
+                }
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Statut</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Actif</Label>
+              <select
+                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                value={form.isActive ? "true" : "false"}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, isActive: e.target.value === "true" }))
+                }
+              >
+                <option value="true">Actif</option>
+                <option value="false">Inactif (depart)</option>
+              </select>
+              {!form.isActive && (
+                <p className="text-xs text-amber-400 mt-1">
+                  Le passage en inactif programme automatiquement la suppression RGPD dans 12 mois.
+                </p>
+              )}
+            </div>
+            <div>
+              <Label>Date de depart</Label>
+              <Input
+                type="date"
+                value={form.departureDate}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, departureDate: e.target.value }))
+                }
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Zone d&apos;intervention</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-3 gap-4">
+            <div>
+              <Label>Latitude</Label>
+              <Input
+                type="number"
+                step="any"
+                value={form.interventionCenterLat}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    interventionCenterLat: e.target.value,
+                  }))
+                }
+                placeholder="48.8566"
+              />
+            </div>
+            <div>
+              <Label>Longitude</Label>
+              <Input
+                type="number"
+                step="any"
+                value={form.interventionCenterLng}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    interventionCenterLng: e.target.value,
+                  }))
+                }
+                placeholder="2.3522"
+              />
+            </div>
+            <div>
+              <Label>Rayon (km)</Label>
+              <Input
+                type="number"
+                value={form.interventionRadiusKm}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    interventionRadiusKm: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              value={form.notes}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, notes: e.target.value }))
+              }
+              placeholder="Notes internes (non visibles via l'API)..."
+              rows={4}
+            />
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end gap-3">
+          <Link href={`/technicians/${id}`}>
+            <Button variant="outline">Annuler</Button>
+          </Link>
+          <Button type="submit" disabled={saving}>
+            {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+            <Save className="w-4 h-4 mr-2" />
+            Enregistrer
+          </Button>
+        </div>
+      </form>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-slate-400 py-4">
+            Cette action est irreversible. Le technicien{" "}
+            <strong className="text-slate-200">
+              {form.firstName} {form.lastName}
+            </strong>{" "}
+            sera definitivement supprime avec toutes ses competences et
+            certifications.
+          </p>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Annuler</Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              disabled={deleting}
+              onClick={handleDelete}
+            >
+              {deleting ? "Suppression..." : "Supprimer definitivement"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

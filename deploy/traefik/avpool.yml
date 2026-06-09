@@ -1,0 +1,65 @@
+# =============================================================================
+# Traefik — config dynamique pour AV Pool (sous-domaine demo temporaire)
+# A deposer dans le repertoire de config dynamique du LXC Traefik (192.168.1.2),
+# p.ex.  /etc/traefik/dynamic/avpool.yml  — Traefik le recharge a chaud.
+#
+# Adapter :
+#   - VM_LAN_IP        -> IP LAN de la VM qui heberge avpool (ex: 192.168.1.40)
+#   - certResolver     -> ton resolver ACME existant (ou un cert wildcard *.spektalis.net)
+#   - middlewares      -> reutilise tes middlewares globaux SI tu en as deja,
+#                         MAIS garde la CSP ci-dessous (compatible Leaflet/OSM).
+# =============================================================================
+http:
+  routers:
+    avpool:
+      rule: "Host(`avpool.spektalis.net`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt   # <-- adapter (ou retirer si cert wildcard fourni par defaut)
+      service: avpool
+      middlewares:
+        - avpool-headers
+        - avpool-ratelimit
+
+  services:
+    avpool:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://VM_LAN_IP:3000"   # <-- IP LAN de la VM avpool
+
+  middlewares:
+    # --- En-tetes de securite -------------------------------------------------
+    # CSP volontairement compatible avec la carte (Leaflet + tuiles OSM).
+    # NE PAS ajouter `require-trusted-types-for` : Leaflet/Recharts ne sont pas
+    # compatibles Trusted Types (c'est ce qui avait casse Atlas post-hardening).
+    avpool-headers:
+      headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        customResponseHeaders:
+          X-Powered-By: ""        # strip
+          Server: ""              # strip
+          Permissions-Policy: "geolocation=(self), camera=(), microphone=(), payment=()"
+          Content-Security-Policy: >-
+            default-src 'self';
+            base-uri 'self';
+            frame-ancestors 'none';
+            form-action 'self';
+            img-src 'self' data: https://*.tile.openstreetmap.org;
+            script-src 'self' 'unsafe-inline';
+            style-src 'self' 'unsafe-inline';
+            font-src 'self' data:;
+            connect-src 'self';
+            object-src 'none'
+
+    # --- Limitation de debit (aligne sur spektalis-rate-limit 100/s) ----------
+    avpool-ratelimit:
+      rateLimit:
+        average: 100
+        burst: 50

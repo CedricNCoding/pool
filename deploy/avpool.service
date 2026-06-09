@@ -1,0 +1,35 @@
+# /etc/systemd/system/avpool.service
+# Service AV Pool (Next.js 16) — derriere Traefik.
+#   sudo cp deploy/avpool.service /etc/systemd/system/avpool.service
+#   sudo systemctl daemon-reload && sudo systemctl enable --now avpool
+[Unit]
+Description=AV Pool (Next.js)
+After=network.target
+
+[Service]
+Type=simple
+User=avpool
+Group=avpool
+WorkingDirectory=/opt/avpool
+EnvironmentFile=/opt/avpool/.env.production
+ExecStart=/usr/bin/node /opt/avpool/node_modules/next/dist/bin/next start -H 0.0.0.0 -p 3000
+Restart=on-failure
+RestartSec=5
+
+# --- Durcissement systemd ---------------------------------------------------
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+# Seuls ces chemins sont accessibles en ecriture (DB + cache de build Next)
+ReadWritePaths=/opt/avpool/data /opt/avpool/.next /opt/avpool/backups
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=false
+
+[Install]
+WantedBy=multi-user.target

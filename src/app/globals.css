@@ -1,26 +1,39 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  --color-primary: #1e40af;
+  --color-primary-foreground: #ffffff;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: theme(colors.slate.200);
+  }
+}
+
+@layer utilities {
+  .skill-level-1 { --skill-color: #94A3B8; }
+  .skill-level-2 { --skill-color: #3B82F6; }
+  .skill-level-3 { --skill-color: #8B5CF6; }
+  .skill-level-4 { --skill-color: #F59E0B; }
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 0.5rem;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  body { background: white; }
 }
