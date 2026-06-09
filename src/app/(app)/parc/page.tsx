@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Activity, Users, Award, FileText, AlertTriangle } from "lucide-react";
 import { SERVICES } from "@/lib/constants";
 import { docCategoryLabel } from "@/lib/dossier";
+import TrendsCharts from "@/components/TrendsCharts";
+import CoverageMap from "@/components/CoverageMap";
 
 interface Analytics {
   totalActive: number;
@@ -127,7 +129,7 @@ export default function ParcPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.incompleteDossiers.map((t) => (
+                {data.incompleteDossiers.slice(0, 15).map((t) => (
                   <tr key={t.id} className="border-b border-slate-800 hover:bg-slate-800/40">
                     <td className="py-2 px-4">
                       <Link href={`/technicians/${t.id}`} className="text-slate-100 hover:underline">{t.name}</Link>
@@ -147,8 +149,17 @@ export default function ParcPage() {
               </tbody>
             </table>
           )}
+          {data.incompleteDossiers.length > 15 && (
+            <p className="px-4 py-3 text-xs text-slate-500 border-t border-slate-800">
+              et {data.incompleteDossiers.length - 15} autre(s) dossier(s) incomplet(s).
+            </p>
+          )}
         </CardContent>
       </Card>
+
+      <TrendsCharts />
+
+      <CoverageMap />
     </div>
   );
 }
