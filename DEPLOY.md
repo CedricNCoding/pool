@@ -196,14 +196,20 @@ le seed principal. Rafraîchir le navigateur — aucun redémarrage nécessaire.
 sudo tee /etc/cron.daily/avpool-backup >/dev/null <<'EOF'
 #!/bin/sh
 ts=$(date +%Y%m%d)
+# Base SQLite
 sqlite3 /opt/avpool/data/avpool.db ".backup '/opt/avpool/backups/avpool-$ts.db'"
+# Documents uploadés (coffre-fort) — data/uploads
+[ -d /opt/avpool/data/uploads ] && tar czf /opt/avpool/backups/uploads-$ts.tgz -C /opt/avpool/data uploads
 find /opt/avpool/backups -name 'avpool-*.db' -mtime +30 -delete
+find /opt/avpool/backups -name 'uploads-*.tgz' -mtime +30 -delete
 EOF
 sudo chmod +x /etc/cron.daily/avpool-backup
 sudo apt-get install -y sqlite3
 ```
 
-(Pousser ensuite vers l'Object Storage OVH comme pour les autres apps.)
+> Les documents uploadés sont dans `/opt/avpool/data/uploads` (écrivable par le
+> service ; chemin par défaut, surchargeable via `UPLOAD_DIR`). Pousser ensuite
+> base + uploads vers l'Object Storage OVH comme pour les autres apps.
 
 ## 13. Email (rappels de certification) — quand tu l'activeras
 

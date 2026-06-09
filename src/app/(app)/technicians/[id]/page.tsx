@@ -40,7 +40,9 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
+  FileText,
 } from "lucide-react";
+import TechnicianDocuments from "@/components/TechnicianDocuments";
 import {
   Radar,
   RadarChart,
@@ -631,6 +633,10 @@ export default function TechnicianDetailPage() {
               <Award className="w-3.5 h-3.5 mr-1" />
               Certifications
             </TabsTrigger>
+            <TabsTrigger value="documents">
+              <FileText className="w-3.5 h-3.5 mr-1" />
+              Documents
+            </TabsTrigger>
             <TabsTrigger value="zone">
               <MapPin className="w-3.5 h-3.5 mr-1" />
               Zone d&apos;intervention
@@ -1043,6 +1049,13 @@ export default function TechnicianDetailPage() {
                 </CardContent>
               </Card>
             ))}
+          </TabsContent>
+
+          {/* ----------------------------------------------------------- */}
+          {/* TAB: Documents (coffre-fort)                                 */}
+          {/* ----------------------------------------------------------- */}
+          <TabsContent value="documents" className="space-y-6">
+            <TechnicianDocuments technicianId={tech.id} />
           </TabsContent>
 
           {/* ----------------------------------------------------------- */}

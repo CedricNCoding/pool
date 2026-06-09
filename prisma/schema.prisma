@@ -98,6 +98,7 @@ model Technician {
   skillHistory        TechnicianSkillHistory[]
   projects            Project[]
   trainingAssignments TrainingAssignment[]
+  documents           Document[]
 
   @@map("technicians")
 }
@@ -232,6 +233,27 @@ model Setting {
   value String
 
   @@map("settings")
+}
+
+// Coffre-fort : documents rattaches a un technicien (contrat, identite,
+// visite medicale, habilitation, certificat...). Fichier stocke sur disque.
+model Document {
+  id           String    @id @default(uuid())
+  technicianId String    @map("technician_id")
+  category     String    @default("autre") // contrat | identite | medical | habilitation | certificat | diplome | autre
+  title        String
+  fileName     String    @map("file_name")
+  originalName String    @map("original_name")
+  mimeType     String    @map("mime_type")
+  size         Int
+  expiryDate   DateTime? @map("expiry_date")
+  uploadedById String?   @map("uploaded_by_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([technicianId])
+  @@map("documents")
 }
 
 // Projet / Equipe : un titre, une description libre, et une liste de techniciens.
