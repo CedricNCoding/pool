@@ -49,6 +49,7 @@ import TechnicianFormation from "@/components/TechnicianFormation";
 import TechnicianEvents from "@/components/TechnicianEvents";
 import AiImport from "@/components/AiImport";
 import AuditTrail from "@/components/AuditTrail";
+import TechnicianTimeline from "@/components/TechnicianTimeline";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -855,6 +856,8 @@ export default function TechnicianDetailPage() {
           {/* TAB: Historique                                             */}
           {/* ----------------------------------------------------------- */}
           <TabsContent value="historique" className="space-y-6">
+            <TechnicianTimeline technicianId={tech.id} />
+
             <Card className="print-break">
               <CardHeader>
                 <CardTitle>Evolution des competences</CardTitle>
