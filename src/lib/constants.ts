@@ -1,9 +1,14 @@
 export const SKILL_LEVELS = [
   { value: 1, label: "Debutant", color: "#94A3B8", bgColor: "#F1F5F9" },
-  { value: 2, label: "Avance", color: "#3B82F6", bgColor: "#EFF6FF" },
-  { value: 3, label: "Senior", color: "#8B5CF6", bgColor: "#F5F3FF" },
-  { value: 4, label: "Maitrise", color: "#F59E0B", bgColor: "#FFFBEB" },
+  { value: 2, label: "Intermediaire", color: "#22D3EE", bgColor: "#ECFEFF" },
+  { value: 3, label: "Avance", color: "#3B82F6", bgColor: "#EFF6FF" },
+  { value: 4, label: "Senior", color: "#8B5CF6", bgColor: "#F5F3FF" },
+  { value: 5, label: "Maitrise", color: "#F59E0B", bgColor: "#FFFBEB" },
 ] as const;
+
+// Niveau 0 = competence evaluee mais nulle (distinct de "non renseigne" = pas d'enregistrement)
+export const SKILL_LEVEL_NONE = { value: 0, label: "Aucune", color: "#475569" } as const;
+export const SKILL_LEVEL_MAX = 5;
 
 export const CONTRACT_TYPES = [
   { value: "CDI", label: "CDI", color: "#10B981" },

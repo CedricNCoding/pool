@@ -225,7 +225,8 @@ async function main() {
   let certRows = 0;
   let soonCount = 0;
   let inactiveCount = 0;
-  const levelTally = [0, 0, 0, 0];
+  let histRows = 0;
+  const levelTally = [0, 0, 0, 0, 0];
 
   for (let i = 0; i < COUNT; i++) {
     const comp = companyPostings[i % companyPostings.length];
@@ -255,16 +256,38 @@ async function main() {
       contractEnd = departureDate;
     }
 
-    // Niveau "seniorite" du technicien -> ses competences gravitent autour.
-    const seniority = randInt(1, 4);
+    // Niveau "seniorite" du technicien -> ses competences gravitent autour
+    // (echelle 0 a 5 ; ~5% a 0 = Aucune).
+    const seniority = randInt(1, 5);
     const skillCount = randInt(5, 16);
     const chosenSkills = sample(skills, Math.min(skillCount, skills.length));
-    const skillData = chosenSkills.map((s) => {
-      const level = Math.min(4, Math.max(1, seniority + randInt(-1, 1)));
-      levelTally[level - 1]++;
+    const skillData: { skillId: string; level: number }[] = [];
+    const historyData: { skillId: string; level: number; recordedAt: Date }[] = [];
+    for (const s of chosenSkills) {
+      const level = chance(0.05)
+        ? 0
+        : Math.min(5, Math.max(1, seniority + randInt(-1, 1)));
+      if (level >= 1) levelTally[level - 1]++;
       skillRows++;
-      return { skillId: s.id, level };
-    });
+      skillData.push({ skillId: s.id, level });
+
+      // Historique : progression retroactive jusqu'au niveau courant
+      if (level >= 1) {
+        const steps = randInt(1, 3);
+        for (let k = 0; k < steps; k++) {
+          const lvl = Math.max(1, level - (steps - 1 - k));
+          historyData.push({
+            skillId: s.id,
+            level: lvl,
+            recordedAt: daysAgo((steps - k) * randInt(150, 320)),
+          });
+          histRows++;
+        }
+      } else {
+        historyData.push({ skillId: s.id, level: 0, recordedAt: daysAgo(randInt(100, 400)) });
+        histRows++;
+      }
+    }
 
     // Certifications (60% des techniciens, 1 a 4)
     let certData: {
@@ -313,12 +336,14 @@ async function main() {
         createdAt: contractStart,
         skills: { create: skillData },
         certifications: { create: certData },
+        skillHistory: { create: historyData },
       },
     });
   }
 
   console.log(`  ${COUNT} techniciens crees (${inactiveCount} inactifs/depart)`);
-  console.log(`  ${skillRows} competences | repartition niveaux Debutant/Avance/Senior/Maitrise = ${levelTally.join("/")}`);
+  console.log(`  ${skillRows} competences | niveaux Debutant/Intermediaire/Avance/Senior/Maitrise = ${levelTally.join("/")}`);
+  console.log(`  ${histRows} entrees d'historique (evolution)`);
   console.log(`  ${certRows} certifications dont ${soonCount} a renouveler sous 90j`);
   console.log("Termine.");
 }

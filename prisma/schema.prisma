@@ -94,6 +94,7 @@ model Technician {
   agency         Agency?                   @relation(fields: [agencyId], references: [id])
   skills         TechnicianSkill[]
   certifications TechnicianCertification[]
+  skillHistory   TechnicianSkillHistory[]
 
   @@map("technicians")
 }
@@ -119,6 +120,7 @@ model Skill {
 
   category    SkillCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   technicians TechnicianSkill[]
+  history     TechnicianSkillHistory[]
 
   @@unique([name, categoryId])
   @@map("skills")
@@ -136,6 +138,23 @@ model TechnicianSkill {
 
   @@unique([technicianId, skillId])
   @@map("technician_skills")
+}
+
+// Historique des niveaux de competence : un enregistrement par changement,
+// pour suivre l'evolution d'un technicien dans le temps.
+model TechnicianSkillHistory {
+  id           String   @id @default(uuid())
+  technicianId String   @map("technician_id")
+  skillId      String   @map("skill_id")
+  level        Int
+  userId       String?  @map("user_id")
+  recordedAt   DateTime @default(now()) @map("recorded_at")
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  skill      Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@index([technicianId])
+  @@map("technician_skill_history")
 }
 
 model Certification {

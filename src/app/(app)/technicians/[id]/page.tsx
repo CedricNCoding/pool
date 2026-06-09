@@ -51,6 +51,7 @@ import {
 } from "recharts";
 import {
   SKILL_LEVELS,
+  SKILL_LEVEL_NONE,
   CONTRACT_TYPES,
   SERVICES,
   CERT_CATEGORIES,
@@ -67,6 +68,14 @@ interface SkillCategory {
   icon: string;
   // Present quand la categorie vient de /api/skills/categories (catalogue complet)
   skills?: { id: string; name: string }[];
+}
+
+interface SkillHistoryEntry {
+  id: string;
+  skillId: string;
+  level: number;
+  recordedAt: string;
+  skill: { name: string; category: { name: string; color: string } };
 }
 
 interface SkillDef {
@@ -178,43 +187,61 @@ function buildRadarData(
   categories: SkillCategory[]
 ) {
   return categories.map((cat) => {
+    // Moyenne sur les competences RENSEIGNEES (niveau 0 a 5). "Non renseigne"
+    // (absent de skillEdits) est exclu ; un 0 explicite ("Aucune") compte.
     const levels = (cat.skills ?? [])
-      .map((s) => skillEdits[s.id] ?? 0)
-      .filter((l) => l >= 1);
+      .map((s) => skillEdits[s.id])
+      .filter((l): l is number => l !== undefined);
     const avg = levels.length
       ? levels.reduce((a, b) => a + b, 0) / levels.length
       : 0;
     return {
       category: cat.name,
       level: Math.round(avg * 10) / 10,
-      fullMark: 4,
+      fullMark: 5,
     };
   });
 }
 
 // ---------------------------------------------------------------------------
-// Skill level selector (4 clickable segments)
+// Skill level selector : "0/Aucune" + 5 paliers. level = null => non renseigne.
+// Cliquer un palier l'attribue ; recliquer le palier actif efface (non renseigne).
 // ---------------------------------------------------------------------------
 
 function SkillLevelSelector({
   level,
-  onChange,
+  onPick,
 }: {
-  level: number;
-  onChange: (l: number) => void;
+  level: number | null;
+  onPick: (l: number) => void;
 }) {
   return (
     <div className="flex items-center gap-1">
+      <button
+        type="button"
+        title={`${SKILL_LEVEL_NONE.label} (0)${level === 0 ? " - recliquer pour effacer" : ""}`}
+        onClick={() => onPick(0)}
+        className="h-6 w-6 rounded-sm text-[10px] font-semibold transition-all hover:scale-110 cursor-pointer flex items-center justify-center border border-slate-700 flex-shrink-0"
+        style={{
+          backgroundColor: level === 0 ? SKILL_LEVEL_NONE.color : "#1E293B",
+          color: level === 0 ? "#fff" : "#64748B",
+        }}
+      >
+        0
+      </button>
       {SKILL_LEVELS.map((sl) => (
         <button
           key={sl.value}
           type="button"
-          title={`${sl.label}${level === sl.value ? " (recliquer pour retirer)" : ""}`}
-          onClick={() => onChange(sl.value === level ? 0 : sl.value)}
+          title={`${sl.label}${level === sl.value ? " - recliquer pour effacer" : ""}`}
+          onClick={() => onPick(sl.value)}
           className="h-6 flex-1 rounded-sm transition-all hover:scale-110 cursor-pointer"
           style={{
-            backgroundColor: level >= sl.value ? sl.color : "#334155",
-            minWidth: 28,
+            backgroundColor:
+              level != null && level >= 1 && level >= sl.value
+                ? sl.color
+                : "#334155",
+            minWidth: 22,
           }}
         />
       ))}
@@ -232,10 +259,12 @@ export default function TechnicianDetailPage() {
 
   const [tech, setTech] = useState<Technician | null>(null);
   const [skillCategories, setSkillCategories] = useState<SkillCategory[]>([]);
+  const [skillHistory, setSkillHistory] = useState<SkillHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Skills state (local editable copy)
+  // Skills state (local editable copy). Une clef presente = competence
+  // renseignee (niveau 0 a 5). Clef absente = "non renseigne".
   const [skillEdits, setSkillEdits] = useState<
     Record<string, number>
   >({});
@@ -301,23 +330,45 @@ export default function TechnicianDetailPage() {
       .catch(() => {});
   }, []);
 
+  // Historique d'evolution des competences
+  const fetchHistory = useCallback(() => {
+    fetch(`/api/technicians/${id}/skills`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setSkillHistory)
+      .catch(() => {});
+  }, [id]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
   // ------------------------------------------------------------------
   // Skill actions
   // ------------------------------------------------------------------
 
-  function handleSkillChange(skillId: string, level: number) {
-    setSkillEdits((prev) => ({ ...prev, [skillId]: level }));
+  // Clic sur un palier : l'attribue ; reclic sur le palier actif => efface
+  // (la competence repasse en "non renseigne").
+  function handleSkillPick(skillId: string, value: number) {
+    setSkillEdits((prev) => {
+      if (prev[skillId] === value) {
+        const next = { ...prev };
+        delete next[skillId];
+        return next;
+      }
+      return { ...prev, [skillId]: value };
+    });
     setSkillsDirty(true);
   }
 
   async function saveSkills() {
     if (!tech) return;
     setSavingSkills(true);
-    // On n'envoie que les competences attribuees (niveau >= 1). Le PUT remplace
-    // tout : les competences remises a 0 sont donc retirees du technicien.
-    const payload = Object.entries(skillEdits)
-      .filter(([, level]) => level >= 1)
-      .map(([skillId, level]) => ({ skillId, level }));
+    // On envoie toutes les competences RENSEIGNEES (niveau 0 a 5). Le PUT
+    // remplace tout : celles effacees (absentes de skillEdits) sont retirees.
+    const payload = Object.entries(skillEdits).map(([skillId, level]) => ({
+      skillId,
+      level,
+    }));
 
     try {
       const res = await fetch(`/api/technicians/${id}/skills`, {
@@ -327,6 +378,7 @@ export default function TechnicianDetailPage() {
       });
       if (res.ok) {
         await fetchTech();
+        fetchHistory();
       }
     } catch {
       // silent
@@ -414,6 +466,46 @@ export default function TechnicianDetailPage() {
 
   // Radar data (calcule depuis les niveaux edites + le catalogue complet)
   const radarData = buildRadarData(skillEdits, skillCategories);
+
+  // Historique groupe par competence, progression chronologique (plus recent en tete)
+  const historyBySkill = (() => {
+    const map = new Map<
+      string,
+      {
+        skillName: string;
+        categoryName: string;
+        color: string;
+        entries: { level: number; recordedAt: string }[];
+      }
+    >();
+    for (const h of skillHistory) {
+      let g = map.get(h.skillId);
+      if (!g) {
+        g = {
+          skillName: h.skill.name,
+          categoryName: h.skill.category.name,
+          color: h.skill.category.color,
+          entries: [],
+        };
+        map.set(h.skillId, g);
+      }
+      g.entries.push({ level: h.level, recordedAt: h.recordedAt });
+    }
+    return Array.from(map.values()).sort((a, b) => {
+      const la = a.entries[a.entries.length - 1]?.recordedAt ?? "";
+      const lb = b.entries[b.entries.length - 1]?.recordedAt ?? "";
+      return lb.localeCompare(la);
+    });
+  })();
+
+  function levelLabel(n: number): string {
+    if (n === 0) return SKILL_LEVEL_NONE.label;
+    return SKILL_LEVELS.find((l) => l.value === n)?.label ?? `${n}`;
+  }
+  function levelColor(n: number): string {
+    if (n === 0) return SKILL_LEVEL_NONE.color;
+    return SKILL_LEVELS.find((l) => l.value === n)?.color ?? "#64748B";
+  }
 
   // Certs grouped by category
   const certsByCategory: Record<string, TechCert[]> = {};
@@ -531,6 +623,10 @@ export default function TechnicianDetailPage() {
               <Wrench className="w-3.5 h-3.5 mr-1" />
               Competences
             </TabsTrigger>
+            <TabsTrigger value="historique">
+              <Clock className="w-3.5 h-3.5 mr-1" />
+              Historique
+            </TabsTrigger>
             <TabsTrigger value="certifications">
               <Award className="w-3.5 h-3.5 mr-1" />
               Certifications
@@ -571,8 +667,8 @@ export default function TechnicianDetailPage() {
                         />
                         <PolarRadiusAxis
                           angle={90}
-                          domain={[0, 4]}
-                          tickCount={5}
+                          domain={[0, 5]}
+                          tickCount={6}
                           tick={{ fill: "#64748B", fontSize: 10 }}
                         />
                         <Radar
@@ -608,8 +704,9 @@ export default function TechnicianDetailPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <p className="text-xs text-slate-500 -mt-2 no-print">
-                  Cliquez un niveau pour attribuer une competence ; recliquez le
-                  niveau actif pour la retirer. Pensez a « Mettre a jour ».
+                  Echelle 0 a 5 (0 = Aucune). Cliquez un palier pour l&apos;attribuer ;
+                  recliquez le palier actif pour l&apos;effacer (non renseigne). Pensez
+                  a « Mettre a jour ».
                 </p>
                 {skillCategories.length === 0 && (
                   <p className="text-sm text-slate-500">
@@ -636,10 +733,22 @@ export default function TechnicianDetailPage() {
                       </div>
                       <div className="space-y-2 pl-5">
                         {(cat.skills ?? []).map((skill) => {
-                          const currentLevel = skillEdits[skill.id] ?? 0;
-                          const levelMeta = SKILL_LEVELS.find(
-                            (l) => l.value === currentLevel
-                          );
+                          const raw = skillEdits[skill.id];
+                          const isSet = raw !== undefined;
+                          const graded =
+                            isSet && raw >= 1
+                              ? SKILL_LEVELS.find((l) => l.value === raw)
+                              : null;
+                          const labelText = !isSet
+                            ? "Non renseigne"
+                            : raw === 0
+                              ? SKILL_LEVEL_NONE.label
+                              : graded?.label ?? "-";
+                          const labelColor = !isSet
+                            ? "#64748B"
+                            : raw === 0
+                              ? SKILL_LEVEL_NONE.color
+                              : graded?.color ?? "#64748B";
                           return (
                             <div
                               key={skill.id}
@@ -648,19 +757,17 @@ export default function TechnicianDetailPage() {
                               <span className="text-sm text-slate-300 w-48 truncate">
                                 {skill.name}
                               </span>
-                              <div className="w-40">
+                              <div className="w-56">
                                 <SkillLevelSelector
-                                  level={currentLevel}
-                                  onChange={(l) =>
-                                    handleSkillChange(skill.id, l)
-                                  }
+                                  level={isSet ? raw : null}
+                                  onPick={(l) => handleSkillPick(skill.id, l)}
                                 />
                               </div>
                               <span
-                                className="text-xs font-medium min-w-[90px]"
-                                style={{ color: levelMeta?.color ?? "#64748B" }}
+                                className="text-xs font-medium min-w-[100px]"
+                                style={{ color: labelColor }}
                               >
-                                {levelMeta?.label ?? "Non renseigne"}
+                                {labelText}
                               </span>
                             </div>
                           );
@@ -669,6 +776,70 @@ export default function TechnicianDetailPage() {
                     </div>
                   );
                 })}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ----------------------------------------------------------- */}
+          {/* TAB: Historique                                             */}
+          {/* ----------------------------------------------------------- */}
+          <TabsContent value="historique" className="space-y-6">
+            <Card className="print-break">
+              <CardHeader>
+                <CardTitle>Evolution des competences</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {historyBySkill.length === 0 ? (
+                  <p className="text-sm text-slate-500">
+                    Aucun historique pour l&apos;instant. Chaque modification de
+                    niveau dans le barometre sera enregistree ici, avec sa date,
+                    pour suivre la progression.
+                  </p>
+                ) : (
+                  <div className="space-y-5">
+                    {historyBySkill.map((h) => (
+                      <div key={h.skillName} className="print-break">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
+                            style={{ backgroundColor: h.color }}
+                          />
+                          <span className="text-sm font-medium text-slate-200">
+                            {h.skillName}
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            {h.categoryName}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 flex-wrap pl-5">
+                          {h.entries.map((e, i) => (
+                            <div key={i} className="flex items-center gap-1">
+                              {i > 0 && (
+                                <span className="text-slate-600 text-xs">→</span>
+                              )}
+                              <div className="flex flex-col items-center">
+                                <Badge
+                                  variant="outline"
+                                  className="text-[11px]"
+                                  style={{
+                                    color: levelColor(e.level),
+                                    borderColor: levelColor(e.level) + "55",
+                                    backgroundColor: levelColor(e.level) + "15",
+                                  }}
+                                >
+                                  {levelLabel(e.level)}
+                                </Badge>
+                                <span className="text-[10px] text-slate-500 mt-0.5">
+                                  {fmtDate(e.recordedAt)}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
