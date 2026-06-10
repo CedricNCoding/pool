@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Monitor, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import PraxisLogo from "@/components/PraxisLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,12 +36,10 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#0B1220]">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500 mb-4">
-            <Monitor className="w-8 h-8 text-[#0B1220]" />
+          <div className="inline-flex mb-4">
+            <PraxisLogo size={64} className="rounded-2xl" />
           </div>
-          <h1 className="text-3xl font-bold text-white">
-            Spektalis <span className="text-amber-400">Pool</span>
-          </h1>
+          <h1 className="text-3xl font-bold text-white">Praxis</h1>
           <p className="text-slate-400 mt-2">Suite Spektalis — gestion du pool de techniciens audiovisuel</p>
         </div>
 

@@ -15,8 +15,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Spektalis Pool — gestion du pool de techniciens audiovisuel",
-  description: "Module Pool de la suite Spektalis : gestion des techniciens audiovisuel.",
+  title: "Praxis — Suite Spektalis",
+  description: "Praxis, module de la suite Spektalis : gestion du pool de techniciens audiovisuel.",
 };
 
 export default function RootLayout({

@@ -57,7 +57,7 @@ export async function sendCertExpiryReminder(params: {
 }) {
   await sendMail({
     to: params.techEmail,
-    subject: `[AV Pool] Certification ${params.certName} - Expiration dans ${params.daysLeft} jours`,
+    subject: `[Praxis] Certification ${params.certName} - Expiration dans ${params.daysLeft} jours`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1E293B;">Rappel de renouvellement</h2>
@@ -67,7 +67,7 @@ export async function sendCertExpiryReminder(params: {
         (dans ${params.daysLeft} jours).</p>
         <p>Pensez a planifier votre renouvellement.</p>
         <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 24px 0;" />
-        <p style="color: #94A3B8; font-size: 12px;">AV Pool - Gestion du pool techniciens audiovisuel</p>
+        <p style="color: #94A3B8; font-size: 12px;">Praxis — Suite Spektalis</p>
       </div>
     `,
   });
@@ -93,7 +93,7 @@ export async function sendExpiryDigest(params: {
 
   await sendMail({
     to: params.to,
-    subject: `[AV Pool] ${params.items.length} echeance(s) a renouveler`,
+    subject: `[Praxis] ${params.items.length} echeance(s) a renouveler`,
     html: `
       <div style="font-family: sans-serif; max-width: 680px; margin: 0 auto;">
         <h2 style="color:#1E293B;">Echeances a renouveler</h2>
@@ -107,7 +107,7 @@ export async function sendExpiryDigest(params: {
           <tbody>${rows}</tbody>
         </table>
         <hr style="border:none;border-top:1px solid #E2E8F0;margin:24px 0;" />
-        <p style="color:#94A3B8;font-size:12px;">AV Pool - Gestion du pool techniciens audiovisuel</p>
+        <p style="color:#94A3B8;font-size:12px;">Praxis — Suite Spektalis</p>
       </div>
     `,
   });
