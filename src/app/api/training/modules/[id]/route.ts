@@ -32,6 +32,9 @@ export async function PATCH(
     const d = parseInt(String(body.durationHours), 10);
     data.durationHours = Number.isFinite(d) && d > 0 ? d : null;
   }
+  if (body.cost !== undefined) {
+    data.cost = Math.max(0, parseInt(String(body.cost)) || 0);
+  }
   if (Array.isArray(body.targetSkillIds)) {
     data.targetSkills = { set: body.targetSkillIds.map((sid: string) => ({ id: sid })) };
   }

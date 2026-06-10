@@ -20,12 +20,14 @@ import {
   FolderKanban,
   GraduationCap,
   Activity,
+  Gauge,
 } from "lucide-react";
 import { useSession } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/NotificationBell";
 
 const mainNav = [
+  { href: "/direction", label: "Direction", icon: Gauge },
   { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/technicians", label: "Techniciens", icon: Users },
   { href: "/companies", label: "Entreprises", icon: Building2 },

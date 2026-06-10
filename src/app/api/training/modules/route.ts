@@ -29,11 +29,14 @@ export async function POST(req: NextRequest) {
     durationHours = Number.isFinite(d) && d > 0 ? d : null;
   }
 
+  const cost = Math.max(0, parseInt(String(body.cost)) || 0);
+
   const module = await prisma.trainingModule.create({
     data: {
       title,
       description: body.description?.trim() || null,
       durationHours,
+      cost,
       targetSkills: { connect: skillIds.map((id) => ({ id })) },
     },
     include: { targetSkills: true },

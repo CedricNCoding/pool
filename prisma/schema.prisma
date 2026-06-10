@@ -130,9 +130,26 @@ model Skill {
   technicians     TechnicianSkill[]
   history         TechnicianSkillHistory[]
   trainingModules TrainingModule[]
+  objectives      SkillObjective[]
 
   @@unique([name, categoryId])
   @@map("skills")
+}
+
+// Objectif de montee en competences : atteindre targetPercent % de techniciens
+// actifs a un niveau >= minLevel sur une competence, avant une echeance.
+model SkillObjective {
+  id            String    @id @default(uuid())
+  label         String
+  skillId       String?   @map("skill_id")
+  minLevel      Int       @default(3) @map("min_level")
+  targetPercent Int       @default(80) @map("target_percent")
+  deadline      DateTime?
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  skill Skill? @relation(fields: [skillId], references: [id], onDelete: SetNull)
+
+  @@map("skill_objectives")
 }
 
 model TechnicianSkill {
@@ -315,6 +332,7 @@ model TrainingModule {
   title         String
   description   String?
   durationHours Int?     @map("duration_hours")
+  cost          Int      @default(0) @map("cost_eur")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 

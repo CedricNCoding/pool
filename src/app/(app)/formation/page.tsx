@@ -102,7 +102,7 @@ export default function FormationPage() {
 
   // ---- New module --------------------------------------------------------
   const [modOpen, setModOpen] = useState(false);
-  const [modForm, setModForm] = useState({ title: "", description: "", durationHours: "", skillIds: [] as string[] });
+  const [modForm, setModForm] = useState({ title: "", description: "", durationHours: "", cost: "", skillIds: [] as string[] });
   const [savingMod, setSavingMod] = useState(false);
   function toggleModSkill(id: string) {
     setModForm((f) => ({
@@ -120,13 +120,14 @@ export default function FormationPage() {
         title: modForm.title,
         description: modForm.description,
         durationHours: modForm.durationHours,
+        cost: modForm.cost,
         targetSkillIds: modForm.skillIds,
       }),
     });
     setSavingMod(false);
     if (res.ok) {
       setModOpen(false);
-      setModForm({ title: "", description: "", durationHours: "", skillIds: [] });
+      setModForm({ title: "", description: "", durationHours: "", cost: "", skillIds: [] });
       fetchAll();
     }
   }
@@ -433,6 +434,10 @@ export default function FormationPage() {
               <div>
                 <Label>Duree (h)</Label>
                 <Input type="number" min={1} value={modForm.durationHours} onChange={(e) => setModForm((f) => ({ ...f, durationHours: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Cout (EUR)</Label>
+                <Input type="number" min={0} value={modForm.cost} onChange={(e) => setModForm((f) => ({ ...f, cost: e.target.value }))} placeholder="0" />
               </div>
             </div>
             <div>
