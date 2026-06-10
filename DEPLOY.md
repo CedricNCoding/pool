@@ -195,11 +195,22 @@ sudo -u avpool git -C /opt/avpool pull        # récupérer le script si besoin
 cd /opt/avpool
 sudo -u avpool env DATABASE_URL="file:/opt/avpool/data/avpool.db" \
   npx tsx prisma/seed-demo.ts                 # COUNT=300 npx tsx ... pour un autre volume
+# Complément : formations, documents, étiquettes, projets, journal, dispo, objectifs
+sudo -u avpool env DATABASE_URL="file:/opt/avpool/data/avpool.db" \
+  npx tsx prisma/seed-demo-extra.ts
 ```
 
 ⚠️ Remplace les techniciens / entreprises / agences existants. Ne touche pas au
 référentiel (compétences, certifications) ni au compte admin. À lancer **après**
-le seed principal. Rafraîchir le navigateur — aucun redémarrage nécessaire.
+le seed principal. `seed-demo-extra.ts` se lance **après** `seed-demo.ts` (il
+peuple modules + parcours + affectations validées/en cours, ~570 documents avec
+échéances pour une conformité réaliste, étiquettes, projets kanban, événements,
+disponibilités, fins de contrat et objectifs). Rafraîchir le navigateur — aucun
+redémarrage nécessaire.
+
+> Les documents de démo sont des **enregistrements** (pas de fichier physique) :
+> la conformité, les dossiers, le budget et les rappels sont parlants, mais le
+> bouton « Voir » d'un document de démo n'ouvre pas de PDF réel.
 
 ## 12. Sauvegarde de la base (RGPD)
 
