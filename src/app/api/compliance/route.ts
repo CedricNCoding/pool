@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
 import { requiredDocsFor } from "@/lib/dossier";
@@ -8,10 +8,17 @@ import { requiredDocsFor } from "@/lib/dossier";
 const CRITICAL = ["medical", "habilitation"];
 const LABEL: Record<string, string> = { medical: "Visite medicale", habilitation: "Habilitation" };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await requireSession();
+  const reqCompany = new URL(req.url).searchParams.get("companyId");
   const companyFilter =
-    session.role !== "admin" && session.companyId ? { companyId: session.companyId } : {};
+    session.role !== "admin"
+      ? session.companyId
+        ? { companyId: session.companyId }
+        : {}
+      : reqCompany
+        ? { companyId: reqCompany }
+        : {};
   const now = new Date();
 
   const techs = await prisma.technician.findMany({

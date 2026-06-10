@@ -69,20 +69,28 @@ export default function DirectionPage() {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [budget, setBudget] = useState<Budget | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
+  const [companyId, setCompanyId] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ label: "", skillId: "", minLevel: "3", targetPercent: "80", deadline: "" });
 
   const loadObjectives = useCallback(() => {
-    fetch("/api/objectives").then((r) => r.json()).then(setObjectives).catch(() => {});
+    fetch(`/api/objectives${companyId ? `?companyId=${companyId}` : ""}`)
+      .then((r) => r.json()).then(setObjectives).catch(() => {});
+  }, [companyId]);
+
+  useEffect(() => {
+    fetch("/api/skills/categories").then((r) => r.json()).then(setCategories).catch(() => {});
+    fetch("/api/companies").then((r) => r.json()).then(setCompanies).catch(() => {});
   }, []);
 
   useEffect(() => {
-    fetch("/api/direction").then((r) => r.json()).then(setD).catch(() => {});
-    fetch("/api/compliance").then((r) => r.json()).then(setComp).catch(() => {});
-    fetch("/api/training/budget").then((r) => r.json()).then(setBudget).catch(() => {});
-    fetch("/api/skills/categories").then((r) => r.json()).then(setCategories).catch(() => {});
+    const cq = companyId ? `?companyId=${companyId}` : "";
+    fetch(`/api/direction${cq}`).then((r) => r.json()).then(setD).catch(() => {});
+    fetch(`/api/compliance${cq}`).then((r) => r.json()).then(setComp).catch(() => {});
+    fetch(`/api/training/budget${cq}`).then((r) => r.json()).then(setBudget).catch(() => {});
     loadObjectives();
-  }, [loadObjectives]);
+  }, [companyId, loadObjectives]);
 
   async function addObjective() {
     if (!form.label.trim()) return;
@@ -108,9 +116,23 @@ export default function DirectionPage() {
 
   return (
     <div className="p-8 space-y-6">
-      <div className="flex items-center gap-3">
-        <Gauge className="w-6 h-6 text-slate-300" />
-        <h1 className="text-2xl font-bold">Tableau de bord direction</h1>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Gauge className="w-6 h-6 text-slate-300" />
+          <h1 className="text-2xl font-bold">Tableau de bord direction</h1>
+        </div>
+        {user?.role === "admin" && companies.length > 0 && (
+          <select
+            className="px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+            value={companyId}
+            onChange={(e) => setCompanyId(e.target.value)}
+          >
+            <option value="">Toutes les entreprises</option>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* KPI */}

@@ -1,13 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
 
 // Budget & ROI formation : investi (formations validees x cout), engage (en cours),
 // competences gagnees, cout par competence, detail par module.
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await requireSession();
+  const reqCompany = new URL(req.url).searchParams.get("companyId");
   const companyFilter =
-    session.role !== "admin" && session.companyId ? { companyId: session.companyId } : {};
+    session.role !== "admin"
+      ? session.companyId
+        ? { companyId: session.companyId }
+        : {}
+      : reqCompany
+        ? { companyId: reqCompany }
+        : {};
 
   const assignments = await prisma.trainingAssignment.findMany({
     where: {

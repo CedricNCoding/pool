@@ -11,11 +11,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Award, Plus, Loader2 } from "lucide-react";
+import { Award, Plus, Loader2, Pencil, Trash2 } from "lucide-react";
 import { CERT_CATEGORIES } from "@/lib/constants";
 import { useSession } from "@/lib/hooks";
 
@@ -52,6 +51,7 @@ export default function CertificationsPage() {
 
   const [certs, setCerts] = useState<Certification[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -67,7 +67,27 @@ export default function CertificationsPage() {
     fetchCerts();
   }, [fetchCerts]);
 
-  async function handleCreate() {
+  function openCreate() {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setError("");
+    setDialogOpen(true);
+  }
+  function openEdit(cert: Certification) {
+    setEditingId(cert.id);
+    setForm({
+      name: cert.name,
+      issuer: cert.issuer,
+      category: cert.category,
+      level: cert.level,
+      validityMonths: cert.validityMonths != null ? String(cert.validityMonths) : "",
+      description: cert.description ?? "",
+    });
+    setError("");
+    setDialogOpen(true);
+  }
+
+  async function handleSubmit() {
     if (!form.name.trim() || !form.issuer.trim()) {
       setError("Nom et organisme sont obligatoires");
       return;
@@ -76,20 +96,34 @@ export default function CertificationsPage() {
     setError("");
     const color =
       CERT_CATEGORIES.find((c) => c.value === form.category)?.color ?? "#6366F1";
-    const res = await fetch("/api/certifications", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, color }),
-    });
+    const res = await fetch(
+      editingId ? `/api/certifications/${editingId}` : "/api/certifications",
+      {
+        method: editingId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, color }),
+      }
+    );
     if (res.ok) {
       setDialogOpen(false);
       setForm(EMPTY_FORM);
+      setEditingId(null);
       fetchCerts();
     } else {
       const data = await res.json().catch(() => ({}));
-      setError(data.error || "Erreur lors de la creation");
+      setError(data.error || "Erreur lors de l'enregistrement");
     }
     setSaving(false);
+  }
+
+  async function handleDelete(cert: Certification) {
+    if (!confirm(`Supprimer la certification "${cert.name}" du referentiel ?`)) return;
+    const res = await fetch(`/api/certifications/${cert.id}`, { method: "DELETE" });
+    if (res.ok) fetchCerts();
+    else {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Suppression impossible");
+    }
   }
 
   const grouped = CERT_CATEGORIES.map((cat) => ({
@@ -107,16 +141,15 @@ export default function CertificationsPage() {
         </div>
 
         {isAdmin && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Ajouter une certification
-              </Button>
-            </DialogTrigger>
+          <Button onClick={openCreate}>
+            <Plus className="w-4 h-4 mr-2" />
+            Ajouter une certification
+          </Button>
+        )}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Nouvelle certification</DialogTitle>
+                <DialogTitle>{editingId ? "Modifier la certification" : "Nouvelle certification"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 {error && (
@@ -200,16 +233,15 @@ export default function CertificationsPage() {
                   <Button variant="outline">Annuler</Button>
                 </DialogClose>
                 <Button
-                  onClick={handleCreate}
+                  onClick={handleSubmit}
                   disabled={saving || !form.name.trim() || !form.issuer.trim()}
                 >
                   {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Ajouter
+                  {editingId ? "Enregistrer" : "Ajouter"}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        )}
       </div>
 
       <div className="space-y-6">
@@ -232,7 +264,7 @@ export default function CertificationsPage() {
                 {group.certs.map((cert) => (
                   <div
                     key={cert.id}
-                    className="flex items-start gap-3 p-3 rounded-lg border border-slate-700 hover:border-slate-600 transition"
+                    className="group flex items-start gap-3 p-3 rounded-lg border border-slate-700 hover:border-slate-600 transition"
                   >
                     <div
                       className="w-2 h-full min-h-[40px] rounded-full flex-shrink-0"
@@ -263,6 +295,16 @@ export default function CertificationsPage() {
                         )}
                       </div>
                     </div>
+                    {isAdmin && (
+                      <div className="flex flex-col gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition">
+                        <button onClick={() => openEdit(cert)} className="text-slate-500 hover:text-slate-200" title="Modifier">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(cert)} className="text-slate-500 hover:text-red-400" title="Supprimer">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

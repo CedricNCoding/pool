@@ -3,10 +3,17 @@ import { prisma } from "@/lib/db";
 import { requireSession, requireAdmin } from "@/lib/auth";
 
 // Objectifs de montee en competences : % de techniciens actifs a niveau >= minLevel.
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await requireSession();
+  const reqCompany = new URL(req.url).searchParams.get("companyId");
   const companyFilter =
-    session.role !== "admin" && session.companyId ? { companyId: session.companyId } : {};
+    session.role !== "admin"
+      ? session.companyId
+        ? { companyId: session.companyId }
+        : {}
+      : reqCompany
+        ? { companyId: reqCompany }
+        : {};
 
   const [objectives, techs] = await Promise.all([
     prisma.skillObjective.findMany({

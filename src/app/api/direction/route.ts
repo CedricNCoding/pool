@@ -1,13 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
 
 // Cockpit du dirigeant : effectif, capacite, capital competences, dependances
 // critiques (bus factor), priorites de recrutement. Cloisonne par entreprise.
-export async function GET() {
+// Admin : filtrable via ?companyId=. Manager : limite a son entreprise.
+export async function GET(req: NextRequest) {
   const session = await requireSession();
+  const reqCompany = new URL(req.url).searchParams.get("companyId");
   const companyFilter =
-    session.role !== "admin" && session.companyId ? { companyId: session.companyId } : {};
+    session.role !== "admin"
+      ? session.companyId
+        ? { companyId: session.companyId }
+        : {}
+      : reqCompany
+        ? { companyId: reqCompany }
+        : {};
 
   const now = new Date();
   const in90 = new Date(now.getTime() + 90 * 86400000);

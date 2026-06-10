@@ -1,10 +1,12 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useFetch } from "@/lib/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Users, Award, FileText, AlertTriangle } from "lucide-react";
+import { Activity, Users, Award, FileText, AlertTriangle, ArrowUpDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { SERVICES } from "@/lib/constants";
 import { docCategoryLabel } from "@/lib/dossier";
 import TrendsCharts from "@/components/TrendsCharts";
@@ -39,8 +41,43 @@ function Stat({ label, value, icon: Icon, color }: { label: string; value: numbe
   );
 }
 
+type DossierSort = "name" | "service" | "missing";
+const DOSSIER_PAGE = 12;
+
 export default function ParcPage() {
   const { data, loading } = useFetch<Analytics>("/api/analytics");
+  const [dq, setDq] = useState("");
+  const [sortKey, setSortKey] = useState<DossierSort>("missing");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [dPage, setDPage] = useState(1);
+
+  const dossiers = useMemo(() => {
+    const term = dq.trim().toLowerCase();
+    const list = (data?.incompleteDossiers ?? []).filter(
+      (t) =>
+        t.name.toLowerCase().includes(term) ||
+        serviceLabel(t.service).toLowerCase().includes(term)
+    );
+    return [...list].sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === "name") cmp = a.name.localeCompare(b.name);
+      else if (sortKey === "service") cmp = serviceLabel(a.service).localeCompare(serviceLabel(b.service));
+      else cmp = a.missing.length - b.missing.length;
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [data, dq, sortKey, sortDir]);
+
+  function toggleSort(key: DossierSort) {
+    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setSortKey(key);
+      setSortDir(key === "missing" ? "desc" : "asc");
+    }
+    setDPage(1);
+  }
+
+  const dossierPages = Math.max(1, Math.ceil(dossiers.length / DOSSIER_PAGE));
+  const pageDossiers = dossiers.slice((dPage - 1) * DOSSIER_PAGE, dPage * DOSSIER_PAGE);
 
   if (loading || !data) {
     return <div className="p-8 text-slate-400">Analyse du parc...</div>;
@@ -109,27 +146,43 @@ export default function ParcPage() {
 
       {/* Dossiers incomplets */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-400" />
             Dossiers incomplets
             <Badge variant="secondary">{data.incompleteDossiers.length}</Badge>
           </CardTitle>
+          <div className="relative w-56">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+            <Input
+              className="pl-8 h-9 text-sm"
+              placeholder="Filtrer (nom, service)..."
+              value={dq}
+              onChange={(e) => { setDq(e.target.value); setDPage(1); }}
+            />
+          </div>
         </CardHeader>
         <CardContent className="p-0">
-          {data.incompleteDossiers.length === 0 ? (
-            <p className="p-5 text-sm text-slate-500">Tous les dossiers sont complets.</p>
+          {dossiers.length === 0 ? (
+            <p className="p-5 text-sm text-slate-500">
+              {data.incompleteDossiers.length === 0 ? "Tous les dossiers sont complets." : "Aucun resultat."}
+            </p>
           ) : (
             <table className="w-full text-sm">
               <thead className="text-xs text-slate-400 border-b border-slate-700">
                 <tr>
-                  <th className="text-left py-2 px-4">Technicien</th>
-                  <th className="text-left py-2 px-4">Service</th>
-                  <th className="text-left py-2 px-4">Documents manquants</th>
+                  {([["name", "Technicien"], ["service", "Service"], ["missing", "Documents manquants"]] as [DossierSort, string][]).map(([key, label]) => (
+                    <th key={key} className="text-left py-2 px-4">
+                      <button onClick={() => toggleSort(key)} className="flex items-center gap-1 hover:text-slate-200">
+                        {label}
+                        <ArrowUpDown className={`w-3 h-3 ${sortKey === key ? "text-slate-200" : "text-slate-600"}`} />
+                      </button>
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {data.incompleteDossiers.slice(0, 15).map((t) => (
+                {pageDossiers.map((t) => (
                   <tr key={t.id} className="border-b border-slate-800 hover:bg-slate-800/40">
                     <td className="py-2 px-4">
                       <Link href={`/technicians/${t.id}`} className="text-slate-100 hover:underline">{t.name}</Link>
@@ -149,10 +202,21 @@ export default function ParcPage() {
               </tbody>
             </table>
           )}
-          {data.incompleteDossiers.length > 15 && (
-            <p className="px-4 py-3 text-xs text-slate-500 border-t border-slate-800">
-              et {data.incompleteDossiers.length - 15} autre(s) dossier(s) incomplet(s).
-            </p>
+          {dossiers.length > DOSSIER_PAGE && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-slate-800 text-xs text-slate-400">
+              <span>
+                {(dPage - 1) * DOSSIER_PAGE + 1}–{Math.min(dPage * DOSSIER_PAGE, dossiers.length)} sur {dossiers.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <button disabled={dPage <= 1} onClick={() => setDPage((p) => p - 1)} className="p-1 rounded hover:bg-slate-800 disabled:opacity-30">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span>{dPage} / {dossierPages}</span>
+                <button disabled={dPage >= dossierPages} onClick={() => setDPage((p) => p + 1)} className="p-1 rounded hover:bg-slate-800 disabled:opacity-30">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
