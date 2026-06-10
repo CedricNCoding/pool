@@ -15,14 +15,16 @@ export default function MiniRadar({
   const cx = size / 2;
   const cy = size / 2;
   const r = size / 2 - 3;
+  // Echelle decalee : niveau 0 -> rayon 1/(max+1), niveau max -> rayon plein.
+  // Permet de toujours afficher une forme, meme sans competence.
+  const denom = max + 1;
   const angle = (i: number) => (Math.PI * 2 * i) / n - Math.PI / 2;
   const point = (i: number, val: number): [number, number] => {
-    const rr = (Math.max(0, Math.min(max, val)) / max) * r;
+    const rr = ((Math.max(0, Math.min(max, val)) + 1) / denom) * r;
     return [cx + rr * Math.cos(angle(i)), cy + rr * Math.sin(angle(i))];
   };
   const poly = values.map((v, i) => point(i, v).join(",")).join(" ");
   const outline = values.map((_, i) => point(i, max).join(",")).join(" ");
-  const hasData = values.some((v) => v > 0);
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -33,9 +35,7 @@ export default function MiniRadar({
           <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="#334155" strokeWidth="0.5" />
         );
       })}
-      {hasData && (
-        <polygon points={poly} fill={color} fillOpacity="0.35" stroke={color} strokeWidth="1" />
-      )}
+      <polygon points={poly} fill={color} fillOpacity="0.35" stroke={color} strokeWidth="1" />
     </svg>
   );
 }

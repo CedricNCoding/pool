@@ -19,7 +19,13 @@ const ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   event: ClipboardList,
 };
 
-export default function TechnicianTimeline({ technicianId }: { technicianId: string }) {
+export default function TechnicianTimeline({
+  technicianId,
+  reloadKey = 0,
+}: {
+  technicianId: string;
+  reloadKey?: number;
+}) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -29,7 +35,7 @@ export default function TechnicianTimeline({ technicianId }: { technicianId: str
       .then(setEntries)
       .catch(() => {})
       .finally(() => setLoaded(true));
-  }, [technicianId]);
+  }, [technicianId, reloadKey]);
 
   return (
     <Card className="print-break">

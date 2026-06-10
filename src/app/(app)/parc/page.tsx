@@ -80,14 +80,14 @@ export default function ParcPage() {
   const pageDossiers = dossiers.slice((dPage - 1) * DOSSIER_PAGE, dPage * DOSSIER_PAGE);
 
   if (loading || !data) {
-    return <div className="p-8 text-ink-500">Analyse du parc...</div>;
+    return <div className="p-8 text-ink-500">Analyse de l&apos;equipe...</div>;
   }
 
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center gap-3">
         <Activity className="w-6 h-6 text-ink-600" />
-        <h1 className="text-2xl font-bold">Sante du parc</h1>
+        <h1 className="text-2xl font-bold">Sante de l&apos;equipe</h1>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

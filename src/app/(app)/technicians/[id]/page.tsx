@@ -47,7 +47,6 @@ import {
 import TechnicianDocuments from "@/components/TechnicianDocuments";
 import TechnicianFormation from "@/components/TechnicianFormation";
 import TechnicianEvents from "@/components/TechnicianEvents";
-import AiImport from "@/components/AiImport";
 import AuditTrail from "@/components/AuditTrail";
 import TechnicianTimeline from "@/components/TechnicianTimeline";
 import {
@@ -281,6 +280,9 @@ export default function TechnicianDetailPage() {
   const [tech, setTech] = useState<Technician | null>(null);
   const [skillCategories, setSkillCategories] = useState<SkillCategory[]>([]);
   const [skillHistory, setSkillHistory] = useState<SkillHistoryEntry[]>([]);
+  // Cle de rechargement de la frise (composant autonome) apres une sauvegarde.
+  const [timelineReload, setTimelineReload] = useState(0);
+  const bumpTimeline = () => setTimelineReload((k) => k + 1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -400,6 +402,7 @@ export default function TechnicianDetailPage() {
       if (res.ok) {
         await fetchTech();
         fetchHistory();
+        bumpTimeline();
       }
     } catch {
       // silent
@@ -430,6 +433,7 @@ export default function TechnicianDetailPage() {
         setCertDialogOpen(false);
         setNewCert({ certificationId: "", obtainedDate: "", expiryDate: "", certificateNumber: "" });
         await fetchTech();
+        bumpTimeline();
       }
     } catch {
       // silent
@@ -446,6 +450,7 @@ export default function TechnicianDetailPage() {
         body: JSON.stringify({ certificationId }),
       });
       await fetchTech();
+      bumpTimeline();
     } catch {
       // silent
     }
@@ -680,7 +685,6 @@ export default function TechnicianDetailPage() {
           </div>
 
           <div className="flex items-center gap-2 no-print">
-            <AiImport technicianId={tech.id} onApplied={fetchTech} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -768,18 +772,21 @@ export default function TechnicianDetailPage() {
                         cx="50%"
                         cy="50%"
                         outerRadius="75%"
-                        data={radarData}
+                        data={radarData.map((d) => ({ ...d, level: d.level + 1 }))}
                       >
-                        <PolarGrid stroke="#334155" />
+                        <PolarGrid stroke="#CBD5E1" />
                         <PolarAngleAxis
                           dataKey="category"
-                          tick={{ fill: "#CBD5E1", fontSize: 12 }}
+                          tick={{ fill: "#475066", fontSize: 12 }}
                         />
+                        {/* Echelle decalee (+1) pour toujours afficher une forme,
+                            mais on affiche les memes chiffres (0 a 5). */}
                         <PolarRadiusAxis
                           angle={90}
-                          domain={[0, 5]}
-                          tickCount={6}
-                          tick={{ fill: "#64748B", fontSize: 10 }}
+                          domain={[0, 6]}
+                          tickCount={7}
+                          tickFormatter={(v) => (v === 0 ? "" : String(v - 1))}
+                          tick={{ fill: "#6A7388", fontSize: 10 }}
                         />
                         <Radar
                           name="Niveau"
@@ -894,7 +901,7 @@ export default function TechnicianDetailPage() {
           {/* TAB: Historique                                             */}
           {/* ----------------------------------------------------------- */}
           <TabsContent value="historique" className="space-y-6">
-            <TechnicianTimeline technicianId={tech.id} />
+            <TechnicianTimeline technicianId={tech.id} reloadKey={timelineReload} />
 
             <Card className="print-break">
               <CardHeader>

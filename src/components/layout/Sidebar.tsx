@@ -14,7 +14,6 @@ import {
   Shield,
   Mail,
   UserCog,
-  FileDown,
   Layers,
   FolderKanban,
   GraduationCap,
@@ -42,7 +41,7 @@ const mainNav: NavItem[] = [
   { href: "/search", label: "Chercher une equipe", icon: Search },
   { href: "/projets", label: "Projets", icon: FolderKanban },
   { href: "/formation", label: "Formation", icon: GraduationCap },
-  { href: "/parc", label: "Sante du parc", icon: Activity },
+  { href: "/parc", label: "Sante de l'equipe", icon: Activity },
 ];
 
 const settingsNav: NavItem[] = [
@@ -148,16 +147,6 @@ export function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobil
             onClick={onCloseMobile}
           />
         ))}
-        <a
-          href="/api/export?format=csv"
-          download
-          title={collapsed ? "Exporter CSV" : undefined}
-          className={cn("flex items-center gap-3 text-sm text-ink-200 hover:text-paper hover:bg-[rgba(245,242,235,0.04)] border-l-2 border-transparent -ml-[2px] pl-[18px] pr-5 py-2 transition-colors", collapsed && "md:px-0 md:py-2.5 md:gap-0 md:justify-center md:border-l-0 md:ml-0 md:pl-0 md:pr-0")}
-        >
-          <FileDown size={18} strokeWidth={1.5} className="shrink-0" />
-          <span className={cn("truncate", collapsed && "md:hidden")}>Exporter CSV</span>
-        </a>
-
         {user?.role === "admin" && (
           <>
             <div className={cn("pt-4 pb-1 px-5", collapsed && "md:hidden")}>
