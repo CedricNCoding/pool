@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 // Cockpit du dirigeant : effectif, capacite, capital competences, dependances
 // critiques (bus factor), priorites de recrutement. Cloisonne par entreprise.
 // Admin : filtrable via ?companyId=. Manager : limite a son entreprise.
 export async function GET(req: NextRequest) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const reqCompany = new URL(req.url).searchParams.get("companyId");
   const companyFilter =
     session.role !== "admin"

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 const num = (v: unknown) =>
@@ -11,10 +12,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await params;
   const body = await req.json();
 
-  const existing = await prisma.agency.findUnique({ where: { id } });
+  const existing = await prisma.agency.findFirst({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
 
   const agency = await prisma.agency.update({
@@ -45,9 +47,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await params;
 
-  const existing = await prisma.agency.findUnique({ where: { id } });
+  const existing = await prisma.agency.findFirst({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
 
   // Les techniciens de cette agence repassent au siege (agencyId = null)
@@ -55,7 +58,7 @@ export async function DELETE(
     where: { agencyId: id },
     data: { agencyId: null },
   });
-  await prisma.agency.delete({ where: { id } });
+  await prisma.agency.deleteMany({ where: { id } });
 
   await auditLog({
     userId: session.id,

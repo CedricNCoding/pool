@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 export async function GET() {
-  await requireSession();
+  setTenantContext((await requireSession()).tenantId);
   const paths = await prisma.trainingPath.findMany({
     include: {
       modules: {
@@ -20,6 +21,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const body = await req.json();
   const title = (body.title ?? "").trim();
   if (!title) {

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 // Objectifs de montee en competences : % de techniciens actifs a niveau >= minLevel.
 export async function GET(req: NextRequest) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const reqCompany = new URL(req.url).searchParams.get("companyId");
   const companyFilter =
     session.role !== "admin"
@@ -51,7 +53,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  await requireAdmin();
+  setTenantContext((await requireAdmin()).tenantId);
   const body = await req.json();
   const label = (body.label ?? "").trim();
   if (!label) return NextResponse.json({ error: "Intitule obligatoire" }, { status: 400 });

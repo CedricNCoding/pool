@@ -3,6 +3,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { prisma } from "@/lib/db";
 import { requireSession, canAccessCompany } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { UPLOAD_DIR } from "@/lib/uploads";
 
 // Sert le fichier (authentifie + cloisonne). Jamais accessible sans session.
@@ -11,9 +12,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
 
-  const doc = await prisma.document.findUnique({
+  const doc = await prisma.document.findFirst({
     where: { id },
     include: { technician: { select: { companyId: true } } },
   });

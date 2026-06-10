@@ -2,15 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, canAccessCompany } from "@/lib/auth";
 import { auditLog } from "@/lib/audit";
+import { currentTenantId, setTenantContext } from "@/lib/tenant-context";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
 
-  const technician = await prisma.technician.findUnique({
+  const technician = await prisma.technician.findFirst({
     where: { id },
     include: {
       company: true,
@@ -44,16 +46,20 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
   const body = await req.json();
 
-  const existing = await prisma.technician.findUnique({ where: { id } });
+  const existing = await prisma.technician.findFirst({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "Non trouve" }, { status: 404 });
   }
   if (!canAccessCompany(session, existing.companyId)) {
     return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
   }
+
+  // Tenant autoritaire pour les etiquettes (cle composee + creation imbriquee).
+  const tid = (currentTenantId() ?? existing.tenantId) as string;
 
   const updated = await prisma.technician.update({
     where: { id },
@@ -91,7 +97,9 @@ export async function PUT(
         ? new Date(body.departureDate)
         : existing.departureDate,
       notes: body.notes !== undefined ? body.notes : existing.notes,
-      // Etiquettes : remplace l'ensemble par les noms fournis (cree les manquants)
+      // Etiquettes : remplace l'ensemble par les noms fournis (cree les manquants).
+      // Cle unique composee [tenantId, name] + tenantId explicite (l'extension ne
+      // scope pas les ecritures imbriquees).
       ...(Array.isArray(body.tags)
         ? {
             tags: {
@@ -102,7 +110,10 @@ export async function PUT(
                     .map((t) => String(t).trim())
                     .filter(Boolean)
                 ),
-              ].map((name) => ({ where: { name }, create: { name } })),
+              ].map((name) => ({
+                where: { tenantId_name: { tenantId: tid, name } },
+                create: { name, tenantId: tid },
+              })),
             },
           }
         : {}),
@@ -138,9 +149,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
 
-  const existing = await prisma.technician.findUnique({ where: { id } });
+  const existing = await prisma.technician.findFirst({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "Non trouve" }, { status: 404 });
   }
@@ -148,7 +160,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
   }
 
-  await prisma.technician.delete({ where: { id } });
+  await prisma.technician.deleteMany({ where: { id } });
 
   await auditLog({
     userId: session.id,

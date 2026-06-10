@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 export async function GET() {
   try {
     const session = await requireSession();
+  setTenantContext(session.tenantId);
 
     const companyFilter =
       session.role !== "admin" && session.companyId

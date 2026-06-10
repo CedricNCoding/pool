@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { requiredDocsFor } from "@/lib/dossier";
 
 // Centre de notifications : agrege les signaux d'attention (echeances, validations,
 // dossiers incomplets, fins de contrat) en une liste triee par urgence.
 export async function GET() {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const techWhere =
     session.role !== "admin" && session.companyId
       ? { isActive: true, companyId: session.companyId }

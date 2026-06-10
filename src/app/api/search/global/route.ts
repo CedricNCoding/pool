@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 // Recherche globale (palette Cmd+K) : techniciens, entreprises, projets, modules.
 // Cloisonnee : un manager ne voit que son entreprise.
 export async function GET(req: NextRequest) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const q = (new URL(req.url).searchParams.get("q") || "").trim();
   if (q.length < 2) {
     return NextResponse.json({ technicians: [], companies: [], projects: [], modules: [] });

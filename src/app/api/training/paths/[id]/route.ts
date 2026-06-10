@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  await requireSession();
+  setTenantContext((await requireSession()).tenantId);
   const { id } = await params;
-  const path = await prisma.trainingPath.findUnique({
+  const path = await prisma.trainingPath.findFirst({
     where: { id },
     include: {
       modules: {
@@ -29,10 +30,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await params;
-  const existing = await prisma.trainingPath.findUnique({ where: { id } });
+  const existing = await prisma.trainingPath.findFirst({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
-  await prisma.trainingPath.delete({ where: { id } });
+  await prisma.trainingPath.deleteMany({ where: { id } });
   await auditLog({
     userId: session.id,
     action: "delete",

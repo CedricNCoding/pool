@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { hashPassword } from "@/lib/auth";
 import { auditLog } from "@/lib/audit";
 
 export async function GET() {
-  await requireAdmin();
+  setTenantContext((await requireAdmin()).tenantId);
   const users = await prisma.user.findMany({
     include: { company: { select: { name: true, color: true } } },
     orderBy: { createdAt: "desc" },
@@ -17,9 +18,10 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const body = await req.json();
 
-  const existing = await prisma.user.findUnique({ where: { email: body.email } });
+  const existing = await prisma.user.findFirst({ where: { email: body.email } });
   if (existing) {
     return NextResponse.json({ error: "Email deja utilise" }, { status: 400 });
   }
@@ -49,6 +51,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await req.json();
 
   if (id === session.id) {

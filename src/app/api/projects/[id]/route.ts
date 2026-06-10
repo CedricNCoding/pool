@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, type SessionUser } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 function canAccess(session: SessionUser, companyId: string | null): boolean {
@@ -13,9 +14,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
 
-  const project = await prisma.project.findUnique({
+  const project = await prisma.project.findFirst({
     where: { id },
     include: {
       company: { select: { id: true, name: true, color: true } },
@@ -43,10 +45,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
   const body = await req.json();
 
-  const existing = await prisma.project.findUnique({ where: { id } });
+  const existing = await prisma.project.findFirst({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
   if (!canAccess(session, existing.companyId)) {
     return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
@@ -91,15 +94,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
 
-  const existing = await prisma.project.findUnique({ where: { id } });
+  const existing = await prisma.project.findFirst({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
   if (!canAccess(session, existing.companyId)) {
     return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
   }
 
-  await prisma.project.delete({ where: { id } });
+  await prisma.project.deleteMany({ where: { id } });
   await auditLog({
     userId: session.id,
     action: "delete",

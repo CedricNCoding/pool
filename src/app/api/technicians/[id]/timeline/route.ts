@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, canAccessCompany } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 // Frise d'evolution : fusionne historique de competences, formations validees,
 // certifications obtenues et evenements du journal, triees du plus recent au plus ancien.
@@ -9,8 +10,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
-  const tech = await prisma.technician.findUnique({ where: { id } });
+  const tech = await prisma.technician.findFirst({ where: { id } });
   if (!tech) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
   if (!canAccessCompany(session, tech.companyId)) {
     return NextResponse.json({ error: "Acces refuse" }, { status: 403 });

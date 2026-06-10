@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 export async function GET() {
-  await requireSession();
+  setTenantContext((await requireSession()).tenantId);
   const categories = await prisma.skillCategory.findMany({
     include: { skills: { orderBy: { order: "asc" } } },
     orderBy: { order: "asc" },
@@ -19,13 +20,14 @@ const PALETTE = [
 
 export async function POST(req: NextRequest) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const body = await req.json();
   const name = (body.name ?? "").trim();
   if (!name) {
     return NextResponse.json({ error: "Nom de famille obligatoire" }, { status: 400 });
   }
 
-  const existing = await prisma.skillCategory.findUnique({ where: { name } });
+  const existing = await prisma.skillCategory.findFirst({ where: { name } });
   if (existing) {
     return NextResponse.json({ error: "Cette famille existe deja" }, { status: 409 });
   }

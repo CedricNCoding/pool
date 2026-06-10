@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { sendExpiryDigest } from "@/lib/mailer";
 import { auditLog } from "@/lib/audit";
 
@@ -8,6 +9,7 @@ import { auditLog } from "@/lib/audit";
 // POST { to?, days? }  -> defaut: smtp_from, 90 jours.
 export async function POST(req: NextRequest) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const body = await req.json().catch(() => ({}));
   const days = parseInt(body.days) || 90;
   const now = new Date();
@@ -29,7 +31,7 @@ export async function POST(req: NextRequest) {
       where: { expiryDate: { gte: now, lte: until }, technician: { isActive: true } },
       include: { technician: { select: { firstName: true, lastName: true } } },
     }),
-    prisma.setting.findUnique({ where: { key: "smtp_from" } }),
+    prisma.setting.findFirst({ where: { key: "smtp_from" } }),
   ]);
 
   const to = body.to || fromSetting?.value;

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 export async function GET() {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
 
   const where =
     session.role === "admin"
@@ -27,6 +29,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   if (session.role !== "admin") {
     return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
   }

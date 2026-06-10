@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { generateApiKey } from "@/lib/api-key";
 import { auditLog } from "@/lib/audit";
 
 export async function GET() {
-  await requireAdmin();
+  setTenantContext((await requireAdmin()).tenantId);
   const keys = await prisma.apiKey.findMany({
     include: { company: { select: { name: true } } },
     orderBy: { createdAt: "desc" },
@@ -15,6 +16,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const body = await req.json();
 
   const { key, hash, prefix } = generateApiKey();
@@ -46,6 +48,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await req.json();
 
   await prisma.apiKey.update({

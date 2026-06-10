@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 // Journal d'audit pour une entite donnee (technicien, projet...).
 // GET ?entityType=technician&entityId=...  -> dernieres modifications.
 export async function GET(req: NextRequest) {
-  await requireSession();
+  setTenantContext((await requireSession()).tenantId);
   const url = new URL(req.url);
   const entityType = url.searchParams.get("entityType");
   const entityId = url.searchParams.get("entityId");

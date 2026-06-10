@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, canAccessCompany } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 const clamp = (n: number) => Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
 
@@ -10,9 +11,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
 
-  const tech = await prisma.technician.findUnique({ where: { id } });
+  const tech = await prisma.technician.findFirst({ where: { id } });
   if (!tech) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
   if (!canAccessCompany(session, tech.companyId)) {
     return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
@@ -32,10 +34,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
   const { skills } = await req.json();
 
-  const tech = await prisma.technician.findUnique({ where: { id } });
+  const tech = await prisma.technician.findFirst({ where: { id } });
   if (!tech) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
   if (!canAccessCompany(session, tech.companyId)) {
     return NextResponse.json({ error: "Acces refuse" }, { status: 403 });

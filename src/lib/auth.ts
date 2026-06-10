@@ -2,6 +2,7 @@ import { prisma } from "./db";
 import bcryptjs from "bcryptjs";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
+import { setTenantContext } from "./tenant-context";
 
 // Secret resolu paresseusement : en production, l'absence d'AUTH_SECRET doit
 // echouer a l'execution (signature/verification), pas a l'import (sinon
@@ -23,7 +24,8 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: "admin" | "manager";
+  role: "superadmin" | "admin" | "manager";
+  tenantId: string | null;
   companyId: string | null;
 }
 
@@ -44,6 +46,7 @@ export async function createToken(user: SessionUser): Promise<string> {
     email: user.email,
     name: user.name,
     role: user.role,
+    tenantId: user.tenantId,
     companyId: user.companyId,
   })
     .setProtectedHeader({ alg: "HS256" })
@@ -64,7 +67,10 @@ export async function getSession(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("av-pool-token")?.value;
   if (!token) return null;
-  return verifyToken(token);
+  const session = await verifyToken(token);
+  // Pose le contexte tenant pour cloisonner toutes les requetes Prisma de la requete.
+  if (session) setTenantContext(session.tenantId ?? null);
+  return session;
 }
 
 export async function requireSession(): Promise<SessionUser> {
@@ -73,9 +79,18 @@ export async function requireSession(): Promise<SessionUser> {
   return session;
 }
 
+// admin de tenant OU super admin
 export async function requireAdmin(): Promise<SessionUser> {
   const session = await requireSession();
-  if (session.role !== "admin") throw new Error("Forbidden");
+  if (session.role !== "admin" && session.role !== "superadmin") {
+    throw new Error("Forbidden");
+  }
+  return session;
+}
+
+export async function requireSuperadmin(): Promise<SessionUser> {
+  const session = await requireSession();
+  if (session.role !== "superadmin") throw new Error("Forbidden");
   return session;
 }
 
@@ -83,7 +98,7 @@ export function canAccessCompany(
   user: SessionUser,
   companyId: string
 ): boolean {
-  if (user.role === "admin") return true;
+  if (user.role === "admin" || user.role === "superadmin") return true;
   return user.companyId === companyId;
 }
 
@@ -99,7 +114,8 @@ export async function authenticateUser(
     id: user.id,
     email: user.email,
     name: user.name,
-    role: user.role as "admin" | "manager",
+    role: user.role as "superadmin" | "admin" | "manager",
+    tenantId: user.tenantId,
     companyId: user.companyId,
   };
 }

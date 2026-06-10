@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 // Budget & ROI formation : investi (formations validees x cout), engage (en cours),
 // competences gagnees, cout par competence, detail par module.
 export async function GET(req: NextRequest) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const reqCompany = new URL(req.url).searchParams.get("companyId");
   const companyFilter =
     session.role !== "admin"

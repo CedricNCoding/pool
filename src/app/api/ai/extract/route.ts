@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 function norm(s: string) {
   return s
@@ -13,7 +14,7 @@ function norm(s: string) {
 // etiquettes en les rapprochant du referentiel. Utilise un LLM si AI_BASE_URL est
 // configure (endpoint compatible OpenAI), sinon repli par correspondance de mots-cles.
 export async function POST(req: NextRequest) {
-  await requireSession();
+  setTenantContext((await requireSession()).tenantId);
   const { text } = await req.json().catch(() => ({ text: "" }));
   if (!text || typeof text !== "string" || text.trim().length < 10) {
     return NextResponse.json({ skills: [], certs: [], tags: [], mode: "empty" });

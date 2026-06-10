@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import nodemailer from "nodemailer";
 
 export async function GET() {
-  await requireAdmin();
+  setTenantContext((await requireAdmin()).tenantId);
   const settings = await prisma.setting.findMany({
     where: {
       key: { in: ["smtp_host", "smtp_port", "smtp_user", "smtp_from", "smtp_secure"] },
@@ -16,7 +17,7 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
-  await requireAdmin();
+  setTenantContext((await requireAdmin()).tenantId);
   const body = await req.json();
 
   const keys = ["smtp_host", "smtp_port", "smtp_user", "smtp_pass", "smtp_from", "smtp_secure"];
@@ -34,7 +35,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  await requireAdmin();
+  setTenantContext((await requireAdmin()).tenantId);
 
   const settings = await prisma.setting.findMany({
     where: {

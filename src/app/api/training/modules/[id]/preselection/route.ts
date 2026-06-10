@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 // Techniciens "en faiblesse" sur les competences ciblees par le module :
 // au moins une competence ciblee sous le seuil (niveau manquant = 0).
@@ -10,11 +11,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
   const url = new URL(req.url);
   const threshold = parseInt(url.searchParams.get("level") || "3") || 3;
 
-  const module = await prisma.trainingModule.findUnique({
+  const module = await prisma.trainingModule.findFirst({
     where: { id },
     include: { targetSkills: { select: { id: true, name: true } } },
   });

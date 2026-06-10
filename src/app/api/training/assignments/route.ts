@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, canAccessCompany } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const technicianId = new URL(req.url).searchParams.get("technicianId");
   const where: Record<string, unknown> =
     session.role === "admin"
@@ -39,6 +41,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const body = await req.json();
   const technicianId = body.technicianId;
   if (!technicianId || (!body.moduleId && !body.pathId)) {
@@ -48,7 +51,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const tech = await prisma.technician.findUnique({ where: { id: technicianId } });
+  const tech = await prisma.technician.findFirst({ where: { id: technicianId } });
   if (!tech) return NextResponse.json({ error: "Technicien introuvable" }, { status: 400 });
   if (!canAccessCompany(session, tech.companyId)) {
     return NextResponse.json({ error: "Acces refuse" }, { status: 403 });

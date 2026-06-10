@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 const VALID_CATEGORIES = [
@@ -14,10 +15,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await params;
   const body = await req.json();
 
-  const existing = await prisma.certification.findUnique({ where: { id } });
+  const existing = await prisma.certification.findFirst({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Non trouvee" }, { status: 404 });
 
   const name = body.name !== undefined ? String(body.name).trim() : existing.name;
@@ -76,6 +78,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await params;
 
   const inUse = await prisma.technicianCertification.count({ where: { certificationId: id } });
@@ -86,7 +89,7 @@ export async function DELETE(
     );
   }
 
-  await prisma.certification.delete({ where: { id } }).catch(() => {});
+  await prisma.certification.deleteMany({ where: { id } }).catch(() => {});
   await auditLog({ userId: session.id, action: "delete", entityType: "certification", entityId: id });
   return NextResponse.json({ ok: true });
 }

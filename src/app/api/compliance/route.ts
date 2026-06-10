@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { requiredDocsFor } from "@/lib/dossier";
 
 // Conformite & responsabilite : techniciens actifs sans habilitation/visite
@@ -10,6 +11,7 @@ const LABEL: Record<string, string> = { medical: "Visite medicale", habilitation
 
 export async function GET(req: NextRequest) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const reqCompany = new URL(req.url).searchParams.get("companyId");
   const companyFilter =
     session.role !== "admin"

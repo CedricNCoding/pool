@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 // Editer une competence : renommer et/ou rattacher a une autre famille.
@@ -9,10 +10,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await params;
   const body = await req.json();
 
-  const existing = await prisma.skill.findUnique({ where: { id } });
+  const existing = await prisma.skill.findFirst({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "Non trouve" }, { status: 404 });
   }
@@ -25,7 +27,7 @@ export async function PATCH(
   }
 
   if (categoryId !== existing.categoryId) {
-    const cat = await prisma.skillCategory.findUnique({ where: { id: categoryId } });
+    const cat = await prisma.skillCategory.findFirst({ where: { id: categoryId } });
     if (!cat) {
       return NextResponse.json({ error: "Famille introuvable" }, { status: 400 });
     }
@@ -71,14 +73,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await params;
 
-  const existing = await prisma.skill.findUnique({ where: { id } });
+  const existing = await prisma.skill.findFirst({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "Non trouve" }, { status: 404 });
   }
 
-  await prisma.skill.delete({ where: { id } });
+  await prisma.skill.deleteMany({ where: { id } });
 
   await auditLog({
     userId: session.id,

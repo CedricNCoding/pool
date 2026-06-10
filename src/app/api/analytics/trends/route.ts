@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 const MONTHS = ["jan", "fev", "mar", "avr", "mai", "juin", "juil", "aout", "sep", "oct", "nov", "dec"];
 
@@ -8,6 +9,7 @@ const MONTHS = ["jan", "fev", "mar", "avr", "mai", "juin", "juil", "aout", "sep"
 // (12 derniers mois), certifications expirant (12 prochains mois).
 export async function GET() {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const techScope =
     session.role !== "admin" && session.companyId
       ? { companyId: session.companyId }

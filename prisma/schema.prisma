@@ -7,17 +7,49 @@ datasource db {
   provider = "sqlite"
 }
 
+// Tenant = client/entreprise abonne. Cloisonnement fort : toute donnee metier
+// porte un tenantId et toute requete est filtree par le tenant de la session.
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  status    String   @default("active") // active | suspended
+  createdAt DateTime @default(now()) @map("created_at")
+
+  users           User[]
+  companies       Company[]
+  agencies        Agency[]
+  technicians     Technician[]
+  skillCategories SkillCategory[]
+  skills          Skill[]
+  certifications  Certification[]
+  projects        Project[]
+  trainingModules TrainingModule[]
+  trainingPaths   TrainingPath[]
+  assignments     TrainingAssignment[]
+  tags            Tag[]
+  objectives      SkillObjective[]
+  apiKeys         ApiKey[]
+  auditLogs       AuditLog[]
+  documents       Document[]
+  events          TechnicianEvent[]
+
+  @@map("tenants")
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
   passwordHash String   @map("password_hash")
   name         String
-  role         String   @default("manager") // admin | manager
+  role         String   @default("manager") // superadmin | admin | manager
+  tenantId     String?  @map("tenant_id")
   companyId    String?  @map("company_id")
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  tenant    Tenant?    @relation(fields: [tenantId], references: [id])
   company   Company?   @relation(fields: [companyId], references: [id])
   auditLogs AuditLog[]
 
@@ -37,16 +69,19 @@ model Company {
   phone      String?
   email      String?
   logoUrl    String?  @map("logo_url")
-  color      String   @default("#3B82F6")
+  color      String   @default("#E89B2C")
+  tenantId   String?  @map("tenant_id")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
+  tenant      Tenant?      @relation(fields: [tenantId], references: [id])
   agencies    Agency[]
   technicians Technician[]
   users       User[]
   apiKeys     ApiKey[]
   projects    Project[]
 
+  @@index([tenantId])
   @@map("companies")
 }
 
@@ -61,11 +96,14 @@ model Agency {
   lat        Float?
   lng        Float?
   phone      String?
+  tenantId   String?  @map("tenant_id")
   createdAt  DateTime @default(now()) @map("created_at")
 
+  tenant      Tenant?      @relation(fields: [tenantId], references: [id])
   company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   technicians Technician[]
 
+  @@index([tenantId])
   @@map("agencies")
 }
 
@@ -77,6 +115,7 @@ model Technician {
   phone                 String?
   companyId             String    @map("company_id")
   agencyId              String?   @map("agency_id")
+  tenantId              String?   @map("tenant_id")
   service               String    @default("tech")
   contractType          String    @map("contract_type") @default("CDI")
   contractStart         DateTime? @map("contract_start")
@@ -93,6 +132,7 @@ model Technician {
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
 
+  tenant         Tenant?                   @relation(fields: [tenantId], references: [id])
   company        Company                   @relation(fields: [companyId], references: [id])
   agency         Agency?                   @relation(fields: [agencyId], references: [id])
   skills              TechnicianSkill[]
@@ -104,18 +144,22 @@ model Technician {
   tags                Tag[]
   events              TechnicianEvent[]
 
+  @@index([tenantId])
   @@map("technicians")
 }
 
 model SkillCategory {
-  id    String @id @default(uuid())
-  name  String @unique
-  color String @default("#6366F1")
-  icon  String @default("Wrench")
-  order Int    @default(0)
+  id       String  @id @default(uuid())
+  name     String
+  color    String  @default("#6366F1")
+  icon     String  @default("Wrench")
+  order    Int     @default(0)
+  tenantId String? @map("tenant_id")
 
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
   skills Skill[]
 
+  @@unique([tenantId, name])
   @@map("skill_categories")
 }
 
@@ -125,7 +169,9 @@ model Skill {
   categoryId  String  @map("category_id")
   description String?
   order       Int     @default(0)
+  tenantId    String? @map("tenant_id")
 
+  tenant          Tenant?           @relation(fields: [tenantId], references: [id])
   category        SkillCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   technicians     TechnicianSkill[]
   history         TechnicianSkillHistory[]
@@ -133,6 +179,7 @@ model Skill {
   objectives      SkillObjective[]
 
   @@unique([name, categoryId])
+  @@index([tenantId])
   @@map("skills")
 }
 
@@ -142,13 +189,16 @@ model SkillObjective {
   id            String    @id @default(uuid())
   label         String
   skillId       String?   @map("skill_id")
+  tenantId      String?   @map("tenant_id")
   minLevel      Int       @default(3) @map("min_level")
   targetPercent Int       @default(80) @map("target_percent")
   deadline      DateTime?
   createdAt     DateTime  @default(now()) @map("created_at")
 
-  skill Skill? @relation(fields: [skillId], references: [id], onDelete: SetNull)
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+  skill  Skill?  @relation(fields: [skillId], references: [id], onDelete: SetNull)
 
+  @@index([tenantId])
   @@map("skill_objectives")
 }
 
@@ -193,10 +243,12 @@ model Certification {
   color          String @default("#10B981")
   level          String @default("standard")
   order          Int    @default(0)
+  tenantId       String? @map("tenant_id")
 
+  tenant      Tenant?                  @relation(fields: [tenantId], references: [id])
   technicians TechnicianCertification[]
 
-  @@unique([name, issuer])
+  @@unique([tenantId, name, issuer])
   @@map("certifications")
 }
 
@@ -223,20 +275,24 @@ model ApiKey {
   keyHash     String    @map("key_hash")
   keyPrefix   String    @map("key_prefix")
   companyId   String?   @map("company_id")
+  tenantId    String?   @map("tenant_id")
   permissions String    @default("read")
   lastUsedAt  DateTime? @map("last_used_at")
   expiresAt   DateTime? @map("expires_at")
   isActive    Boolean   @default(true) @map("is_active")
   createdAt   DateTime  @default(now()) @map("created_at")
 
+  tenant  Tenant?  @relation(fields: [tenantId], references: [id])
   company Company? @relation(fields: [companyId], references: [id])
 
+  @@index([tenantId])
   @@map("api_keys")
 }
 
 model AuditLog {
   id         String   @id @default(uuid())
   userId     String?  @map("user_id")
+  tenantId   String?  @map("tenant_id")
   action     String
   entityType String   @map("entity_type")
   entityId   String?  @map("entity_id")
@@ -244,8 +300,10 @@ model AuditLog {
   ipAddress  String?  @map("ip_address")
   createdAt  DateTime @default(now()) @map("created_at")
 
-  user User? @relation(fields: [userId], references: [id])
+  user   User?   @relation(fields: [userId], references: [id])
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
 
+  @@index([tenantId])
   @@map("audit_logs")
 }
 
@@ -260,6 +318,7 @@ model Setting {
 model TechnicianEvent {
   id           String   @id @default(uuid())
   technicianId String   @map("technician_id")
+  tenantId     String?  @map("tenant_id")
   type         String   @default("note") // entretien | incident | evaluation | note | autre
   title        String
   body         String?
@@ -267,21 +326,26 @@ model TechnicianEvent {
   createdById  String?  @map("created_by_id")
   createdAt    DateTime @default(now()) @map("created_at")
 
+  tenant     Tenant?    @relation(fields: [tenantId], references: [id])
   technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
 
   @@index([technicianId])
+  @@index([tenantId])
   @@map("technician_events")
 }
 
 // Etiquettes / attributs libres (vehicule, habilite hauteur, anglais, permis...)
 model Tag {
   id          String       @id @default(uuid())
-  name        String       @unique
+  name        String
   color       String       @default("#64748B")
+  tenantId    String?      @map("tenant_id")
   createdAt   DateTime     @default(now()) @map("created_at")
 
+  tenant      Tenant?      @relation(fields: [tenantId], references: [id])
   technicians Technician[]
 
+  @@unique([tenantId, name])
   @@map("tags")
 }
 
@@ -298,11 +362,14 @@ model Document {
   size         Int
   expiryDate   DateTime? @map("expiry_date")
   uploadedById String?   @map("uploaded_by_id")
+  tenantId     String?   @map("tenant_id")
   createdAt    DateTime  @default(now()) @map("created_at")
 
+  tenant     Tenant?    @relation(fields: [tenantId], references: [id])
   technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
 
   @@index([technicianId])
+  @@index([tenantId])
   @@map("documents")
 }
 
@@ -314,13 +381,16 @@ model Project {
   description String?
   status      String   @default("actif") // actif | termine | archive
   companyId   String?  @map("company_id")
+  tenantId    String?  @map("tenant_id")
   createdById String?  @map("created_by_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  tenant      Tenant?      @relation(fields: [tenantId], references: [id])
   company     Company?     @relation(fields: [companyId], references: [id])
   technicians Technician[]
 
+  @@index([tenantId])
   @@map("projects")
 }
 
@@ -333,13 +403,16 @@ model TrainingModule {
   description   String?
   durationHours Int?     @map("duration_hours")
   cost          Int      @default(0) @map("cost_eur")
+  tenantId      String?  @map("tenant_id")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
+  tenant       Tenant?              @relation(fields: [tenantId], references: [id])
   targetSkills Skill[]
   assignments  TrainingAssignment[]
   pathModules  TrainingPathModule[]
 
+  @@index([tenantId])
   @@map("training_modules")
 }
 
@@ -348,12 +421,15 @@ model TrainingPath {
   id          String   @id @default(uuid())
   title       String
   description String?
+  tenantId    String?  @map("tenant_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  tenant      Tenant?              @relation(fields: [tenantId], references: [id])
   modules     TrainingPathModule[]
   assignments TrainingAssignment[]
 
+  @@index([tenantId])
   @@map("training_paths")
 }
 
@@ -380,12 +456,15 @@ model TrainingAssignment {
   assignedById  String?   @map("assigned_by_id")
   validatedById String?   @map("validated_by_id")
   validatedAt   DateTime? @map("validated_at")
+  tenantId      String?   @map("tenant_id")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
+  tenant     Tenant?         @relation(fields: [tenantId], references: [id])
   technician Technician      @relation(fields: [technicianId], references: [id], onDelete: Cascade)
   module     TrainingModule? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   path       TrainingPath?   @relation(fields: [pathId], references: [id], onDelete: Cascade)
 
+  @@index([tenantId])
   @@map("training_assignments")
 }

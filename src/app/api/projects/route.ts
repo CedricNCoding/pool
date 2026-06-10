@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 // Liste des projets (cloisonnee : admin = tout ; manager = son entreprise)
 export async function GET() {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const where =
     session.role === "admin"
       ? {}
@@ -24,6 +26,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const body = await req.json();
 
   const title = (body.title ?? "").trim();

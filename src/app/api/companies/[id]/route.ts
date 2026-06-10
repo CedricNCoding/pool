@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, requireAdmin, canAccessCompany } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 export async function GET(
@@ -8,8 +9,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const { id } = await params;
-  const company = await prisma.company.findUnique({
+  const company = await prisma.company.findFirst({
     where: { id },
     include: {
       agencies: { orderBy: { name: "asc" } },
@@ -28,10 +30,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await params;
   const body = await req.json();
 
-  const existing = await prisma.company.findUnique({ where: { id } });
+  const existing = await prisma.company.findFirst({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
 
   const num = (v: unknown) =>
@@ -69,9 +72,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await params;
 
-  const company = await prisma.company.findUnique({
+  const company = await prisma.company.findFirst({
     where: { id },
     include: { _count: { select: { technicians: true, users: true } } },
   });
@@ -87,7 +91,7 @@ export async function DELETE(
     );
   }
 
-  await prisma.company.delete({ where: { id } }); // agences supprimees en cascade
+  await prisma.company.deleteMany({ where: { id } }); // agences supprimees en cascade
 
   await auditLog({
     userId: session.id,

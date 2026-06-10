@@ -3,9 +3,11 @@ import { prisma } from "@/lib/db";
 import { requireSession, canAccessCompany } from "@/lib/auth";
 import { auditLog } from "@/lib/audit";
 import { haversineDistance } from "@/lib/geo";
+import { setTenantContext } from "@/lib/tenant-context";
 
 export async function GET(req: NextRequest) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const url = new URL(req.url);
 
   const search = url.searchParams.get("search") || "";
@@ -169,6 +171,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
   const body = await req.json();
 
   if (session.role !== "admin" && session.companyId !== body.companyId) {

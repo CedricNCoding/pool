@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 
 // Localisations des techniciens pour la carte du dashboard (leger).
 export async function GET() {
   const session = await requireSession();
+  setTenantContext(session.tenantId);
 
   const where: Record<string, unknown> = {
     isActive: true,

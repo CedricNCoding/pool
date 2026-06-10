@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { setTenantContext } from "@/lib/tenant-context";
 import { auditLog } from "@/lib/audit";
 
 export async function POST(
@@ -8,13 +9,14 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireAdmin();
+  setTenantContext(session.tenantId);
   const { id } = await params;
   const body = await req.json();
 
   const name = (body.name ?? "").trim();
   if (!name) return NextResponse.json({ error: "Nom obligatoire" }, { status: 400 });
 
-  const company = await prisma.company.findUnique({ where: { id } });
+  const company = await prisma.company.findFirst({ where: { id } });
   if (!company) return NextResponse.json({ error: "Entreprise introuvable" }, { status: 404 });
 
   const num = (v: unknown) =>
