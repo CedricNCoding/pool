@@ -260,10 +260,12 @@ model TechnicianCertification {
   expiryDate        DateTime? @map("expiry_date")
   certificateNumber String?   @map("certificate_number")
   status            String    @default("active")
+  documentId        String?   @map("document_id")
   createdAt         DateTime  @default(now()) @map("created_at")
 
   technician    Technician    @relation(fields: [technicianId], references: [id], onDelete: Cascade)
   certification Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  document      Document?     @relation("CertDoc", fields: [documentId], references: [id], onDelete: SetNull)
 
   @@unique([technicianId, certificationId])
   @@map("technician_certifications")
@@ -367,6 +369,7 @@ model Document {
 
   tenant     Tenant?    @relation(fields: [tenantId], references: [id])
   technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  certLinks  TechnicianCertification[] @relation("CertDoc")
 
   @@index([technicianId])
   @@index([tenantId])

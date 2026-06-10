@@ -22,7 +22,7 @@ export async function GET(
         orderBy: { skill: { category: { order: "asc" } } },
       },
       certifications: {
-        include: { certification: true },
+        include: { certification: true, document: { select: { id: true } } },
         orderBy: { certification: { category: "asc" } },
       },
       tags: { orderBy: { name: "asc" } },

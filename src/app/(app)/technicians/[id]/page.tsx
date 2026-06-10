@@ -124,6 +124,7 @@ interface TechCert {
   certificateNumber: string | null;
   status: string;
   certification: CertDef;
+  document?: { id: string } | null;
 }
 
 interface Technician {
@@ -303,6 +304,7 @@ export default function TechnicianDetailPage() {
     expiryDate: "",
     certificateNumber: "",
   });
+  const [certFile, setCertFile] = useState<File | null>(null);
   const [savingCert, setSavingCert] = useState(false);
 
   // ------------------------------------------------------------------
@@ -419,19 +421,21 @@ export default function TechnicianDetailPage() {
     if (!newCert.certificationId || !newCert.obtainedDate) return;
     setSavingCert(true);
     try {
+      // Multipart : champs + PDF justificatif optionnel.
+      const fd = new FormData();
+      fd.set("certificationId", newCert.certificationId);
+      fd.set("obtainedDate", newCert.obtainedDate);
+      if (newCert.expiryDate) fd.set("expiryDate", newCert.expiryDate);
+      if (newCert.certificateNumber) fd.set("certificateNumber", newCert.certificateNumber);
+      if (certFile) fd.set("file", certFile);
       const res = await fetch(`/api/technicians/${id}/certifications`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          certificationId: newCert.certificationId,
-          obtainedDate: newCert.obtainedDate,
-          expiryDate: newCert.expiryDate || null,
-          certificateNumber: newCert.certificateNumber || null,
-        }),
+        body: fd,
       });
       if (res.ok) {
         setCertDialogOpen(false);
         setNewCert({ certificationId: "", obtainedDate: "", expiryDate: "", certificateNumber: "" });
+        setCertFile(null);
         await fetchTech();
         bumpTimeline();
       }
@@ -1059,6 +1063,18 @@ export default function TechnicianDetailPage() {
                         }
                       />
                     </div>
+                    <div>
+                      <label className="text-sm font-medium text-ink-600 block mb-1">
+                        Justificatif (PDF)
+                      </label>
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx"
+                        className="w-full text-sm text-ink-600 file:mr-3 file:rounded-md file:border-0 file:bg-paper-2 file:px-3 file:py-1.5 file:text-ink-800 file:cursor-pointer"
+                        onChange={(e) => setCertFile(e.target.files?.[0] ?? null)}
+                      />
+                      {certFile && <p className="text-xs text-ink-400 mt-1 truncate">{certFile.name}</p>}
+                    </div>
                   </div>
                   <DialogFooter>
                     <DialogClose asChild>
@@ -1150,6 +1166,17 @@ export default function TechnicianDetailPage() {
                             )}
                             {tc.certificateNumber && (
                               <span>N. {tc.certificateNumber}</span>
+                            )}
+                            {tc.document && (
+                              <a
+                                href={`/api/documents/${tc.document.id}/file`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-signal-600 hover:underline"
+                                title="Voir le justificatif"
+                              >
+                                <FileText className="w-3 h-3" /> PDF
+                              </a>
                             )}
                           </div>
                         </div>
