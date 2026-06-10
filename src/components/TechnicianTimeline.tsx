@@ -40,12 +40,12 @@ export default function TechnicianTimeline({ technicianId }: { technicianId: str
       </CardHeader>
       <CardContent>
         {loaded && entries.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-ink-9000">
             Aucun evenement de parcours pour l&apos;instant.
           </p>
         ) : (
           <div className="relative">
-            <div className="absolute left-[7px] top-1 bottom-1 w-px bg-slate-700" />
+            <div className="absolute left-[7px] top-1 bottom-1 w-px bg-paper-2" />
             <div className="space-y-4">
               {entries.map((e, i) => {
                 const Icon = ICON[e.kind] ?? Milestone;
@@ -59,8 +59,8 @@ export default function TechnicianTimeline({ technicianId }: { technicianId: str
                     </span>
                     <div className="min-w-0 flex-1 -mt-0.5">
                       <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-sm font-medium text-slate-100 truncate">{e.label}</span>
-                        <span className="text-xs text-slate-500 whitespace-nowrap">
+                        <span className="text-sm font-medium text-ink-900 truncate">{e.label}</span>
+                        <span className="text-xs text-ink-9000 whitespace-nowrap">
                           {new Date(e.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
                         </span>
                       </div>

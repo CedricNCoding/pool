@@ -95,7 +95,7 @@ export default function ApiKeysPage() {
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Key className="w-6 h-6 text-slate-300" />
+          <Key className="w-6 h-6 text-ink-600" />
           <h1 className="text-2xl font-bold">Cles API</h1>
         </div>
         <Dialog open={showNew} onOpenChange={(open) => { setShowNew(open); if (!open) { setNewKey(null); setForm({ name: "", permissions: "read", expiresInDays: "" }); } }}>
@@ -108,7 +108,7 @@ export default function ApiKeysPage() {
             </DialogHeader>
             {newKey ? (
               <div className="space-y-4">
-                <div className="bg-slate-900 text-green-400 p-4 rounded-lg font-mono text-sm break-all">
+                <div className="bg-paper-bone text-green-400 p-4 rounded-lg font-mono text-sm break-all">
                   {newKey}
                 </div>
                 <p className="text-sm text-amber-600 font-medium">
@@ -127,7 +127,7 @@ export default function ApiKeysPage() {
                 </div>
                 <div>
                   <Label>Permissions</Label>
-                  <select className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm" value={form.permissions} onChange={(e) => setForm(f => ({ ...f, permissions: e.target.value }))}>
+                  <select className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm" value={form.permissions} onChange={(e) => setForm(f => ({ ...f, permissions: e.target.value }))}>
                     <option value="read">Lecture seule</option>
                     <option value="write">Lecture + ecriture</option>
                   </select>
@@ -172,10 +172,10 @@ export default function ApiKeysPage() {
                       {key.permissions}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-slate-500">
+                  <TableCell className="text-sm text-ink-9000">
                     {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString("fr-FR") : "Jamais"}
                   </TableCell>
-                  <TableCell className="text-sm text-slate-500">
+                  <TableCell className="text-sm text-ink-9000">
                     {key.expiresAt ? new Date(key.expiresAt).toLocaleDateString("fr-FR") : "Jamais"}
                   </TableCell>
                   <TableCell>
@@ -187,7 +187,7 @@ export default function ApiKeysPage() {
               ))}
               {keys.length === 0 && !loading && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-slate-400">
+                  <TableCell colSpan={6} className="text-center py-8 text-ink-500">
                     Aucune cle API
                   </TableCell>
                 </TableRow>

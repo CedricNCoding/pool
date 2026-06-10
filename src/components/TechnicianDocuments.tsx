@@ -132,7 +132,7 @@ export default function TechnicianDocuments({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between no-print">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-ink-500">
           {docs.length} document{docs.length > 1 ? "s" : ""} — contrat, identite, visite
           medicale, habilitations, certificats...
         </p>
@@ -164,7 +164,7 @@ export default function TechnicianDocuments({
 
       {docs.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-slate-500">
+          <CardContent className="py-10 text-center text-ink-9000">
             <FileText className="w-10 h-10 mx-auto mb-2" />
             Aucun document. Deposez contrats, pieces d&apos;identite, visites medicales,
             habilitations...
@@ -174,17 +174,17 @@ export default function TechnicianDocuments({
         grouped.map((g) => (
           <Card key={g.value} className="print-break">
             <CardContent className="p-4">
-              <h3 className="text-sm font-semibold text-slate-300 mb-3">{g.label}</h3>
+              <h3 className="text-sm font-semibold text-ink-600 mb-3">{g.label}</h3>
               <div className="space-y-2">
                 {g.docs.map((d) => {
                   const exp = expiryBadge(d.expiryDate);
                   return (
-                    <div key={d.id} className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-slate-800/50">
+                    <div key={d.id} className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-paper-2">
                       <div className="flex items-center gap-3 min-w-0">
-                        <FileText className="w-5 h-5 text-slate-400 flex-shrink-0" />
+                        <FileText className="w-5 h-5 text-ink-500 flex-shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-sm font-medium text-slate-100 truncate">{d.title}</div>
-                          <div className="text-xs text-slate-500 flex items-center gap-2">
+                          <div className="text-sm font-medium text-ink-900 truncate">{d.title}</div>
+                          <div className="text-xs text-ink-9000 flex items-center gap-2">
                             <span className="truncate">{d.originalName}</span>
                             <span>· {fmtSize(d.size)}</span>
                             {d.expiryDate && <span>· exp. {fmtDate(d.expiryDate)}</span>}
@@ -198,13 +198,13 @@ export default function TechnicianDocuments({
                             {exp.label}
                           </Badge>
                         )}
-                        <a href={`/api/documents/${d.id}/file`} target="_blank" rel="noopener noreferrer" className="p-1.5 text-slate-400 hover:text-slate-100 no-print" title="Voir">
+                        <a href={`/api/documents/${d.id}/file`} target="_blank" rel="noopener noreferrer" className="p-1.5 text-ink-500 hover:text-ink-900 no-print" title="Voir">
                           <Eye className="w-4 h-4" />
                         </a>
-                        <a href={`/api/documents/${d.id}/file?download=1`} className="p-1.5 text-slate-400 hover:text-slate-100 no-print" title="Telecharger">
+                        <a href={`/api/documents/${d.id}/file?download=1`} className="p-1.5 text-ink-500 hover:text-ink-900 no-print" title="Telecharger">
                           <Download className="w-4 h-4" />
                         </a>
-                        <button onClick={() => remove(d)} className="p-1.5 text-slate-400 hover:text-red-400 no-print" title="Supprimer">
+                        <button onClick={() => remove(d)} className="p-1.5 text-ink-500 hover:text-red-400 no-print" title="Supprimer">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -231,7 +231,7 @@ export default function TechnicianDocuments({
               <div>
                 <Label>Categorie</Label>
                 <select
-                  className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                  className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                   value={form.category}
                   onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
                 >
@@ -264,7 +264,7 @@ export default function TechnicianDocuments({
                   setFile(f);
                   if (f && !form.title) setForm((s) => ({ ...s, title: f.name }));
                 }}
-                className="w-full text-sm text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-100 file:cursor-pointer"
+                className="w-full text-sm text-ink-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-paper-2 file:text-ink-900 file:cursor-pointer"
               />
             </div>
           </div>

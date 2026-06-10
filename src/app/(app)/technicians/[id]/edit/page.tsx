@@ -229,7 +229,7 @@ export default function EditTechnicianPage() {
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-ink-500" />
       </div>
     );
   }
@@ -330,7 +330,7 @@ export default function EditTechnicianPage() {
           <CardContent className="grid grid-cols-2 gap-4">
             <div>
               <Label>Entreprise</Label>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/50 text-sm">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-900/10 bg-paper-2 text-sm">
                 {selectedCompany && (
                   <span
                     className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
@@ -339,14 +339,14 @@ export default function EditTechnicianPage() {
                 )}
                 <span>{selectedCompany?.name || "..."}</span>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-ink-9000 mt-1">
                 Le changement d&apos;entreprise n&apos;est pas permis. Recrez la fiche si necessaire.
               </p>
             </div>
             <div>
               <Label>Agence</Label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={form.agencyId}
                 onChange={(e) => handleAgencyChange(e.target.value)}
                 disabled={!selectedCompany?.agencies.length}
@@ -362,7 +362,7 @@ export default function EditTechnicianPage() {
             <div>
               <Label>Service</Label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={form.service}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, service: e.target.value }))
@@ -378,7 +378,7 @@ export default function EditTechnicianPage() {
             <div>
               <Label>Type de contrat</Label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={form.contractType}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, contractType: e.target.value }))
@@ -422,7 +422,7 @@ export default function EditTechnicianPage() {
             <div>
               <Label>Actif</Label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={form.isActive ? "true" : "false"}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, isActive: e.target.value === "true" }))
@@ -450,7 +450,7 @@ export default function EditTechnicianPage() {
             <div>
               <Label>Disponibilite</Label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={form.availabilityStatus}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, availabilityStatus: e.target.value }))
@@ -535,14 +535,14 @@ export default function EditTechnicianPage() {
           <CardContent className="space-y-3">
             <div className="flex flex-wrap gap-2">
               {tags.map((t) => (
-                <span key={t} className="flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-slate-700 text-slate-100">
+                <span key={t} className="flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-paper-2 text-ink-900">
                   {t}
-                  <button type="button" onClick={() => removeTag(t)} className="text-slate-400 hover:text-red-400">
+                  <button type="button" onClick={() => removeTag(t)} className="text-ink-500 hover:text-red-400">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
               ))}
-              {tags.length === 0 && <span className="text-xs text-slate-500">Aucune etiquette.</span>}
+              {tags.length === 0 && <span className="text-xs text-ink-9000">Aucune etiquette.</span>}
             </div>
             <div className="flex gap-2">
               <Input
@@ -561,7 +561,7 @@ export default function EditTechnicianPage() {
                 Ajouter
               </Button>
             </div>
-            <p className="text-xs text-slate-500">Entree ou « Ajouter ». Les etiquettes sont cherchables.</p>
+            <p className="text-xs text-ink-9000">Entree ou « Ajouter ». Les etiquettes sont cherchables.</p>
           </CardContent>
         </Card>
 
@@ -598,9 +598,9 @@ export default function EditTechnicianPage() {
           <DialogHeader>
             <DialogTitle>Confirmer la suppression</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-slate-400 py-4">
+          <p className="text-sm text-ink-500 py-4">
             Cette action est irreversible. Le technicien{" "}
-            <strong className="text-slate-200">
+            <strong className="text-ink-800">
               {form.firstName} {form.lastName}
             </strong>{" "}
             sera definitivement supprime avec toutes ses competences et

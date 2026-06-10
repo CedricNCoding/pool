@@ -135,7 +135,7 @@ export default function CertificationsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Award className="w-6 h-6 text-slate-300" />
+          <Award className="w-6 h-6 text-ink-600" />
           <h1 className="text-2xl font-bold">Referentiel des certifications</h1>
           <Badge variant="secondary">{certs.length} certifications</Badge>
         </div>
@@ -179,7 +179,7 @@ export default function CertificationsPage() {
                   <div>
                     <Label>Categorie</Label>
                     <select
-                      className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                      className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                       value={form.category}
                       onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
                     >
@@ -193,7 +193,7 @@ export default function CertificationsPage() {
                   <div>
                     <Label>Niveau</Label>
                     <select
-                      className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                      className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                       value={form.level}
                       onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))}
                     >
@@ -264,7 +264,7 @@ export default function CertificationsPage() {
                 {group.certs.map((cert) => (
                   <div
                     key={cert.id}
-                    className="group flex items-start gap-3 p-3 rounded-lg border border-slate-700 hover:border-slate-600 transition"
+                    className="group flex items-start gap-3 p-3 rounded-lg border border-ink-900/10 hover:border-ink-900/15 transition"
                   >
                     <div
                       className="w-2 h-full min-h-[40px] rounded-full flex-shrink-0"
@@ -272,7 +272,7 @@ export default function CertificationsPage() {
                     />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">{cert.name}</p>
-                      <p className="text-xs text-slate-500">{cert.issuer}</p>
+                      <p className="text-xs text-ink-9000">{cert.issuer}</p>
                       <div className="flex items-center gap-2 mt-1.5">
                         <Badge
                           variant="outline"
@@ -285,7 +285,7 @@ export default function CertificationsPage() {
                           {LEVEL_LABELS[cert.level] || cert.level}
                         </Badge>
                         {cert.validityMonths ? (
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs text-ink-500">
                             Validite {cert.validityMonths} mois
                           </span>
                         ) : (
@@ -297,10 +297,10 @@ export default function CertificationsPage() {
                     </div>
                     {isAdmin && (
                       <div className="flex flex-col gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition">
-                        <button onClick={() => openEdit(cert)} className="text-slate-500 hover:text-slate-200" title="Modifier">
+                        <button onClick={() => openEdit(cert)} className="text-ink-9000 hover:text-ink-800" title="Modifier">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => handleDelete(cert)} className="text-slate-500 hover:text-red-400" title="Supprimer">
+                        <button onClick={() => handleDelete(cert)} className="text-ink-9000 hover:text-red-400" title="Supprimer">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>

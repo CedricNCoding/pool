@@ -348,12 +348,12 @@ export default function TechniciansPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-copper-500">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-signal-500">
             <Users className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-50">Techniciens</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-2xl font-bold text-ink-900">Techniciens</h1>
+            <p className="text-sm text-ink-500">
               {pagination.total} technicien{pagination.total !== 1 ? "s" : ""}
             </p>
           </div>
@@ -386,7 +386,7 @@ export default function TechniciansPage() {
           <div className="flex flex-wrap items-center gap-3">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
               <Input
                 placeholder="Rechercher par nom ou email..."
                 value={search}
@@ -506,7 +506,7 @@ export default function TechniciansPage() {
                 checked={isActive}
                 onCheckedChange={setIsActive}
               />
-              <span className="text-sm text-slate-400">
+              <span className="text-sm text-ink-500">
                 {isActive ? "Actifs" : "Inactifs"}
               </span>
             </div>
@@ -525,7 +525,7 @@ export default function TechniciansPage() {
       {/* Barre d'actions groupees */}
       {selected.size > 0 && (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-blue-700/50 bg-blue-950/30 px-4 py-2.5 flex-wrap">
-          <span className="text-sm text-slate-200">
+          <span className="text-sm text-ink-800">
             <strong>{selected.size}</strong> technicien{selected.size > 1 ? "s" : ""} selectionne{selected.size > 1 ? "s" : ""}
           </span>
           <div className="flex items-center gap-2">
@@ -542,7 +542,7 @@ export default function TechniciansPage() {
             >
               Exporter
             </a>
-            <Button size="sm" variant="ghost" className="text-slate-400" onClick={() => setSelected(new Set())}>
+            <Button size="sm" variant="ghost" className="text-ink-500" onClick={() => setSelected(new Set())}>
               Deselectionner
             </Button>
           </div>
@@ -551,17 +551,17 @@ export default function TechniciansPage() {
 
       {/* Bascule tableau / cartes */}
       <div className="flex justify-end">
-        <div className="inline-flex rounded-lg border border-slate-700 overflow-hidden">
+        <div className="inline-flex rounded-lg border border-ink-900/10 overflow-hidden">
           <button
             onClick={() => setViewMode("table")}
-            className={`px-2.5 py-1.5 ${viewMode === "table" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white"}`}
+            className={`px-2.5 py-1.5 ${viewMode === "table" ? "bg-paper-2 text-white" : "text-ink-500 hover:text-white"}`}
             title="Vue tableau"
           >
             <List className="w-4 h-4" />
           </button>
           <button
             onClick={() => setViewMode("cards")}
-            className={`px-2.5 py-1.5 ${viewMode === "cards" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white"}`}
+            className={`px-2.5 py-1.5 ${viewMode === "cards" ? "bg-paper-2 text-white" : "text-ink-500 hover:text-white"}`}
             title="Vue cartes"
           >
             <LayoutGrid className="w-4 h-4" />
@@ -608,13 +608,13 @@ export default function TechniciansPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-slate-400">
+                  <TableCell colSpan={8} className="text-center py-12 text-ink-500">
                     Chargement...
                   </TableCell>
                 </TableRow>
               ) : filteredTechnicians.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-slate-400">
+                  <TableCell colSpan={8} className="text-center py-12 text-ink-500">
                     Aucun technicien trouve
                   </TableCell>
                 </TableRow>
@@ -631,7 +631,7 @@ export default function TechniciansPage() {
                   return (
                     <TableRow
                       key={tech.id}
-                      className="cursor-pointer hover:bg-slate-800/50"
+                      className="cursor-pointer hover:bg-paper-2"
                       onClick={() => router.push(`/technicians/${tech.id}`)}
                     >
                       {/* Select */}
@@ -652,7 +652,7 @@ export default function TechniciansPage() {
                             style={{ backgroundColor: tech.company.color }}
                           />
                           <div>
-                            <div className="font-medium text-slate-50 flex items-center gap-1.5">
+                            <div className="font-medium text-ink-900 flex items-center gap-1.5">
                               {tech.firstName} {tech.lastName}
                               <span
                                 className="w-2 h-2 rounded-full flex-shrink-0"
@@ -660,16 +660,16 @@ export default function TechniciansPage() {
                                 title={availabilityMeta(tech.availabilityStatus).label}
                               />
                             </div>
-                            <div className="text-sm text-slate-400">{tech.email}</div>
+                            <div className="text-sm text-ink-500">{tech.email}</div>
                             {tech.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {tech.tags.slice(0, 3).map((t) => (
-                                  <span key={t.id} className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-700/70 text-slate-300">
+                                  <span key={t.id} className="text-[10px] px-1.5 py-0.5 rounded-full bg-paper-2 text-ink-600">
                                     {t.name}
                                   </span>
                                 ))}
                                 {tech.tags.length > 3 && (
-                                  <span className="text-[10px] text-slate-500 self-center">+{tech.tags.length - 3}</span>
+                                  <span className="text-[10px] text-ink-9000 self-center">+{tech.tags.length - 3}</span>
                                 )}
                               </div>
                             )}
@@ -684,7 +684,7 @@ export default function TechniciansPage() {
                             className="inline-block w-2.5 h-2.5 rounded-full"
                             style={{ backgroundColor: tech.company.color }}
                           />
-                          <span className="text-sm text-slate-300">
+                          <span className="text-sm text-ink-600">
                             {tech.company.name}
                           </span>
                         </div>
@@ -692,7 +692,7 @@ export default function TechniciansPage() {
 
                       {/* Service */}
                       <TableCell>
-                        <span className="text-sm text-slate-300">
+                        <span className="text-sm text-ink-600">
                           {getServiceLabel(tech.service)}
                         </span>
                       </TableCell>
@@ -714,7 +714,7 @@ export default function TechniciansPage() {
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {topSkills.length === 0 && (
-                            <span className="text-xs text-slate-500">--</span>
+                            <span className="text-xs text-ink-9000">--</span>
                           )}
                           {topSkills.map((ts) => (
                             <Badge
@@ -734,7 +734,7 @@ export default function TechniciansPage() {
                             </Badge>
                           ))}
                           {tech.skills.length > 3 && (
-                            <span className="text-xs text-slate-500 self-center ml-1">
+                            <span className="text-xs text-ink-9000 self-center ml-1">
                               +{tech.skills.length - 3}
                             </span>
                           )}
@@ -753,7 +753,7 @@ export default function TechniciansPage() {
                             {activeCerts.length} cert.
                           </Badge>
                         ) : (
-                          <span className="text-xs text-slate-500">--</span>
+                          <span className="text-xs text-ink-9000">--</span>
                         )}
                       </TableCell>
 
@@ -816,9 +816,9 @@ export default function TechniciansPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {loading ? (
-            <p className="col-span-full text-center py-12 text-slate-400">Chargement...</p>
+            <p className="col-span-full text-center py-12 text-ink-500">Chargement...</p>
           ) : filteredTechnicians.length === 0 ? (
-            <p className="col-span-full text-center py-12 text-slate-400">Aucun technicien trouve</p>
+            <p className="col-span-full text-center py-12 text-ink-500">Aucun technicien trouve</p>
           ) : (
             filteredTechnicians.map((tech) => {
               const activeCerts = tech.certifications.filter((c) => c.status === "active");
@@ -827,11 +827,11 @@ export default function TechniciansPage() {
                 <Link
                   key={tech.id}
                   href={`/technicians/${tech.id}`}
-                  className="rounded-xl border border-slate-700/60 bg-slate-900 p-4 hover:border-slate-600 transition-colors flex gap-4"
+                  className="rounded-xl border border-ink-900/10/60 bg-paper-bone p-4 hover:border-ink-900/15 transition-colors flex gap-4"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-slate-50 truncate">
+                      <span className="font-medium text-ink-900 truncate">
                         {tech.firstName} {tech.lastName}
                       </span>
                       <span
@@ -840,20 +840,20 @@ export default function TechniciansPage() {
                         title={availabilityMeta(tech.availabilityStatus).label}
                       />
                     </div>
-                    <div className="flex items-center gap-1.5 text-sm text-slate-400 mt-0.5">
+                    <div className="flex items-center gap-1.5 text-sm text-ink-500 mt-0.5">
                       <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: tech.company.color }} />
                       <span className="truncate">{tech.company.name}</span>
                     </div>
-                    <div className="text-xs text-slate-500 mt-0.5">{getServiceLabel(tech.service)}</div>
+                    <div className="text-xs text-ink-9000 mt-0.5">{getServiceLabel(tech.service)}</div>
                     <div className="flex flex-wrap items-center gap-1.5 mt-2">
                       <Badge variant="outline" className="text-[10px]" style={{ color: contractColor, borderColor: contractColor + "55" }}>
                         {tech.contractType}
                       </Badge>
                       {activeCerts.length > 0 && (
-                        <span className="text-[10px] text-slate-400">{activeCerts.length} cert.</span>
+                        <span className="text-[10px] text-ink-500">{activeCerts.length} cert.</span>
                       )}
                       {tech.tags.slice(0, 2).map((t) => (
-                        <span key={t.id} className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-700/70 text-slate-300">
+                        <span key={t.id} className="text-[10px] px-1.5 py-0.5 rounded-full bg-paper-2 text-ink-600">
                           {t.name}
                         </span>
                       ))}
@@ -872,7 +872,7 @@ export default function TechniciansPage() {
       {/* Pagination */}
       {pagination.pages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-ink-500">
             Page {pagination.page} sur {pagination.pages} ({pagination.total} resultats)
           </p>
           <div className="flex items-center gap-2">
@@ -948,7 +948,7 @@ export default function TechniciansPage() {
             <div>
               <Label>Module</Label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={bulkForm.moduleId}
                 onChange={(e) => setBulkForm((f) => ({ ...f, moduleId: e.target.value }))}
               >
@@ -956,7 +956,7 @@ export default function TechniciansPage() {
                 {modules.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
               </select>
             </div>
-            <p className="text-xs text-slate-400">Une affectation « Propose » sera creee pour chaque technicien selectionne.</p>
+            <p className="text-xs text-ink-500">Une affectation « Propose » sera creee pour chaque technicien selectionne.</p>
           </div>
           <DialogFooter>
             <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>

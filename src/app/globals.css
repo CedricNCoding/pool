@@ -1,15 +1,52 @@
 @import "tailwindcss";
 
+/* =========================================================================
+   Praxis — module de la Suite Spektalis.
+   Design system Spektalis : contenu clair (paper), sidebar ink sombre,
+   accent de marque = signal ambre #E89B2C. Couleur du module Praxis =
+   cuivre #D97706 (logo + blob d'aurore uniquement).
+   ========================================================================= */
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-background: #f8fafc;
-  --color-foreground: #0f172a;
-  /* Praxis (module Suite Spektalis) : accent cuivre #D97706. Texte ink sur cuivre. */
-  --color-primary: #D97706;
+
+  --color-background: #F5F2EB;
+  --color-foreground: #0B1220;
+  /* Accent de marque (suite) : signal ambre. Texte ink sur ambre. */
+  --color-primary: #E89B2C;
   --color-primary-foreground: #0B1220;
-  /* Echelle cuivre Praxis (utilisable en bg-copper-500, text-copper-400, ...) */
-  --color-copper-50: #FBF1E6;
+
+  /* Ink — control-room, surfaces sombres (sidebar) */
+  --color-ink-950: #060912;
+  --color-ink-900: #0B1220;
+  --color-ink-800: #131C2E;
+  --color-ink-700: #1F2A40;
+  --color-ink-600: #2E3A52;
+  --color-ink-500: #475066;
+  --color-ink-400: #6A7388;
+  --color-ink-300: #9099A8;
+  --color-ink-200: #C2C7D0;
+  --color-ink-100: #E2E4E9;
+  --color-ink-50:  #F0F1F4;
+
+  /* Paper — surfaces claires éditoriales FR (contenu) */
+  --color-paper:      #F5F2EB;
+  --color-paper-2:    #ECE7DC;
+  --color-paper-bone: #FAF8F3;
+
+  /* Signal — ambre primaire de marque */
+  --color-signal-50:  #FDF6E8;
+  --color-signal-100: #FBE7C2;
+  --color-signal-200: #F7D08A;
+  --color-signal-300: #F2B25A;
+  --color-signal-400: #ECA13F;
+  --color-signal-500: #E89B2C;
+  --color-signal-600: #C97E14;
+  --color-signal-700: #9C610F;
+  --color-signal-800: #6E440B;
+
+  /* Cuivre — couleur du module Praxis (logo + aurore) */
+  --color-copper-50:  #FBF1E6;
   --color-copper-100: #F6E0C7;
   --color-copper-200: #EDC195;
   --color-copper-300: #E3A263;
@@ -17,34 +54,125 @@
   --color-copper-500: #D97706;
   --color-copper-600: #B45309;
   --color-copper-700: #92400E;
-  --color-copper-800: #743210;
-  /* Surfaces ink Spektalis */
-  --color-ink-900: #0B1220;
-  --color-ink-800: #131C2E;
-  --color-ink-700: #1F2A40;
 }
 
 body {
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  background: #F5F2EB;
+  color: #0B1220;
+  font-feature-settings: "cv11", "ss01", "ss03";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-@layer base {
-  * {
-    border-color: theme(colors.slate.200);
-  }
+::selection {
+  background: #F7D08A;
+  color: #0B1220;
 }
 
-@layer utilities {
-  .skill-level-1 { --skill-color: #94A3B8; }
-  .skill-level-2 { --skill-color: #3B82F6; }
-  .skill-level-3 { --skill-color: #8B5CF6; }
-  .skill-level-4 { --skill-color: #F59E0B; }
+/* Eyebrow / référence mono UPPERCASE */
+.eyebrow {
+  font-family: var(--font-mono), "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #475066;
 }
 
 .leaflet-container {
   height: 100%;
   width: 100%;
-  border-radius: 0.5rem;
+  border-radius: 10px;
+}
+
+/* =========================================================================
+   Aurore boréale — narrative des modules Spektalis, en bas de la sidebar.
+   Blobs colorés en blur lent. Couleurs : Praxis cuivre, Sentinel vert,
+   Vigie rouge, Synop bleu, Atlas violet, Signal ambre.
+   ========================================================================= */
+.aurora {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 70vh;
+  min-height: 480px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: linear-gradient(to top, black 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to top, black 55%, transparent 100%);
+}
+.aurora .blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(50px);
+  opacity: 0.7;
+  mix-blend-mode: screen;
+  animation-timing-function: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+.aurora .blob.praxis {
+  width: 190px; height: 190px;
+  left: -40px; bottom: -30px;
+  background: radial-gradient(circle, #D97706 0%, transparent 65%);
+  animation: aurora-drift-1 14s infinite;
+}
+.aurora .blob.synop {
+  width: 160px; height: 160px;
+  right: -40px; bottom: 80px;
+  background: radial-gradient(circle, #3D7BD9 0%, transparent 65%);
+  animation: aurora-drift-2 18s infinite;
+}
+.aurora .blob.sentinel {
+  width: 150px; height: 150px;
+  left: 40%; bottom: 220px;
+  background: radial-gradient(circle, #2EAE7B 0%, transparent 65%);
+  animation: aurora-drift-3 12s infinite;
+}
+.aurora .blob.vigie {
+  width: 140px; height: 140px;
+  left: -30px; bottom: 320px;
+  background: radial-gradient(circle, #D14A3D 0%, transparent 65%);
+  animation: aurora-drift-1 16s infinite reverse;
+  opacity: 0.55;
+}
+.aurora .blob.atlas {
+  width: 150px; height: 150px;
+  right: -30px; bottom: 360px;
+  background: radial-gradient(circle, #6B5BD6 0%, transparent 65%);
+  animation: aurora-drift-3 15s infinite;
+  opacity: 0.5;
+}
+.aurora .blob.signal {
+  width: 170px; height: 170px;
+  right: -50px; bottom: 200px;
+  background: radial-gradient(circle, #E89B2C 0%, transparent 65%);
+  animation: aurora-drift-2 20s infinite reverse;
+  opacity: 0.5;
+}
+
+@keyframes aurora-drift-1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(70px, -50px) scale(1.15); }
+  66%  { transform: translate(-40px, -20px) scale(0.9); }
+  100% { transform: translate(50px, -70px) scale(1.1); }
+}
+@keyframes aurora-drift-2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-60px, -50px) scale(1.2); }
+  100% { transform: translate(40px, -30px) scale(0.85); }
+}
+@keyframes aurora-drift-3 {
+  0%   { transform: translate(0, 0) scale(1); }
+  40%  { transform: translate(-40px, -60px) scale(1.1); }
+  80%  { transform: translate(60px, -30px) scale(0.9); }
+  100% { transform: translate(-20px, -50px) scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aurora .blob { animation: none; }
 }
 
 @media print {

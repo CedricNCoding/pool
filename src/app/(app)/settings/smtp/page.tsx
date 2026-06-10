@@ -93,7 +93,7 @@ export default function SmtpPage() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
-        <Mail className="w-6 h-6 text-slate-300" />
+        <Mail className="w-6 h-6 text-ink-600" />
         <h1 className="text-2xl font-bold">Configuration SMTP</h1>
       </div>
 
@@ -192,7 +192,7 @@ export default function SmtpPage() {
                 Envoyer le digest des echeances
               </Button>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-ink-9000">
               Le digest recapitule les certifications et documents (visite medicale,
               habilitations...) arrivant a echeance sous 90 jours, envoye a l&apos;adresse
               expediteur. A automatiser par cron en production.

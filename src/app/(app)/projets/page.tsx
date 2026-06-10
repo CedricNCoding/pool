@@ -62,19 +62,19 @@ export default function ProjectsPage() {
         key={p.id}
         draggable={draggable}
         onDragStart={(e) => e.dataTransfer.setData("text/plain", p.id)}
-        className={`transition group ${draggable ? "cursor-grab active:cursor-grabbing hover:border-slate-600" : "hover:border-slate-600"}`}
+        className={`transition group ${draggable ? "cursor-grab active:cursor-grabbing hover:border-ink-900/15" : "hover:border-ink-900/15"}`}
       >
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-1.5 min-w-0">
-              {draggable && <GripVertical className="w-4 h-4 text-slate-600 flex-shrink-0 mt-0.5" />}
+              {draggable && <GripVertical className="w-4 h-4 text-ink-500 flex-shrink-0 mt-0.5" />}
               <Link href={`/projets/${p.id}`} className="min-w-0">
-                <h3 className="font-semibold text-slate-100 truncate">{p.title}</h3>
+                <h3 className="font-semibold text-ink-900 truncate">{p.title}</h3>
               </Link>
             </div>
             <button
               onClick={() => remove(p.id, p.title)}
-              className="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition flex-shrink-0"
+              className="text-ink-9000 hover:text-red-400 opacity-0 group-hover:opacity-100 transition flex-shrink-0"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -86,19 +86,19 @@ export default function ProjectsPage() {
                 {st.label}
               </Badge>
             )}
-            <span className="text-xs text-slate-400 flex items-center gap-1">
+            <span className="text-xs text-ink-500 flex items-center gap-1">
               <Users className="w-3 h-3" />
               {p._count.technicians}
             </span>
             {p.company && (
-              <span className="text-xs text-slate-500 flex items-center gap-1">
+              <span className="text-xs text-ink-9000 flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: p.company.color }} />
                 {p.company.name}
               </span>
             )}
           </div>
 
-          {p.description && <p className="text-sm text-slate-400 mt-2 line-clamp-2">{p.description}</p>}
+          {p.description && <p className="text-sm text-ink-500 mt-2 line-clamp-2">{p.description}</p>}
 
           <Link href={`/projets/${p.id}`} className="text-xs text-amber-400 hover:underline mt-2 inline-flex items-center gap-1">
             Ouvrir <ArrowRight className="w-3 h-3" />
@@ -112,22 +112,22 @@ export default function ProjectsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <FolderKanban className="w-6 h-6 text-slate-300" />
+          <FolderKanban className="w-6 h-6 text-ink-600" />
           <h1 className="text-2xl font-bold">Projets / Equipes</h1>
           <Badge variant="secondary">{projects.length}</Badge>
         </div>
         <div className="flex items-center gap-3">
-          <div className="inline-flex rounded-lg border border-slate-700 overflow-hidden">
+          <div className="inline-flex rounded-lg border border-ink-900/10 overflow-hidden">
             <button
               onClick={() => setView("kanban")}
-              className={`px-2.5 py-1.5 ${view === "kanban" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white"}`}
+              className={`px-2.5 py-1.5 ${view === "kanban" ? "bg-paper-2 text-white" : "text-ink-500 hover:text-white"}`}
               title="Vue kanban"
             >
               <Columns3 className="w-4 h-4" />
             </button>
             <button
               onClick={() => setView("liste")}
-              className={`px-2.5 py-1.5 ${view === "liste" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white"}`}
+              className={`px-2.5 py-1.5 ${view === "liste" ? "bg-paper-2 text-white" : "text-ink-500 hover:text-white"}`}
               title="Vue liste"
             >
               <List className="w-4 h-4" />
@@ -143,7 +143,7 @@ export default function ProjectsPage() {
       </div>
 
       {projects.length === 0 ? (
-        <div className="text-center py-20 text-slate-500">
+        <div className="text-center py-20 text-ink-9000">
           <FolderKanban className="w-12 h-12 mx-auto mb-3" />
           <p>Aucun projet. Composez une equipe depuis « Chercher une equipe ».</p>
         </div>
@@ -170,19 +170,19 @@ export default function ProjectsPage() {
                   const id = e.dataTransfer.getData("text/plain");
                   if (id) changeStatus(id, col);
                 }}
-                className={`rounded-xl border p-3 min-h-[200px] transition-colors ${dragOver === col ? "border-slate-500 bg-slate-800/40" : "border-slate-800 bg-slate-900/40"}`}
+                className={`rounded-xl border p-3 min-h-[200px] transition-colors ${dragOver === col ? "border-slate-500 bg-paper-2" : "border-ink-900/10 bg-paper-2"}`}
               >
                 <div className="flex items-center justify-between mb-3 px-1">
                   <span className="flex items-center gap-2 text-sm font-semibold" style={{ color: st.color }}>
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: st.color }} />
                     {st.label}
                   </span>
-                  <span className="text-xs text-slate-500">{list.length}</span>
+                  <span className="text-xs text-ink-9000">{list.length}</span>
                 </div>
                 <div className="space-y-3">
                   {list.map((p) => card(p, true))}
                   {list.length === 0 && (
-                    <p className="text-xs text-slate-600 text-center py-6">Glissez un projet ici</p>
+                    <p className="text-xs text-ink-500 text-center py-6">Glissez un projet ici</p>
                   )}
                 </div>
               </div>

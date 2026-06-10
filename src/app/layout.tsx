@@ -29,7 +29,7 @@ export default function RootLayout({
       lang="fr"
       className={`${interTight.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-ink-900 text-slate-100">{children}</body>
+      <body className="min-h-full bg-paper text-ink-900">{children}</body>
     </html>
   );
 }

@@ -11,7 +11,7 @@ import { Users, Award, AlertTriangle, Building2, Clock, MapPin, FileText } from 
 const TechniciansMap = dynamic(() => import("@/components/TechniciansMap"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[360px] items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-sm text-slate-500">
+    <div className="flex h-[360px] items-center justify-center rounded-lg border border-ink-900/10 bg-white text-sm text-ink-9000">
       Chargement de la carte...
     </div>
   ),
@@ -120,8 +120,8 @@ function StatCard({
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-slate-400">{title}</p>
-            <p className="mt-1 text-3xl font-bold text-slate-50">{value}</p>
+            <p className="text-sm text-ink-500">{title}</p>
+            <p className="mt-1 text-3xl font-bold text-ink-900">{value}</p>
           </div>
           <div
             className="flex h-12 w-12 items-center justify-center rounded-lg"
@@ -162,8 +162,8 @@ function SkeletonCard() {
     <Card>
       <CardContent className="p-6">
         <div className="animate-pulse">
-          <div className="h-4 w-24 rounded bg-slate-700" />
-          <div className="mt-3 h-8 w-16 rounded bg-slate-700" />
+          <div className="h-4 w-24 rounded bg-paper-2" />
+          <div className="mt-3 h-8 w-16 rounded bg-paper-2" />
         </div>
       </CardContent>
     </Card>
@@ -181,9 +181,9 @@ function CustomBarTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm shadow-lg">
-      <p className="font-medium text-slate-200">{label}</p>
-      <p className="text-slate-400">
+    <div className="rounded-lg border border-ink-900/10 bg-white px-3 py-2 text-sm shadow-lg">
+      <p className="font-medium text-ink-800">{label}</p>
+      <p className="text-ink-500">
         {payload[0].value} technicien{payload[0].value > 1 ? "s" : ""}
       </p>
     </div>
@@ -199,9 +199,9 @@ function CustomPieTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm shadow-lg">
-      <p className="font-medium text-slate-200">{payload[0].name}</p>
-      <p className="text-slate-400">{payload[0].value} technicien{payload[0].value > 1 ? "s" : ""}</p>
+    <div className="rounded-lg border border-ink-900/10 bg-white px-3 py-2 text-sm shadow-lg">
+      <p className="font-medium text-ink-800">{payload[0].name}</p>
+      <p className="text-ink-500">{payload[0].value} technicien{payload[0].value > 1 ? "s" : ""}</p>
     </div>
   );
 }
@@ -217,7 +217,7 @@ export default function DashboardPage() {
         <Card className="max-w-md">
           <CardContent className="p-6 text-center">
             <AlertTriangle className="mx-auto h-10 w-10 text-red-400" />
-            <p className="mt-3 text-slate-400">
+            <p className="mt-3 text-ink-500">
               Impossible de charger le tableau de bord
             </p>
           </CardContent>
@@ -230,8 +230,8 @@ export default function DashboardPage() {
     <div className="space-y-6 p-6 lg:p-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-50">Tableau de bord</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <h1 className="text-2xl font-bold text-ink-900">Tableau de bord</h1>
+        <p className="mt-1 text-sm text-ink-500">
           Vue d&apos;ensemble de votre pool de techniciens
         </p>
       </div>
@@ -278,7 +278,7 @@ export default function DashboardPage() {
       {/* Carte des techniciens */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg text-slate-50">
+          <CardTitle className="flex items-center gap-2 text-lg text-ink-900">
             <MapPin className="h-5 w-5 text-amber-400" />
             Carte des techniciens
             {locations && (
@@ -287,7 +287,7 @@ export default function DashboardPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[360px] w-full overflow-hidden rounded-lg border border-slate-700">
+          <div className="h-[360px] w-full overflow-hidden rounded-lg border border-ink-900/10">
             <TechniciansMap
               points={locations ?? []}
               onSelect={(techId) => router.push(`/technicians/${techId}`)}
@@ -303,14 +303,14 @@ export default function DashboardPage() {
           {/* Skills distribution */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg text-slate-50">
+              <CardTitle className="text-lg text-ink-900">
                 Repartition des competences
               </CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
                 <div className="flex h-72 items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-blue-500" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-ink-900/15 border-t-blue-500" />
                 </div>
               ) : data && data.skillDistribution.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
@@ -352,7 +352,7 @@ export default function DashboardPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="py-12 text-center text-sm text-slate-500">
+                <p className="py-12 text-center text-sm text-ink-9000">
                   Aucune donnee disponible
                 </p>
               )}
@@ -362,14 +362,14 @@ export default function DashboardPage() {
           {/* Contract types pie chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg text-slate-50">
+              <CardTitle className="text-lg text-ink-900">
                 Types de contrats
               </CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
                 <div className="flex h-72 items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-blue-500" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-ink-900/15 border-t-blue-500" />
                 </div>
               ) : data && data.contractDistribution.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
@@ -398,13 +398,13 @@ export default function DashboardPage() {
                       iconType="circle"
                       iconSize={10}
                       formatter={(value: string) => (
-                        <span className="text-sm text-slate-300">{value}</span>
+                        <span className="text-sm text-ink-600">{value}</span>
                       )}
                     />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="py-12 text-center text-sm text-slate-500">
+                <p className="py-12 text-center text-sm text-ink-9000">
                   Aucune donnee disponible
                 </p>
               )}
@@ -417,7 +417,7 @@ export default function DashboardPage() {
           {/* Certification expiry alerts */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg text-slate-50">
+              <CardTitle className="flex items-center gap-2 text-lg text-ink-900">
                 <AlertTriangle className="h-5 w-5 text-amber-400" />
 A renouveler (certifs + documents)
               </CardTitle>
@@ -427,8 +427,8 @@ A renouveler (certifs + documents)
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="h-4 w-3/4 rounded bg-slate-700" />
-                      <div className="mt-1 h-3 w-1/2 rounded bg-slate-700" />
+                      <div className="h-4 w-3/4 rounded bg-paper-2" />
+                      <div className="mt-1 h-3 w-1/2 rounded bg-paper-2" />
                     </div>
                   ))}
                 </div>
@@ -438,13 +438,13 @@ A renouveler (certifs + documents)
                     <Link
                       key={cert.kind + cert.id}
                       href={`/technicians/${cert.techId}`}
-                      className="flex items-start justify-between rounded-lg border border-slate-700/50 bg-slate-800/50 p-3 transition-colors hover:border-slate-600 hover:bg-slate-800"
+                      className="flex items-start justify-between rounded-lg border border-ink-900/10 bg-paper-2 p-3 transition-colors hover:border-ink-900/15 hover:bg-white"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-slate-200">
+                        <p className="truncate text-sm font-medium text-ink-800">
                           {cert.techName}
                         </p>
-                        <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-slate-400">
+                        <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-ink-500">
                           {cert.kind === "doc" ? (
                             <FileText className="h-3 w-3 flex-shrink-0 text-cyan-400" />
                           ) : (
@@ -452,7 +452,7 @@ A renouveler (certifs + documents)
                           )}
                           {cert.certName}
                         </p>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-ink-9000">
                           Expire le{" "}
                           {new Date(cert.expiryDate).toLocaleDateString(
                             "fr-FR",
@@ -472,8 +472,8 @@ A renouveler (certifs + documents)
                 </div>
               ) : (
                 <div className="py-8 text-center">
-                  <Award className="mx-auto h-8 w-8 text-slate-600" />
-                  <p className="mt-2 text-sm text-slate-500">
+                  <Award className="mx-auto h-8 w-8 text-ink-500" />
+                  <p className="mt-2 text-sm text-ink-9000">
                     Rien a renouveler prochainement
                   </p>
                 </div>
@@ -484,7 +484,7 @@ A renouveler (certifs + documents)
           {/* Recent activity */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg text-slate-50">
+              <CardTitle className="flex items-center gap-2 text-lg text-ink-900">
                 <Clock className="h-5 w-5 text-amber-400" />
                 Activite recente
               </CardTitle>
@@ -494,8 +494,8 @@ A renouveler (certifs + documents)
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="h-4 w-full rounded bg-slate-700" />
-                      <div className="mt-1 h-3 w-2/3 rounded bg-slate-700" />
+                      <div className="h-4 w-full rounded bg-paper-2" />
+                      <div className="mt-1 h-3 w-2/3 rounded bg-paper-2" />
                     </div>
                   ))}
                 </div>
@@ -504,21 +504,21 @@ A renouveler (certifs + documents)
                   {data.recentActivity.map((log) => (
                     <div
                       key={log.id}
-                      className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3"
+                      className="rounded-lg border border-ink-900/10 bg-paper-2 p-3"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-slate-200">
+                        <span className="text-sm font-medium text-ink-800">
                           {log.userName}
                         </span>
                         <Badge variant="outline" className="text-[10px]">
                           {ACTION_LABELS[log.action] || log.action}
                         </Badge>
                       </div>
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-ink-500">
                         {ENTITY_LABELS[log.entityType] || log.entityType}
                         {log.details ? ` — ${log.details}` : ""}
                       </p>
-                      <p className="mt-1 text-[10px] text-slate-600">
+                      <p className="mt-1 text-[10px] text-ink-500">
                         {new Date(log.createdAt).toLocaleDateString("fr-FR", {
                           day: "numeric",
                           month: "short",
@@ -530,7 +530,7 @@ A renouveler (certifs + documents)
                   ))}
                 </div>
               ) : (
-                <p className="py-8 text-center text-sm text-slate-500">
+                <p className="py-8 text-center text-sm text-ink-9000">
                   Aucune activite recente
                 </p>
               )}

@@ -30,8 +30,8 @@ function Stat({ label, value, icon: Icon, color }: { label: string; value: numbe
     <Card>
       <CardContent className="p-5 flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-400">{label}</p>
-          <p className="mt-1 text-3xl font-bold text-slate-50">{value}</p>
+          <p className="text-sm text-ink-500">{label}</p>
+          <p className="mt-1 text-3xl font-bold text-ink-900">{value}</p>
         </div>
         <div className="flex h-12 w-12 items-center justify-center rounded-lg" style={{ backgroundColor: color + "20" }}>
           <Icon className="h-6 w-6" style={{ color }} />
@@ -80,13 +80,13 @@ export default function ParcPage() {
   const pageDossiers = dossiers.slice((dPage - 1) * DOSSIER_PAGE, dPage * DOSSIER_PAGE);
 
   if (loading || !data) {
-    return <div className="p-8 text-slate-400">Analyse du parc...</div>;
+    return <div className="p-8 text-ink-500">Analyse du parc...</div>;
   }
 
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Activity className="w-6 h-6 text-slate-300" />
+        <Activity className="w-6 h-6 text-ink-600" />
         <h1 className="text-2xl font-bold">Sante du parc</h1>
       </div>
 
@@ -106,9 +106,9 @@ export default function ParcPage() {
               <div key={c.name}>
                 <div className="flex items-center justify-between text-sm mb-1">
                   <span style={{ color: c.color }}>{c.name}</span>
-                  <span className="text-slate-400">{c.techCount} tech ({c.pct}%)</span>
+                  <span className="text-ink-500">{c.techCount} tech ({c.pct}%)</span>
                 </div>
-                <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                <div className="h-2 rounded-full bg-white overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: `${c.pct}%`, backgroundColor: c.color }} />
                 </div>
               </div>
@@ -126,7 +126,7 @@ export default function ParcPage() {
                   <span className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: s.color }} />
                     {s.name}
-                    <span className="text-xs text-slate-500">{s.family}</span>
+                    <span className="text-xs text-ink-9000">{s.family}</span>
                   </span>
                   <Badge
                     variant="outline"
@@ -153,7 +153,7 @@ export default function ParcPage() {
             <Badge variant="secondary">{data.incompleteDossiers.length}</Badge>
           </CardTitle>
           <div className="relative w-56">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-9000" />
             <Input
               className="pl-8 h-9 text-sm"
               placeholder="Filtrer (nom, service)..."
@@ -164,18 +164,18 @@ export default function ParcPage() {
         </CardHeader>
         <CardContent className="p-0">
           {dossiers.length === 0 ? (
-            <p className="p-5 text-sm text-slate-500">
+            <p className="p-5 text-sm text-ink-9000">
               {data.incompleteDossiers.length === 0 ? "Tous les dossiers sont complets." : "Aucun resultat."}
             </p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="text-xs text-slate-400 border-b border-slate-700">
+              <thead className="text-xs text-ink-500 border-b border-ink-900/10">
                 <tr>
                   {([["name", "Technicien"], ["service", "Service"], ["missing", "Documents manquants"]] as [DossierSort, string][]).map(([key, label]) => (
                     <th key={key} className="text-left py-2 px-4">
-                      <button onClick={() => toggleSort(key)} className="flex items-center gap-1 hover:text-slate-200">
+                      <button onClick={() => toggleSort(key)} className="flex items-center gap-1 hover:text-ink-800">
                         {label}
-                        <ArrowUpDown className={`w-3 h-3 ${sortKey === key ? "text-slate-200" : "text-slate-600"}`} />
+                        <ArrowUpDown className={`w-3 h-3 ${sortKey === key ? "text-ink-800" : "text-ink-500"}`} />
                       </button>
                     </th>
                   ))}
@@ -183,11 +183,11 @@ export default function ParcPage() {
               </thead>
               <tbody>
                 {pageDossiers.map((t) => (
-                  <tr key={t.id} className="border-b border-slate-800 hover:bg-slate-800/40">
+                  <tr key={t.id} className="border-b border-ink-900/10 hover:bg-paper-2">
                     <td className="py-2 px-4">
-                      <Link href={`/technicians/${t.id}`} className="text-slate-100 hover:underline">{t.name}</Link>
+                      <Link href={`/technicians/${t.id}`} className="text-ink-900 hover:underline">{t.name}</Link>
                     </td>
-                    <td className="py-2 px-4 text-slate-400">{serviceLabel(t.service)}</td>
+                    <td className="py-2 px-4 text-ink-500">{serviceLabel(t.service)}</td>
                     <td className="py-2 px-4">
                       <div className="flex flex-wrap gap-1">
                         {t.missing.map((m) => (
@@ -203,16 +203,16 @@ export default function ParcPage() {
             </table>
           )}
           {dossiers.length > DOSSIER_PAGE && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-slate-800 text-xs text-slate-400">
+            <div className="flex items-center justify-between px-4 py-3 border-t border-ink-900/10 text-xs text-ink-500">
               <span>
                 {(dPage - 1) * DOSSIER_PAGE + 1}–{Math.min(dPage * DOSSIER_PAGE, dossiers.length)} sur {dossiers.length}
               </span>
               <div className="flex items-center gap-2">
-                <button disabled={dPage <= 1} onClick={() => setDPage((p) => p - 1)} className="p-1 rounded hover:bg-slate-800 disabled:opacity-30">
+                <button disabled={dPage <= 1} onClick={() => setDPage((p) => p - 1)} className="p-1 rounded hover:bg-white disabled:opacity-30">
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <span>{dPage} / {dossierPages}</span>
-                <button disabled={dPage >= dossierPages} onClick={() => setDPage((p) => p + 1)} className="p-1 rounded hover:bg-slate-800 disabled:opacity-30">
+                <button disabled={dPage >= dossierPages} onClick={() => setDPage((p) => p + 1)} className="p-1 rounded hover:bg-white disabled:opacity-30">
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>

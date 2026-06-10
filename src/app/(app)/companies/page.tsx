@@ -87,7 +87,7 @@ export default function CompaniesPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Building2 className="w-6 h-6 text-slate-300" />
+          <Building2 className="w-6 h-6 text-ink-600" />
           <h1 className="text-2xl font-bold">Entreprises</h1>
           <Badge variant="secondary">{companies.length}</Badge>
         </div>
@@ -127,7 +127,7 @@ export default function CompaniesPage() {
                   </div>
                   <div>
                     <Label>Pays</Label>
-                    <select className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm" value={form.country} onChange={(e) => setForm(f => ({ ...f, country: e.target.value }))}>
+                    <select className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm" value={form.country} onChange={(e) => setForm(f => ({ ...f, country: e.target.value }))}>
                       {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
@@ -179,13 +179,13 @@ export default function CompaniesPage() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-ink-500" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {companies.map((company) => (
             <Link key={company.id} href={`/companies/${company.id}`} className="block">
-            <Card className="hover:shadow-lg hover:border-slate-600 transition cursor-pointer h-full">
+            <Card className="hover:shadow-lg hover:border-ink-900/15 transition cursor-pointer h-full">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -198,7 +198,7 @@ export default function CompaniesPage() {
                     <div>
                       <CardTitle className="text-base">{company.name}</CardTitle>
                       {company.city && (
-                        <p className="text-sm text-slate-500 flex items-center gap-1 mt-0.5">
+                        <p className="text-sm text-ink-9000 flex items-center gap-1 mt-0.5">
                           <MapPin className="w-3 h-3" />
                           {company.city}, {company.country}
                         </p>
@@ -209,7 +209,7 @@ export default function CompaniesPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <div className="flex items-center gap-2 text-sm text-ink-500">
                     <Users className="w-4 h-4" />
                     <span>{company._count.technicians} technicien{company._count.technicians > 1 ? "s" : ""}</span>
                   </div>
@@ -220,7 +220,7 @@ export default function CompaniesPage() {
                   )}
                 </div>
                 {company.siret && (
-                  <p className="text-xs text-slate-400 mt-2">SIRET: {company.siret}</p>
+                  <p className="text-xs text-ink-500 mt-2">SIRET: {company.siret}</p>
                 )}
               </CardContent>
             </Card>

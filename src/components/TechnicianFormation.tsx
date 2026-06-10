@@ -81,7 +81,7 @@ export default function TechnicianFormation({ technicianId }: { technicianId: st
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between no-print">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-ink-500">
           {assignments.length} formation{assignments.length > 1 ? "s" : ""} (proposees, en cours, validees)
         </p>
         <Button size="sm" onClick={() => setOpen(true)} disabled={modules.length === 0}>
@@ -91,7 +91,7 @@ export default function TechnicianFormation({ technicianId }: { technicianId: st
 
       {assignments.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-slate-500">
+          <CardContent className="py-10 text-center text-ink-9000">
             <GraduationCap className="w-10 h-10 mx-auto mb-2" />
             Aucune formation. Proposez-en une (ex. pour combler une competence faible).
           </CardContent>
@@ -104,11 +104,11 @@ export default function TechnicianFormation({ technicianId }: { technicianId: st
               <Card key={a.id} className="print-break">
                 <CardContent className="py-3 flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="font-medium text-slate-100">
+                    <div className="font-medium text-ink-900">
                       {a.module?.title || a.path?.title || "-"}
                     </div>
                     {a.module && a.module.targetSkills.length > 0 && (
-                      <div className="flex items-center gap-1 mt-1 flex-wrap text-xs text-slate-400">
+                      <div className="flex items-center gap-1 mt-1 flex-wrap text-xs text-ink-500">
                         <Target className="w-3 h-3" />
                         {a.module.targetSkills.map((s) => s.name).join(", ")}
                       </div>
@@ -124,7 +124,7 @@ export default function TechnicianFormation({ technicianId }: { technicianId: st
         </div>
       )}
 
-      <p className="text-xs text-slate-500 no-print">
+      <p className="text-xs text-ink-9000 no-print">
         La gestion complete (validation, parcours) se fait dans le menu{" "}
         <Link href="/formation" className="text-amber-400 hover:underline">Formation</Link>.
       </p>
@@ -136,9 +136,9 @@ export default function TechnicianFormation({ technicianId }: { technicianId: st
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium text-slate-300 block mb-1">Module</label>
+              <label className="text-sm font-medium text-ink-600 block mb-1">Module</label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={moduleId}
                 onChange={(e) => setModuleId(e.target.value)}
               >
@@ -152,16 +152,16 @@ export default function TechnicianFormation({ technicianId }: { technicianId: st
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-300 block mb-1">Note (optionnel)</label>
+              <label className="text-sm font-medium text-ink-600 block mb-1">Note (optionnel)</label>
               <input
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="ex: a planifier au T1"
               />
             </div>
             {moduleId && (
-              <p className="text-xs text-slate-400 flex items-center gap-1">
+              <p className="text-xs text-ink-500 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 Statut initial : Propose. Validation depuis le menu Formation.
               </p>

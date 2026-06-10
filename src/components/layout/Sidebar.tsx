@@ -8,7 +8,6 @@ import {
   Building2,
   Award,
   Search,
-  Settings,
   LayoutDashboard,
   LogOut,
   Key,
@@ -21,13 +20,19 @@ import {
   GraduationCap,
   Activity,
   Gauge,
+  PanelLeftClose,
+  PanelLeftOpen,
+  X,
+  type LucideIcon,
 } from "lucide-react";
 import { useSession } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/NotificationBell";
 import PraxisLogo from "@/components/PraxisLogo";
 
-const mainNav = [
+type NavItem = { href: string; label: string; icon: LucideIcon };
+
+const mainNav: NavItem[] = [
   { href: "/direction", label: "Direction", icon: Gauge },
   { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/technicians", label: "Techniciens", icon: Users },
@@ -40,134 +45,189 @@ const mainNav = [
   { href: "/parc", label: "Sante du parc", icon: Activity },
 ];
 
-const settingsNav = [
-  { href: "/settings/users", label: "Utilisateurs", icon: UserCog, adminOnly: true },
-  { href: "/settings/api-keys", label: "Cles API", icon: Key, adminOnly: true },
-  { href: "/settings/smtp", label: "Email / SMTP", icon: Mail, adminOnly: true },
-  { href: "/settings/rgpd", label: "RGPD", icon: Shield, adminOnly: true },
+const settingsNav: NavItem[] = [
+  { href: "/settings/users", label: "Utilisateurs", icon: UserCog },
+  { href: "/settings/api-keys", label: "Cles API", icon: Key },
+  { href: "/settings/smtp", label: "Email / SMTP", icon: Mail },
+  { href: "/settings/rgpd", label: "RGPD", icon: Shield },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  mobileOpen: boolean;
+  onCloseMobile: () => void;
+}
+
+export function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useSession();
 
   return (
-    <aside className="w-64 bg-slate-900 text-white flex flex-col min-h-screen">
-      <div className="p-6 border-b border-slate-700">
-        <Link href="/dashboard" className="flex items-center gap-3">
-          <PraxisLogo size={40} className="rounded-xl" />
-          <div>
-            <h1 className="font-bold text-lg leading-tight">Praxis</h1>
-            <p className="text-xs text-slate-400">Suite Spektalis</p>
-          </div>
-        </Link>
+    <aside
+      className={cn(
+        "bg-ink-900 text-paper flex flex-col shrink-0 border-r border-[rgba(245,242,235,0.08)] overflow-hidden relative",
+        "fixed inset-y-0 left-0 z-40 w-64 transition-transform duration-200 ease-out",
+        mobileOpen ? "translate-x-0" : "-translate-x-full",
+        "md:relative md:translate-x-0 md:transition-[width] md:duration-200",
+        collapsed ? "md:w-[68px]" : "md:w-64"
+      )}
+    >
+      {/* Aurore boréale des modules Spektalis */}
+      <div className="aurora" aria-hidden="true">
+        <div className="blob praxis" />
+        <div className="blob synop" />
+        <div className="blob sentinel" />
+        <div className="blob vigie" />
+        <div className="blob atlas" />
+        <div className="blob signal" />
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
-        <div className="flex gap-2 mb-2">
-          <button
-            onClick={() => window.dispatchEvent(new Event("avpool-command-open"))}
-            className="flex items-center gap-2 flex-1 px-3 py-2 rounded-lg text-sm text-slate-400 bg-slate-800/60 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <Search className="w-4 h-4" />
-            <span className="flex-1 text-left">Rechercher...</span>
-            <kbd className="text-[10px] border border-slate-600 rounded px-1.5 py-0.5">⌘K</kbd>
-          </button>
-          <NotificationBell />
-        </div>
-
-        {user?.role === "superadmin" && (
-          <Link
-            href="/superadmin"
-            className={cn(
-              "flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg text-sm transition-colors",
-              pathname.startsWith("/superadmin")
-                ? "bg-copper-600 text-[#0B1220]"
-                : "text-copper-300 bg-copper-500/10 hover:bg-copper-500/20"
-            )}
-          >
-            <Building className="w-4 h-4" />
-            Tenants (super admin)
-          </Link>
+      {/* Lockup brand + repli */}
+      <div
+        className={cn(
+          "border-b border-[rgba(245,242,235,0.08)] relative z-10 flex items-center px-5 py-5 justify-between",
+          collapsed && "md:px-3 md:py-4 md:justify-center"
         )}
+      >
+        <Link href="/dashboard" onClick={onCloseMobile} className="flex items-center gap-3 min-w-0" title={collapsed ? "Praxis" : undefined}>
+          <PraxisLogo size={34} className="rounded-lg shrink-0" />
+          <div className={cn("flex flex-col leading-none min-w-0", collapsed && "md:hidden")}>
+            <span className="text-[15px] font-semibold tracking-[-0.01em]">Praxis</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-300 mt-1 truncate">Suite Spektalis</span>
+          </div>
+        </Link>
+        <button
+          onClick={onToggleCollapsed}
+          aria-label="Replier le menu"
+          className={cn("p-1.5 rounded-md text-ink-300 hover:text-paper hover:bg-[rgba(245,242,235,0.04)] transition-colors hidden md:flex", collapsed && "md:hidden")}
+        >
+          <PanelLeftClose size={16} strokeWidth={1.5} />
+        </button>
+        <button onClick={onCloseMobile} aria-label="Fermer le menu" className="md:hidden p-1.5 rounded-md text-ink-300 hover:text-paper">
+          <X size={18} strokeWidth={1.5} />
+        </button>
+      </div>
 
-        {mainNav.map((item) => {
-          const active = pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
-                active
-                  ? "bg-copper-500 text-[#0B1220]"
-                  : "text-slate-300 hover:bg-slate-800 hover:text-white"
-              )}
-            >
-              <item.icon className="w-4 h-4" />
-              {item.label}
-            </Link>
-          );
-        })}
+      {collapsed && (
+        <div className="hidden md:flex justify-center py-2 relative z-10 border-b border-[rgba(245,242,235,0.06)]">
+          <button onClick={onToggleCollapsed} aria-label="Deplier le menu" className="p-1.5 rounded-md text-ink-300 hover:text-paper hover:bg-[rgba(245,242,235,0.04)] transition-colors">
+            <PanelLeftOpen size={16} strokeWidth={1.5} />
+          </button>
+        </div>
+      )}
 
+      {/* Recherche + notifications */}
+      <div className={cn("relative z-10 px-3 pt-3 flex gap-2", collapsed && "md:flex-col md:items-center md:px-0")}>
+        <button
+          onClick={() => window.dispatchEvent(new Event("avpool-command-open"))}
+          title="Rechercher (Cmd+K)"
+          className={cn(
+            "flex items-center gap-2 flex-1 px-3 py-2 rounded-md text-sm text-ink-300 bg-[rgba(245,242,235,0.04)] hover:bg-[rgba(245,242,235,0.08)] hover:text-paper transition-colors",
+            collapsed && "md:flex-none md:w-9 md:justify-center md:px-0"
+          )}
+        >
+          <Search className="w-4 h-4 shrink-0" />
+          <span className={cn("flex-1 text-left", collapsed && "md:hidden")}>Rechercher...</span>
+          <kbd className={cn("text-[10px] border border-[rgba(245,242,235,0.15)] rounded px-1.5 py-0.5", collapsed && "md:hidden")}>⌘K</kbd>
+        </button>
+        <NotificationBell />
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 py-3 overflow-y-auto relative z-10">
+        {user?.role === "superadmin" && (
+          <NavLink item={{ href: "/superadmin", label: "Tenants (super admin)", icon: Building }} active={pathname.startsWith("/superadmin")} collapsed={collapsed} onClick={onCloseMobile} />
+        )}
+        {mainNav.map((item) => (
+          <NavLink
+            key={item.href}
+            item={item}
+            active={item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href)}
+            collapsed={collapsed}
+            onClick={onCloseMobile}
+          />
+        ))}
         <a
           href="/api/export?format=csv"
           download
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+          title={collapsed ? "Exporter CSV" : undefined}
+          className={cn("flex items-center gap-3 text-sm text-ink-200 hover:text-paper hover:bg-[rgba(245,242,235,0.04)] border-l-2 border-transparent -ml-[2px] pl-[18px] pr-5 py-2 transition-colors", collapsed && "md:px-0 md:py-2.5 md:gap-0 md:justify-center md:border-l-0 md:ml-0 md:pl-0 md:pr-0")}
         >
-          <FileDown className="w-4 h-4" />
-          Exporter CSV
+          <FileDown size={18} strokeWidth={1.5} className="shrink-0" />
+          <span className={cn("truncate", collapsed && "md:hidden")}>Exporter CSV</span>
         </a>
 
         {user?.role === "admin" && (
           <>
-            <div className="pt-4 pb-2">
-              <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Administration
-              </p>
+            <div className={cn("pt-4 pb-1 px-5", collapsed && "md:hidden")}>
+              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">Administration</p>
             </div>
-            {settingsNav.map((item) => {
-              const active = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
-                    active
-                      ? "bg-copper-500 text-[#0B1220]"
-                      : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                  )}
-                >
-                  <item.icon className="w-4 h-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
+            {settingsNav.map((item) => (
+              <NavLink key={item.href} item={item} active={pathname.startsWith(item.href)} collapsed={collapsed} onClick={onCloseMobile} />
+            ))}
           </>
         )}
       </nav>
 
-      <div className="p-4 border-t border-slate-700">
-        {user && (
-          <div className="flex items-center gap-3 mb-3 px-3">
-            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold">
+      {/* Pied de menu : compte + déconnexion */}
+      <div className="border-t border-[rgba(245,242,235,0.08)] py-3 relative z-10">
+        {user && !collapsed && (
+          <div className="flex items-center gap-3 px-5 pb-2">
+            <div className="w-8 h-8 rounded-full bg-ink-700 flex items-center justify-center text-xs font-bold shrink-0">
               {user.name.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user.name}</p>
-              <p className="text-xs text-slate-400 truncate">{user.email}</p>
+              <p className="text-xs text-ink-300 truncate">{user.email}</p>
             </div>
           </div>
         )}
         <button
           onClick={logout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors w-full"
+          title={collapsed ? "Deconnexion" : undefined}
+          className={cn("flex items-center gap-3 w-full text-sm text-ink-300 hover:text-paper transition-colors px-5 py-2", collapsed && "md:px-0 md:py-2.5 md:justify-center md:gap-0")}
         >
-          <LogOut className="w-4 h-4" />
-          Deconnexion
+          <LogOut size={18} strokeWidth={1.5} className="shrink-0" />
+          <span className={cn(collapsed && "md:hidden")}>Deconnexion</span>
         </button>
       </div>
+
+      {/* Référence Spektalis */}
+      <div className={cn("px-5 py-4 border-t border-[rgba(245,242,235,0.06)] relative z-10", collapsed && "md:hidden")}>
+        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">Module Spektalis</span>
+      </div>
     </aside>
+  );
+}
+
+function NavLink({
+  item,
+  active,
+  collapsed,
+  onClick,
+}: {
+  item: NavItem;
+  active: boolean;
+  collapsed: boolean;
+  onClick?: () => void;
+}) {
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href}
+      onClick={onClick}
+      title={collapsed ? item.label : undefined}
+      className={cn(
+        "flex items-center gap-3 text-sm transition-colors duration-[120ms]",
+        active
+          ? "bg-[rgba(232,155,44,0.10)] text-signal-500 border-l-2 border-signal-500 -ml-[2px] pl-[18px] pr-5 py-2"
+          : "text-ink-200 hover:text-paper hover:bg-[rgba(245,242,235,0.04)] border-l-2 border-transparent -ml-[2px] pl-[18px] pr-5 py-2",
+        collapsed && "md:px-0 md:py-2.5 md:gap-0 md:justify-center md:border-l-0 md:ml-0 md:pl-0 md:pr-0"
+      )}
+    >
+      <Icon size={18} strokeWidth={1.5} className="shrink-0" />
+      <span className={cn("truncate", collapsed && "md:hidden")}>{item.label}</span>
+    </Link>
   );
 }

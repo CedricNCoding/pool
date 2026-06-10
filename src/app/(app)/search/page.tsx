@@ -264,9 +264,9 @@ export default function TeamSearchPage() {
   return (
     <div className="p-6 lg:p-8">
       <div className="flex items-center gap-3 mb-6">
-        <Users className="w-6 h-6 text-slate-300" />
+        <Users className="w-6 h-6 text-ink-600" />
         <h1 className="text-2xl font-bold">Chercher une equipe</h1>
-        <span className="text-sm text-slate-400">
+        <span className="text-sm text-ink-500">
           Glissez ou cliquez des competences / certifications dans les criteres
         </span>
       </div>
@@ -283,10 +283,10 @@ export default function TeamSearchPage() {
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={onDrop}
-                className="min-h-[80px] rounded-lg border-2 border-dashed border-slate-700 p-2 space-y-1.5"
+                className="min-h-[80px] rounded-lg border-2 border-dashed border-ink-900/10 p-2 space-y-1.5"
               >
                 {criteria.length === 0 && (
-                  <p className="text-xs text-slate-500 text-center py-4">
+                  <p className="text-xs text-ink-9000 text-center py-4">
                     Deposez des etiquettes ici (ou cliquez-les ci-dessous)
                   </p>
                 )}
@@ -308,7 +308,7 @@ export default function TeamSearchPage() {
                     </span>
                     {c.type === "skill" && (
                       <select
-                        className="bg-slate-900 border border-slate-600 rounded text-[10px] px-1 py-0.5 text-slate-200"
+                        className="bg-paper-bone border border-ink-900/15 rounded text-[10px] px-1 py-0.5 text-ink-800"
                         value={c.minLevel}
                         onChange={(e) => setMinLevel(c.id, parseInt(e.target.value))}
                         title="Niveau minimum"
@@ -322,7 +322,7 @@ export default function TeamSearchPage() {
                     )}
                     <button
                       onClick={() => removeCriterion(c.type, c.id)}
-                      className="text-slate-400 hover:text-red-400"
+                      className="text-ink-500 hover:text-red-400"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -336,7 +336,7 @@ export default function TeamSearchPage() {
                   <div>
                     <Label className="text-xs">Entreprise</Label>
                     <select
-                      className="w-full px-2 py-1.5 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                      className="w-full px-2 py-1.5 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                       value={companyId}
                       onChange={(e) => setCompanyId(e.target.value)}
                     >
@@ -350,7 +350,7 @@ export default function TeamSearchPage() {
                 <div>
                   <Label className="text-xs">Zone geographique</Label>
                   <select
-                    className="w-full px-2 py-1.5 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                    className="w-full px-2 py-1.5 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                     value={geoCity}
                     onChange={(e) => setGeoCity(e.target.value)}
                   >
@@ -362,7 +362,7 @@ export default function TeamSearchPage() {
                 </div>
                 {geoCity && (
                   <select
-                    className="w-full px-2 py-1.5 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                    className="w-full px-2 py-1.5 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                     value={geoMode}
                     onChange={(e) => setGeoMode(e.target.value)}
                   >
@@ -380,19 +380,19 @@ export default function TeamSearchPage() {
               <div className="flex gap-1">
                 <button
                   onClick={() => setPaletteTab("skill")}
-                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "skill" ? "bg-copper-500 text-[#0B1220]" : "bg-slate-800 text-slate-400"}`}
+                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "skill" ? "bg-signal-500 text-[#0B1220]" : "bg-white text-ink-500"}`}
                 >
                   Competences
                 </button>
                 <button
                   onClick={() => setPaletteTab("cert")}
-                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "cert" ? "bg-copper-500 text-[#0B1220]" : "bg-slate-800 text-slate-400"}`}
+                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "cert" ? "bg-signal-500 text-[#0B1220]" : "bg-white text-ink-500"}`}
                 >
                   Certifs
                 </button>
                 <button
                   onClick={() => setPaletteTab("tag")}
-                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "tag" ? "bg-copper-500 text-[#0B1220]" : "bg-slate-800 text-slate-400"}`}
+                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "tag" ? "bg-signal-500 text-[#0B1220]" : "bg-white text-ink-500"}`}
                 >
                   Etiquettes
                 </button>
@@ -400,7 +400,7 @@ export default function TeamSearchPage() {
             </CardHeader>
             <CardContent>
               <div className="relative mb-3">
-                <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-9000" />
                 <Input
                   className="pl-8 h-8 text-sm"
                   placeholder="Filtrer..."
@@ -494,7 +494,7 @@ export default function TeamSearchPage() {
                           </button>
                         ))}
                       {allTags.length === 0 && (
-                        <span className="text-xs text-slate-500">Aucune etiquette creee.</span>
+                        <span className="text-xs text-ink-9000">Aucune etiquette creee.</span>
                       )}
                     </div>
                   )}
@@ -510,8 +510,8 @@ export default function TeamSearchPage() {
             <Card className="border-blue-700/50 bg-blue-950/20">
               <CardContent className="py-3 flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge className="bg-copper-500 text-[#0B1220]">{teamList.length}</Badge>
-                  <span className="text-sm text-slate-300">dans l&apos;equipe :</span>
+                  <Badge className="bg-signal-500 text-[#0B1220]">{teamList.length}</Badge>
+                  <span className="text-sm text-ink-600">dans l&apos;equipe :</span>
                   {teamList.slice(0, 6).map((t) => (
                     <Badge key={t.id} variant="outline" className="text-xs gap-1">
                       {t.firstName} {t.lastName}
@@ -521,7 +521,7 @@ export default function TeamSearchPage() {
                     </Badge>
                   ))}
                   {teamList.length > 6 && (
-                    <span className="text-xs text-slate-500">+{teamList.length - 6}</span>
+                    <span className="text-xs text-ink-9000">+{teamList.length - 6}</span>
                   )}
                 </div>
                 <Button size="sm" onClick={() => setProjectOpen(true)}>
@@ -552,7 +552,7 @@ export default function TeamSearchPage() {
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="text-xs text-slate-400 border-b border-slate-700">
+                  <thead className="text-xs text-ink-500 border-b border-ink-900/10">
                     <tr>
                       <th className="w-10 py-2 px-3"></th>
                       <th className="text-left py-2 px-3">Technicien</th>
@@ -567,15 +567,15 @@ export default function TeamSearchPage() {
                       const inTeam = !!team[t.id];
                       const topSkills = [...t.skills].sort((a, b) => b.level - a.level).slice(0, 4);
                       return (
-                        <tr key={t.id} className="border-b border-slate-800 hover:bg-slate-800/40">
+                        <tr key={t.id} className="border-b border-ink-900/10 hover:bg-paper-2">
                           <td className="py-2 px-3">
                             <button
                               onClick={() => toggleTeam(t)}
                               title={inTeam ? "Retirer de l'equipe" : "Ajouter a l'equipe"}
                               className={`w-6 h-6 rounded-md flex items-center justify-center border transition ${
                                 inTeam
-                                  ? "bg-copper-500 border-blue-600 text-white"
-                                  : "border-slate-600 text-slate-400 hover:border-copper-500"
+                                  ? "bg-signal-500 border-blue-600 text-white"
+                                  : "border-ink-900/15 text-ink-500 hover:border-signal-500"
                               }`}
                             >
                               {inTeam ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
@@ -583,7 +583,7 @@ export default function TeamSearchPage() {
                           </td>
                           <td className="py-2 px-3">
                             <Link href={`/technicians/${t.id}`} className="hover:underline">
-                              <div className="font-medium text-slate-100 flex items-center gap-1.5">
+                              <div className="font-medium text-ink-900 flex items-center gap-1.5">
                                 {t.firstName} {t.lastName}
                                 <span
                                   className="w-2 h-2 rounded-full flex-shrink-0"
@@ -592,12 +592,12 @@ export default function TeamSearchPage() {
                                 />
                               </div>
                             </Link>
-                            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                            <div className="flex items-center gap-1.5 text-xs text-ink-500">
                               <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: t.company.color }} />
                               {t.company.name} · {t.service}
                             </div>
                           </td>
-                          <td className="py-2 px-3 text-xs text-slate-400">
+                          <td className="py-2 px-3 text-xs text-ink-500">
                             <div className="flex items-center gap-1">
                               <MapPin className="w-3 h-3" />
                               {t.agency?.city || "Siege"}
@@ -619,7 +619,7 @@ export default function TeamSearchPage() {
                                 </Badge>
                               ))}
                               {t.skills.length > 4 && (
-                                <span className="text-[10px] text-slate-500 self-center">
+                                <span className="text-[10px] text-ink-9000 self-center">
                                   +{t.skills.length - 4}
                                 </span>
                               )}
@@ -632,7 +632,7 @@ export default function TeamSearchPage() {
                                 {t.certifications.length}
                               </Badge>
                             ) : (
-                              <span className="text-xs text-slate-600">--</span>
+                              <span className="text-xs text-ink-500">--</span>
                             )}
                           </td>
                           <td className="py-2 px-3 text-center">
@@ -645,7 +645,7 @@ export default function TeamSearchPage() {
                     })}
                     {results.length === 0 && !loading && (
                       <tr>
-                        <td colSpan={6} className="text-center py-10 text-slate-500">
+                        <td colSpan={6} className="text-center py-10 text-ink-9000">
                           Aucun technicien ne correspond a ces criteres
                         </td>
                       </tr>
@@ -682,7 +682,7 @@ export default function TeamSearchPage() {
                 placeholder="Contexte, dates, lieu, besoins..."
               />
             </div>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-ink-500">
               {teamList.length} technicien{teamList.length > 1 ? "s" : ""}{" "}
               dans l&apos;equipe.
             </p>

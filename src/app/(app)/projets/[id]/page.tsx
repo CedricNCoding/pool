@@ -102,7 +102,7 @@ export default function ProjectDetailPage() {
   }
 
   if (loading) {
-    return <div className="p-8 text-slate-400">Chargement...</div>;
+    return <div className="p-8 text-ink-500">Chargement...</div>;
   }
   if (!project) {
     return (
@@ -124,7 +124,7 @@ export default function ProjectDetailPage() {
             </Link>
             <div>
               <h1 className="text-2xl font-bold">{project.title}</h1>
-              <div className="flex items-center gap-2 mt-1 text-sm text-slate-400">
+              <div className="flex items-center gap-2 mt-1 text-sm text-ink-500">
                 <Users className="w-4 h-4" />
                 {project.technicians.length} technicien{project.technicians.length > 1 ? "s" : ""}
                 {project.company && (
@@ -161,7 +161,7 @@ export default function ProjectDetailPage() {
               <div>
                 <Label>Statut</Label>
                 <select
-                  className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                  className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                   value={form.status}
                   onChange={(e) => { setForm((f) => ({ ...f, status: e.target.value })); setDirty(true); }}
                 >
@@ -194,7 +194,7 @@ export default function ProjectDetailPage() {
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="text-xs text-slate-400 border-b border-slate-700">
+                <thead className="text-xs text-ink-500 border-b border-ink-900/10">
                   <tr>
                     <th className="text-left py-2 px-4">Technicien</th>
                     <th className="text-left py-2 px-4">Localisation</th>
@@ -208,17 +208,17 @@ export default function ProjectDetailPage() {
                   {project.technicians.map((t) => {
                     const top = [...t.skills].sort((a, b) => b.level - a.level).slice(0, 4);
                     return (
-                      <tr key={t.id} className="border-b border-slate-800">
+                      <tr key={t.id} className="border-b border-ink-900/10">
                         <td className="py-2 px-4">
-                          <Link href={`/technicians/${t.id}`} className="font-medium text-slate-100 hover:underline">
+                          <Link href={`/technicians/${t.id}`} className="font-medium text-ink-900 hover:underline">
                             {t.firstName} {t.lastName}
                           </Link>
-                          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                          <div className="flex items-center gap-1.5 text-xs text-ink-500">
                             <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: t.company.color }} />
                             {t.company.name} · {t.service}
                           </div>
                         </td>
-                        <td className="py-2 px-4 text-xs text-slate-400">
+                        <td className="py-2 px-4 text-xs text-ink-500">
                           <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{t.agency?.city || "Siege"}</span>
                         </td>
                         <td className="py-2 px-4">
@@ -233,13 +233,13 @@ export default function ProjectDetailPage() {
                         <td className="py-2 px-4">
                           {t.certifications.length > 0 ? (
                             <Badge variant="secondary" className="text-xs"><Award className="w-3 h-3 mr-1" />{t.certifications.length}</Badge>
-                          ) : <span className="text-xs text-slate-600">--</span>}
+                          ) : <span className="text-xs text-ink-500">--</span>}
                         </td>
                         <td className="py-2 px-4 text-center">
                           <div className="inline-block"><MiniRadar values={radarValues(t)} color={t.company.color} /></div>
                         </td>
                         <td className="py-2 px-4 no-print">
-                          <button onClick={() => removeTech(t.id)} className="text-slate-500 hover:text-red-400" title="Retirer de l'equipe">
+                          <button onClick={() => removeTech(t.id)} className="text-ink-9000 hover:text-red-400" title="Retirer de l'equipe">
                             <X className="w-4 h-4" />
                           </button>
                         </td>
@@ -247,7 +247,7 @@ export default function ProjectDetailPage() {
                     );
                   })}
                   {project.technicians.length === 0 && (
-                    <tr><td colSpan={6} className="text-center py-8 text-slate-500">
+                    <tr><td colSpan={6} className="text-center py-8 text-ink-9000">
                       Aucun technicien. Ajoutez-en depuis <Link href="/search" className="text-amber-400 hover:underline">Chercher une equipe</Link>.
                     </td></tr>
                   )}

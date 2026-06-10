@@ -183,7 +183,7 @@ export default function NewTechnicianPage() {
             <div>
               <Label>Entreprise *</Label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={form.companyId}
                 onChange={(e) => handleCompanyChange(e.target.value)}
                 required
@@ -199,7 +199,7 @@ export default function NewTechnicianPage() {
             <div>
               <Label>Agence</Label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={form.agencyId}
                 onChange={(e) => handleAgencyChange(e.target.value)}
                 disabled={!selectedCompany?.agencies.length}
@@ -215,7 +215,7 @@ export default function NewTechnicianPage() {
             <div>
               <Label>Service</Label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={form.service}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, service: e.target.value }))
@@ -231,7 +231,7 @@ export default function NewTechnicianPage() {
             <div>
               <Label>Type de contrat</Label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={form.contractType}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, contractType: e.target.value }))
@@ -315,7 +315,7 @@ export default function NewTechnicianPage() {
                 }
               />
             </div>
-            <p className="col-span-3 text-xs text-slate-500">
+            <p className="col-span-3 text-xs text-ink-9000">
               Les coordonnees sont pre-remplies depuis l&apos;adresse de l&apos;entreprise ou de l&apos;agence selectionnee.
             </p>
           </CardContent>

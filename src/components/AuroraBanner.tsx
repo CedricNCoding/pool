@@ -23,7 +23,7 @@ export default function AuroraBanner({
         : "linear-gradient(90deg,#7c3aed,#2563eb,#06b6d4,#10b981,#7c3aed)";
 
   return (
-    <div className="relative overflow-hidden rounded-lg border border-slate-700">
+    <div className="relative overflow-hidden rounded-lg border border-ink-900/10">
       <div
         className="absolute inset-0 opacity-30"
         style={{
@@ -32,7 +32,7 @@ export default function AuroraBanner({
           animation: state === "loading" ? "avpool-aurora 2.5s linear infinite" : "none",
         }}
       />
-      <div className="relative flex items-center gap-2 px-3 py-2.5 text-sm text-slate-100">
+      <div className="relative flex items-center gap-2 px-3 py-2.5 text-sm text-ink-900">
         {state === "loading" && <Loader2 className="w-4 h-4 animate-spin text-fuchsia-300" />}
         {state === "done" && <CheckCircle className="w-4 h-4 text-emerald-300" />}
         {state === "error" && <AlertTriangle className="w-4 h-4 text-red-300" />}

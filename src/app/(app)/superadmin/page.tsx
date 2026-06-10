@@ -77,7 +77,7 @@ export default function SuperadminPage() {
   if (user && user.role !== "superadmin") {
     return (
       <div className="p-8">
-        <Card><CardContent className="py-12 text-center text-slate-400">
+        <Card><CardContent className="py-12 text-center text-ink-500">
           <ShieldCheck className="w-10 h-10 mx-auto mb-3" />
           Espace reserve aux super administrateurs.
         </CardContent></Card>
@@ -89,7 +89,7 @@ export default function SuperadminPage() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Building className="w-6 h-6 text-slate-300" />
+          <Building className="w-6 h-6 text-ink-600" />
           <h1 className="text-2xl font-bold">Tenants</h1>
           <Badge variant="secondary">{tenants.length}</Badge>
         </div>
@@ -117,13 +117,13 @@ export default function SuperadminPage() {
                   {t.status === "active" ? "Actif" : "Suspendu"}
                 </Badge>
               </CardTitle>
-              <button onClick={() => toggle(t)} className="text-slate-400 hover:text-slate-100" title={t.status === "active" ? "Suspendre" : "Reactiver"}>
+              <button onClick={() => toggle(t)} className="text-ink-500 hover:text-ink-900" title={t.status === "active" ? "Suspendre" : "Reactiver"}>
                 {t.status === "active" ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
               </button>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-slate-500 mb-3">/{t.slug}</p>
-              <div className="flex items-center gap-4 text-sm text-slate-300">
+              <p className="text-xs text-ink-9000 mb-3">/{t.slug}</p>
+              <div className="flex items-center gap-4 text-sm text-ink-600">
                 <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" />{t._count.companies}</span>
                 <span className="flex items-center gap-1"><Wrench className="w-3.5 h-3.5" />{t._count.technicians}</span>
                 <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{t._count.users}</span>
@@ -156,7 +156,7 @@ export default function SuperadminPage() {
               <Label>Mot de passe admin *</Label>
               <Input type="text" value={form.adminPassword} onChange={(e) => setForm((f) => ({ ...f, adminPassword: e.target.value }))} placeholder="8 caracteres minimum" />
             </div>
-            <p className="text-xs text-slate-500">Le referentiel (competences, certifications) est copie depuis le tenant Demo.</p>
+            <p className="text-xs text-ink-9000">Le referentiel (competences, certifications) est copie depuis le tenant Demo.</p>
           </div>
           <DialogFooter>
             <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>

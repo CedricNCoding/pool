@@ -191,7 +191,7 @@ export default function AiImport({
           </DialogHeader>
 
           <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto pr-1">
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-ink-500">
               Deposez un PDF (CV, attestation) ou collez le texte. Les competences,
               certifications et attributs reconnus dans le referentiel sont proposes.
             </p>
@@ -204,7 +204,7 @@ export default function AiImport({
                   const f = e.target.files?.[0];
                   if (f) analyze(f);
                 }}
-                className="text-sm text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-100 file:cursor-pointer"
+                className="text-sm text-ink-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-paper-2 file:text-ink-900 file:cursor-pointer"
               />
             </div>
 
@@ -227,7 +227,7 @@ export default function AiImport({
               <div className="space-y-4">
                 {suggest.skills.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-slate-400 mb-1.5">Competences</p>
+                    <p className="text-xs font-semibold text-ink-500 mb-1.5">Competences</p>
                     <div className="flex flex-wrap gap-2">
                       {suggest.skills.map((s) => (
                         <button
@@ -244,7 +244,7 @@ export default function AiImport({
                 )}
                 {suggest.certs.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-slate-400 mb-1.5">Certifications / habilitations</p>
+                    <p className="text-xs font-semibold text-ink-500 mb-1.5">Certifications / habilitations</p>
                     <div className="flex flex-wrap gap-2">
                       {suggest.certs.map((c) => (
                         <button
@@ -262,13 +262,13 @@ export default function AiImport({
                 )}
                 {suggest.tags.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-slate-400 mb-1.5">Etiquettes</p>
+                    <p className="text-xs font-semibold text-ink-500 mb-1.5">Etiquettes</p>
                     <div className="flex flex-wrap gap-2">
                       {suggest.tags.map((t) => (
                         <button
                           key={t}
                           onClick={() => toggle(selTags, setSelTags, t)}
-                          className={`text-xs px-2 py-1 rounded-full border border-slate-600 text-slate-200 transition ${selTags.has(t) ? "" : "opacity-40"}`}
+                          className={`text-xs px-2 py-1 rounded-full border border-ink-900/15 text-ink-800 transition ${selTags.has(t) ? "" : "opacity-40"}`}
                         >
                           {t}
                         </button>
@@ -276,7 +276,7 @@ export default function AiImport({
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-ink-9000">
                   Cliquez pour (de)selectionner. Les competences ajoutees le sont au niveau 2
                   (a ajuster), les certifications avec la date du jour.
                 </p>

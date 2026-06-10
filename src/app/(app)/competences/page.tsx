@@ -147,7 +147,7 @@ export default function SkillsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Layers className="w-6 h-6 text-slate-300" />
+          <Layers className="w-6 h-6 text-ink-600" />
           <h1 className="text-2xl font-bold">Gestion des competences</h1>
           <Badge variant="secondary">
             {totalSkills} competences / {categories.length} familles
@@ -186,7 +186,7 @@ export default function SkillsPage() {
                 {cat.skills.map((skill) => (
                   <div
                     key={skill.id}
-                    className="group flex items-center justify-between gap-2 p-2.5 rounded-lg border border-slate-700 hover:border-slate-600 transition"
+                    className="group flex items-center justify-between gap-2 p-2.5 rounded-lg border border-ink-900/10 hover:border-ink-900/15 transition"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span
@@ -199,14 +199,14 @@ export default function SkillsPage() {
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
                         <button
                           onClick={() => openEdit(skill)}
-                          className="p-1 text-slate-400 hover:text-slate-100"
+                          className="p-1 text-ink-500 hover:text-ink-900"
                           title="Modifier"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => deleteSkill(skill)}
-                          className="p-1 text-slate-400 hover:text-red-400"
+                          className="p-1 text-ink-500 hover:text-red-400"
                           title="Supprimer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -216,7 +216,7 @@ export default function SkillsPage() {
                   </div>
                 ))}
                 {cat.skills.length === 0 && (
-                  <p className="text-sm text-slate-500 col-span-full">
+                  <p className="text-sm text-ink-9000 col-span-full">
                     Aucune competence dans cette famille.
                   </p>
                 )}
@@ -253,9 +253,9 @@ export default function SkillsPage() {
                   type="color"
                   value={familyColor}
                   onChange={(e) => setFamilyColor(e.target.value)}
-                  className="h-9 w-14 rounded border border-slate-600 bg-slate-800"
+                  className="h-9 w-14 rounded border border-ink-900/15 bg-white"
                 />
-                <span className="text-sm text-slate-400">{familyColor}</span>
+                <span className="text-sm text-ink-500">{familyColor}</span>
               </div>
             </div>
           </div>
@@ -298,7 +298,7 @@ export default function SkillsPage() {
             <div>
               <Label>Famille de competences *</Label>
               <select
-                className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={skillForm.categoryId}
                 onChange={(e) =>
                   setSkillForm((f) => ({ ...f, categoryId: e.target.value }))

@@ -237,12 +237,12 @@ export default function FormationPage() {
   return (
     <div className="p-8">
       <div className="flex items-center gap-3 mb-6">
-        <GraduationCap className="w-6 h-6 text-slate-300" />
+        <GraduationCap className="w-6 h-6 text-ink-600" />
         <h1 className="text-2xl font-bold">Formation</h1>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-slate-700">
+      <div className="flex gap-1 mb-6 border-b border-ink-900/10">
         {([
           ["modules", "Modeles", modules.length],
           ["paths", "Parcours", paths.length],
@@ -253,11 +253,11 @@ export default function FormationPage() {
             onClick={() => setTab(key)}
             className={`px-4 py-2 text-sm border-b-2 -mb-px transition ${
               tab === key
-                ? "border-copper-500 text-slate-100"
-                : "border-transparent text-slate-400 hover:text-slate-200"
+                ? "border-signal-500 text-ink-900"
+                : "border-transparent text-ink-500 hover:text-ink-800"
             }`}
           >
-            {label} <span className="text-xs text-slate-500">({count})</span>
+            {label} <span className="text-xs text-ink-9000">({count})</span>
           </button>
         ))}
       </div>
@@ -277,28 +277,28 @@ export default function FormationPage() {
               <Card key={m.id} className="group">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-slate-100">{m.title}</h3>
+                    <h3 className="font-semibold text-ink-900">{m.title}</h3>
                     {isAdmin && (
-                      <button onClick={() => deleteModule(m.id)} className="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100">
+                      <button onClick={() => deleteModule(m.id)} className="text-ink-9000 hover:text-red-400 opacity-0 group-hover:opacity-100">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
                   </div>
-                  {m.description && <p className="text-sm text-slate-400 mt-1 line-clamp-2">{m.description}</p>}
-                  <div className="flex items-center gap-3 mt-3 text-xs text-slate-400">
+                  {m.description && <p className="text-sm text-ink-500 mt-1 line-clamp-2">{m.description}</p>}
+                  <div className="flex items-center gap-3 mt-3 text-xs text-ink-500">
                     {m.durationHours != null && (
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{m.durationHours} h</span>
                     )}
                     <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" />{m._count.assignments}</span>
                   </div>
                   <div className="flex items-center gap-1 mt-2 flex-wrap">
-                    <Target className="w-3 h-3 text-slate-500" />
+                    <Target className="w-3 h-3 text-ink-9000" />
                     {m.targetSkills.map((s) => (
                       <Badge key={s.id} variant="outline" className="text-[10px]" style={{ borderColor: s.category.color, color: s.category.color }}>
                         {s.name}
                       </Badge>
                     ))}
-                    {m.targetSkills.length === 0 && <span className="text-xs text-slate-600">aucune competence ciblee</span>}
+                    {m.targetSkills.length === 0 && <span className="text-xs text-ink-500">aucune competence ciblee</span>}
                   </div>
                   {m.targetSkills.length > 0 && (
                     <Button variant="outline" size="sm" className="w-full mt-3" onClick={() => openPreselection(m)}>
@@ -308,7 +308,7 @@ export default function FormationPage() {
                 </CardContent>
               </Card>
             ))}
-            {modules.length === 0 && <p className="text-slate-500 text-sm col-span-full">Aucun modele de formation.</p>}
+            {modules.length === 0 && <p className="text-ink-9000 text-sm col-span-full">Aucun modele de formation.</p>}
           </div>
         </div>
       )}
@@ -328,28 +328,28 @@ export default function FormationPage() {
               <Card key={p.id} className="group">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-slate-100 flex items-center gap-2">
+                    <h3 className="font-semibold text-ink-900 flex items-center gap-2">
                       <Route className="w-4 h-4 text-amber-400" />{p.title}
                     </h3>
                     {isAdmin && (
-                      <button onClick={() => deletePath(p.id)} className="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100">
+                      <button onClick={() => deletePath(p.id)} className="text-ink-9000 hover:text-red-400 opacity-0 group-hover:opacity-100">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
                   </div>
-                  {p.description && <p className="text-sm text-slate-400 mt-1">{p.description}</p>}
+                  {p.description && <p className="text-sm text-ink-500 mt-1">{p.description}</p>}
                   <div className="flex items-center gap-1.5 mt-3 flex-wrap text-xs">
                     {p.modules.map((pm, i) => (
                       <span key={pm.module.id} className="flex items-center gap-1.5">
-                        {i > 0 && <span className="text-slate-600">→</span>}
-                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300">{pm.module.title}</span>
+                        {i > 0 && <span className="text-ink-500">→</span>}
+                        <span className="px-2 py-0.5 rounded bg-white text-ink-600">{pm.module.title}</span>
                       </span>
                     ))}
                   </div>
                 </CardContent>
               </Card>
             ))}
-            {paths.length === 0 && <p className="text-slate-500 text-sm col-span-full">Aucun parcours.</p>}
+            {paths.length === 0 && <p className="text-ink-9000 text-sm col-span-full">Aucun parcours.</p>}
           </div>
         </div>
       )}
@@ -359,7 +359,7 @@ export default function FormationPage() {
         <Card>
           <CardContent className="p-0">
             <table className="w-full text-sm">
-              <thead className="text-xs text-slate-400 border-b border-slate-700">
+              <thead className="text-xs text-ink-500 border-b border-ink-900/10">
                 <tr>
                   <th className="text-left py-2 px-4">Technicien</th>
                   <th className="text-left py-2 px-4">Formation</th>
@@ -371,17 +371,17 @@ export default function FormationPage() {
                 {assignments.map((a) => {
                   const st = STATUS[a.status] ?? STATUS.propose;
                   return (
-                    <tr key={a.id} className="border-b border-slate-800">
+                    <tr key={a.id} className="border-b border-ink-900/10">
                       <td className="py-2 px-4">
-                        <Link href={`/technicians/${a.technician.id}`} className="font-medium text-slate-100 hover:underline">
+                        <Link href={`/technicians/${a.technician.id}`} className="font-medium text-ink-900 hover:underline">
                           {a.technician.firstName} {a.technician.lastName}
                         </Link>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <div className="flex items-center gap-1.5 text-xs text-ink-500">
                           <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: a.technician.company.color }} />
                           {a.technician.company.name}
                         </div>
                       </td>
-                      <td className="py-2 px-4 text-slate-300">
+                      <td className="py-2 px-4 text-ink-600">
                         {a.module?.title || a.path?.title || "-"}
                       </td>
                       <td className="py-2 px-4">
@@ -400,9 +400,9 @@ export default function FormationPage() {
                             </Button>
                           )}
                           {a.status !== "valide" && (
-                            <Button size="sm" variant="ghost" className="text-slate-500" onClick={() => setStatus(a.id, "annule")}>Annuler</Button>
+                            <Button size="sm" variant="ghost" className="text-ink-9000" onClick={() => setStatus(a.id, "annule")}>Annuler</Button>
                           )}
-                          <button onClick={() => deleteAssignment(a.id)} className="text-slate-500 hover:text-red-400 ml-1">
+                          <button onClick={() => deleteAssignment(a.id)} className="text-ink-9000 hover:text-red-400 ml-1">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -411,7 +411,7 @@ export default function FormationPage() {
                   );
                 })}
                 {assignments.length === 0 && (
-                  <tr><td colSpan={4} className="text-center py-10 text-slate-500">
+                  <tr><td colSpan={4} className="text-center py-10 text-ink-9000">
                     Aucune affectation. Utilisez la « Preselection » d&apos;un module pour proposer une formation.
                   </td></tr>
                 )}
@@ -446,7 +446,7 @@ export default function FormationPage() {
             </div>
             <div>
               <Label>Competences developpees</Label>
-              <div className="max-h-44 overflow-y-auto border border-slate-700 rounded-lg p-2 space-y-2">
+              <div className="max-h-44 overflow-y-auto border border-ink-900/10 rounded-lg p-2 space-y-2">
                 {categories.map((cat) => (
                   <div key={cat.id}>
                     <p className="text-[11px] font-semibold mb-1" style={{ color: cat.color }}>{cat.name}</p>
@@ -455,7 +455,7 @@ export default function FormationPage() {
                         <button
                           key={s.id}
                           onClick={() => toggleModSkill(s.id)}
-                          className={`text-[11px] px-2 py-0.5 rounded-full border transition ${modForm.skillIds.includes(s.id) ? "text-white" : "text-slate-400"}`}
+                          className={`text-[11px] px-2 py-0.5 rounded-full border transition ${modForm.skillIds.includes(s.id) ? "text-white" : "text-ink-500"}`}
                           style={modForm.skillIds.includes(s.id) ? { backgroundColor: cat.color, borderColor: cat.color } : { borderColor: cat.color + "55" }}
                         >
                           {s.name}
@@ -491,16 +491,16 @@ export default function FormationPage() {
             </div>
             <div>
               <Label>Modules (l&apos;ordre = ordre de selection)</Label>
-              <div className="max-h-44 overflow-y-auto border border-slate-700 rounded-lg p-2 space-y-1">
+              <div className="max-h-44 overflow-y-auto border border-ink-900/10 rounded-lg p-2 space-y-1">
                 {modules.map((m) => {
                   const idx = pathForm.moduleIds.indexOf(m.id);
                   return (
                     <button
                       key={m.id}
                       onClick={() => togglePathModule(m.id)}
-                      className={`w-full flex items-center gap-2 text-left text-sm px-2 py-1.5 rounded ${idx >= 0 ? "bg-copper-500/20 text-slate-100" : "text-slate-400 hover:bg-slate-800"}`}
+                      className={`w-full flex items-center gap-2 text-left text-sm px-2 py-1.5 rounded ${idx >= 0 ? "bg-signal-500/20 text-ink-900" : "text-ink-500 hover:bg-white"}`}
                     >
-                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${idx >= 0 ? "bg-copper-500 text-[#0B1220]" : "bg-slate-700"}`}>
+                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${idx >= 0 ? "bg-signal-500 text-[#0B1220]" : "bg-paper-2"}`}>
                         {idx >= 0 ? idx + 1 : ""}
                       </span>
                       {m.title}
@@ -529,7 +529,7 @@ export default function FormationPage() {
             <div className="flex items-center gap-2 mb-3">
               <Label className="text-xs">Seuil de faiblesse : sous</Label>
               <select
-                className="px-2 py-1 rounded border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                className="px-2 py-1 rounded border border-ink-900/15 bg-white text-ink-900 text-sm"
                 value={presLevel}
                 onChange={(e) => {
                   const lv = parseInt(e.target.value);
@@ -542,14 +542,14 @@ export default function FormationPage() {
             </div>
             <div className="max-h-80 overflow-y-auto space-y-1.5">
               {loadingWeak ? (
-                <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-slate-400" /></div>
+                <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-ink-500" /></div>
               ) : weak.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-6">Aucun technicien en faiblesse sous ce seuil.</p>
+                <p className="text-sm text-ink-9000 text-center py-6">Aucun technicien en faiblesse sous ce seuil.</p>
               ) : (
                 weak.map((t) => (
-                  <div key={t.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-800/50">
+                  <div key={t.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-paper-2">
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-slate-100 truncate">{t.firstName} {t.lastName}</div>
+                      <div className="text-sm font-medium text-ink-900 truncate">{t.firstName} {t.lastName}</div>
                       <div className="flex items-center gap-1 flex-wrap mt-0.5">
                         {t.perSkill.map((p) => (
                           <span key={p.skillId} className="text-[10px] px-1.5 py-0.5 rounded" style={{ color: levelColor(p.level), backgroundColor: levelColor(p.level) + "22" }}>
@@ -574,14 +574,14 @@ export default function FormationPage() {
         <DialogContent>
           <DialogHeader><DialogTitle>Valider la formation</DialogTitle></DialogHeader>
           <div className="py-3 space-y-4">
-            <p className="text-sm text-slate-400">
-              Fixez le niveau atteint par <strong className="text-slate-200">{valAssign?.technician.firstName} {valAssign?.technician.lastName}</strong> sur les competences du module. Cela met a jour ses competences et son historique.
+            <p className="text-sm text-ink-500">
+              Fixez le niveau atteint par <strong className="text-ink-800">{valAssign?.technician.firstName} {valAssign?.technician.lastName}</strong> sur les competences du module. Cela met a jour ses competences et son historique.
             </p>
             {(valAssign?.module?.targetSkills ?? []).map((s) => (
               <div key={s.id} className="flex items-center justify-between gap-3">
-                <span className="text-sm text-slate-200">{s.name}</span>
+                <span className="text-sm text-ink-800">{s.name}</span>
                 <select
-                  className="px-2 py-1 rounded border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                  className="px-2 py-1 rounded border border-ink-900/15 bg-white text-ink-900 text-sm"
                   value={valLevels[s.id] ?? 3}
                   onChange={(e) => setValLevels((v) => ({ ...v, [s.id]: parseInt(e.target.value) }))}
                 >

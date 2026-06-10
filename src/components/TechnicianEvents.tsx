@@ -84,7 +84,7 @@ export default function TechnicianEvents({ technicianId }: { technicianId: strin
       </CardHeader>
       <CardContent>
         {events.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-ink-9000">
             Aucun evenement. Consignez entretiens, incidents, evaluations...
           </p>
         ) : (
@@ -95,22 +95,22 @@ export default function TechnicianEvents({ technicianId }: { technicianId: strin
                 <div key={e.id} className="flex gap-3 group">
                   <div className="flex flex-col items-center">
                     <span className="w-2.5 h-2.5 rounded-full mt-1.5" style={{ backgroundColor: t.color }} />
-                    <span className="flex-1 w-px bg-slate-700 my-1" />
+                    <span className="flex-1 w-px bg-paper-2 my-1" />
                   </div>
                   <div className="flex-1 pb-2">
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-[10px]" style={{ color: t.color, borderColor: t.color + "55" }}>
                         {t.label}
                       </Badge>
-                      <span className="text-sm font-medium text-slate-100">{e.title}</span>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-sm font-medium text-ink-900">{e.title}</span>
+                      <span className="text-xs text-ink-9000">
                         {new Date(e.date).toLocaleDateString("fr-FR")}
                       </span>
-                      <button onClick={() => remove(e.id)} className="ml-auto text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 no-print">
+                      <button onClick={() => remove(e.id)} className="ml-auto text-ink-9000 hover:text-red-400 opacity-0 group-hover:opacity-100 no-print">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    {e.body && <p className="text-sm text-slate-400 mt-0.5 whitespace-pre-wrap">{e.body}</p>}
+                    {e.body && <p className="text-sm text-ink-500 mt-0.5 whitespace-pre-wrap">{e.body}</p>}
                   </div>
                 </div>
               );
@@ -127,7 +127,7 @@ export default function TechnicianEvents({ technicianId }: { technicianId: strin
               <div>
                 <Label>Type</Label>
                 <select
-                  className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+                  className="w-full px-3 py-2 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
                   value={form.type}
                   onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
                 >

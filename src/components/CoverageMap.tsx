@@ -56,9 +56,9 @@ export default function CoverageMap() {
           <MapPin className="w-5 h-5" /> Couverture territoriale
         </CardTitle>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-400">{points.length} tech.</span>
+          <span className="text-sm text-ink-500">{points.length} tech.</span>
           <select
-            className="px-3 py-1.5 rounded-lg border border-slate-600 bg-slate-800 text-slate-50 text-sm"
+            className="px-3 py-1.5 rounded-lg border border-ink-900/15 bg-white text-ink-900 text-sm"
             value={skillId}
             onChange={(e) => setSkillId(e.target.value)}
           >
@@ -74,7 +74,7 @@ export default function CoverageMap() {
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-xs text-slate-500 mb-3">
+        <p className="text-xs text-ink-9000 mb-3">
           {skillId
             ? "Les zones sans point sont des zones blanches pour cette competence."
             : "Repartition de tous les techniciens actifs geolocalises."}

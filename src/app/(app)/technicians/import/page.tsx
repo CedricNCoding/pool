@@ -157,8 +157,8 @@ export default function ImportPage() {
           <CardContent>
             <div className="space-y-4">
               <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
-                <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                <p className="text-sm text-slate-600 mb-4">
+                <FileText className="w-12 h-12 text-ink-500 mx-auto mb-4" />
+                <p className="text-sm text-ink-500 mb-4">
                   Colonnes attendues : <strong>Nom, Prenom, Email, Telephone, Entreprise, Service, Contrat, Debut_contrat, Fin_contrat</strong>
                 </p>
                 <input

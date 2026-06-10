@@ -66,7 +66,7 @@ export default function RgpdPage() {
   return (
     <div className="p-8 max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
-        <Shield className="w-6 h-6 text-slate-300" />
+        <Shield className="w-6 h-6 text-ink-600" />
         <h1 className="text-2xl font-bold">Conformite RGPD</h1>
       </div>
 
@@ -79,15 +79,15 @@ export default function RgpdPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-slate-500 mb-4">
+            <p className="text-sm text-ink-9000 mb-4">
               Les donnees des techniciens sont conservees 12 mois apres leur depart, conformement a la politique de retention RGPD.
             </p>
             {loading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                <Loader2 className="w-6 h-6 animate-spin text-ink-500" />
               </div>
             ) : pending.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-8">
+              <p className="text-sm text-ink-500 text-center py-8">
                 Aucune suppression programmee
               </p>
             ) : (
@@ -123,7 +123,7 @@ export default function RgpdPage() {
                               ? "bg-red-50 text-red-700 border-red-200"
                               : t.daysLeft <= 90
                                 ? "bg-amber-50 text-amber-700 border-amber-200"
-                                : "bg-slate-50 text-slate-700 border-slate-200"
+                                : "bg-slate-50 text-ink-700 border-slate-200"
                           }
                         >
                           {t.daysLeft}j
@@ -179,10 +179,10 @@ export default function RgpdPage() {
                         <Badge variant="outline">{actionLabels[a.action] || a.action}</Badge>
                       </TableCell>
                       <TableCell className="text-sm">{a.entityType}</TableCell>
-                      <TableCell className="text-sm text-slate-500 max-w-xs truncate">
+                      <TableCell className="text-sm text-ink-9000 max-w-xs truncate">
                         {a.details}
                       </TableCell>
-                      <TableCell className="text-xs text-slate-400 font-mono">{a.ipAddress}</TableCell>
+                      <TableCell className="text-xs text-ink-500 font-mono">{a.ipAddress}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -198,7 +198,7 @@ export default function RgpdPage() {
               Politique de donnees
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-slate-600 space-y-2">
+          <CardContent className="text-sm text-ink-500 space-y-2">
             <p><strong>Donnees collectees :</strong> Nom, prenom, email, telephone, entreprise, competences, certifications, zone d&apos;intervention.</p>
             <p><strong>Retention :</strong> 12 mois apres la date de depart du technicien.</p>
             <p><strong>Droit a l&apos;effacement :</strong> Un administrateur peut supprimer les donnees a tout moment.</p>

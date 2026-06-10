@@ -60,8 +60,8 @@ export default function AuditTrail({
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style={{ color: m.color, backgroundColor: m.color + "1A" }}>
                   {m.label}
                 </span>
-                <span className="text-slate-300 truncate flex-1">{l.details || "-"}</span>
-                <span className="text-slate-500 text-xs whitespace-nowrap">
+                <span className="text-ink-600 truncate flex-1">{l.details || "-"}</span>
+                <span className="text-ink-9000 text-xs whitespace-nowrap">
                   {l.user} · {new Date(l.createdAt).toLocaleDateString("fr-FR")}{" "}
                   {new Date(l.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
                 </span>

@@ -52,7 +52,7 @@ export default function NotificationBell() {
     <>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative flex items-center justify-center w-9 rounded-lg text-slate-400 bg-slate-800/60 hover:bg-slate-800 hover:text-white transition-colors"
+        className="relative flex items-center justify-center w-9 rounded-lg text-ink-500 bg-paper-2 hover:bg-white hover:text-white transition-colors"
         title="Notifications"
       >
         <Bell className="w-4 h-4" />
@@ -66,14 +66,14 @@ export default function NotificationBell() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="fixed left-[16.5rem] top-20 z-50 w-[370px] max-h-[70vh] overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl flex flex-col">
-            <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-100">Notifications</span>
-              <span className="text-xs text-slate-500">{total} a traiter</span>
+          <div className="fixed left-[16.5rem] top-20 z-50 w-[370px] max-h-[70vh] overflow-hidden rounded-xl border border-ink-900/10 bg-paper-bone shadow-2xl flex flex-col">
+            <div className="px-4 py-3 border-b border-ink-900/10 flex items-center justify-between">
+              <span className="text-sm font-semibold text-ink-900">Notifications</span>
+              <span className="text-xs text-ink-9000">{total} a traiter</span>
             </div>
             <div className="overflow-y-auto">
               {items.length === 0 ? (
-                <p className="px-4 py-8 text-center text-sm text-slate-500">
+                <p className="px-4 py-8 text-center text-sm text-ink-9000">
                   Rien a signaler. Tout est a jour.
                 </p>
               ) : (
@@ -83,7 +83,7 @@ export default function NotificationBell() {
                     <button
                       key={item.id}
                       onClick={() => go(item)}
-                      className="w-full flex items-start gap-3 px-4 py-2.5 text-left hover:bg-slate-800 border-b border-slate-800/60"
+                      className="w-full flex items-start gap-3 px-4 py-2.5 text-left hover:bg-white border-b border-ink-900/10"
                     >
                       <span
                         className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg"
@@ -92,7 +92,7 @@ export default function NotificationBell() {
                         <k.icon className="h-3.5 w-3.5" />
                       </span>
                       <span className="min-w-0">
-                        <span className="block text-sm text-slate-100 truncate">{item.label}</span>
+                        <span className="block text-sm text-ink-900 truncate">{item.label}</span>
                         <span className="block text-xs" style={{ color: k.color }}>{item.sub}</span>
                       </span>
                     </button>
