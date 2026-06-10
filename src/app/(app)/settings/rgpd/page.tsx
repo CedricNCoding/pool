@@ -79,7 +79,7 @@ export default function RgpdPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-ink-9000 mb-4">
+            <p className="text-sm text-ink-400 mb-4">
               Les donnees des techniciens sont conservees 12 mois apres leur depart, conformement a la politique de retention RGPD.
             </p>
             {loading ? (
@@ -179,7 +179,7 @@ export default function RgpdPage() {
                         <Badge variant="outline">{actionLabels[a.action] || a.action}</Badge>
                       </TableCell>
                       <TableCell className="text-sm">{a.entityType}</TableCell>
-                      <TableCell className="text-sm text-ink-9000 max-w-xs truncate">
+                      <TableCell className="text-sm text-ink-400 max-w-xs truncate">
                         {a.details}
                       </TableCell>
                       <TableCell className="text-xs text-ink-500 font-mono">{a.ipAddress}</TableCell>

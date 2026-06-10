@@ -84,7 +84,7 @@ export default function TechnicianEvents({ technicianId }: { technicianId: strin
       </CardHeader>
       <CardContent>
         {events.length === 0 ? (
-          <p className="text-sm text-ink-9000">
+          <p className="text-sm text-ink-400">
             Aucun evenement. Consignez entretiens, incidents, evaluations...
           </p>
         ) : (
@@ -103,10 +103,10 @@ export default function TechnicianEvents({ technicianId }: { technicianId: strin
                         {t.label}
                       </Badge>
                       <span className="text-sm font-medium text-ink-900">{e.title}</span>
-                      <span className="text-xs text-ink-9000">
+                      <span className="text-xs text-ink-400">
                         {new Date(e.date).toLocaleDateString("fr-FR")}
                       </span>
-                      <button onClick={() => remove(e.id)} className="ml-auto text-ink-9000 hover:text-red-400 opacity-0 group-hover:opacity-100 no-print">
+                      <button onClick={() => remove(e.id)} className="ml-auto text-ink-400 hover:text-red-400 opacity-0 group-hover:opacity-100 no-print">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>

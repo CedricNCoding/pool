@@ -198,7 +198,7 @@ export default function CompaniesPage() {
                     <div>
                       <CardTitle className="text-base">{company.name}</CardTitle>
                       {company.city && (
-                        <p className="text-sm text-ink-9000 flex items-center gap-1 mt-0.5">
+                        <p className="text-sm text-ink-400 flex items-center gap-1 mt-0.5">
                           <MapPin className="w-3 h-3" />
                           {company.city}, {company.country}
                         </p>

@@ -46,7 +46,7 @@ export default function TechnicianTimeline({
       </CardHeader>
       <CardContent>
         {loaded && entries.length === 0 ? (
-          <p className="text-sm text-ink-9000">
+          <p className="text-sm text-ink-400">
             Aucun evenement de parcours pour l&apos;instant.
           </p>
         ) : (
@@ -66,7 +66,7 @@ export default function TechnicianTimeline({
                     <div className="min-w-0 flex-1 -mt-0.5">
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="text-sm font-medium text-ink-900 truncate">{e.label}</span>
-                        <span className="text-xs text-ink-9000 whitespace-nowrap">
+                        <span className="text-xs text-ink-400 whitespace-nowrap">
                           {new Date(e.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
                         </span>
                       </div>

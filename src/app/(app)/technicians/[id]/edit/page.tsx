@@ -339,7 +339,7 @@ export default function EditTechnicianPage() {
                 )}
                 <span>{selectedCompany?.name || "..."}</span>
               </div>
-              <p className="text-xs text-ink-9000 mt-1">
+              <p className="text-xs text-ink-400 mt-1">
                 Le changement d&apos;entreprise n&apos;est pas permis. Recrez la fiche si necessaire.
               </p>
             </div>
@@ -542,7 +542,7 @@ export default function EditTechnicianPage() {
                   </button>
                 </span>
               ))}
-              {tags.length === 0 && <span className="text-xs text-ink-9000">Aucune etiquette.</span>}
+              {tags.length === 0 && <span className="text-xs text-ink-400">Aucune etiquette.</span>}
             </div>
             <div className="flex gap-2">
               <Input
@@ -561,7 +561,7 @@ export default function EditTechnicianPage() {
                 Ajouter
               </Button>
             </div>
-            <p className="text-xs text-ink-9000">Entree ou « Ajouter ». Les etiquettes sont cherchables.</p>
+            <p className="text-xs text-ink-400">Entree ou « Ajouter ». Les etiquettes sont cherchables.</p>
           </CardContent>
         </Card>
 

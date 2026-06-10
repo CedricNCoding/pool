@@ -286,7 +286,7 @@ export default function TeamSearchPage() {
                 className="min-h-[80px] rounded-lg border-2 border-dashed border-ink-900/10 p-2 space-y-1.5"
               >
                 {criteria.length === 0 && (
-                  <p className="text-xs text-ink-9000 text-center py-4">
+                  <p className="text-xs text-ink-400 text-center py-4">
                     Deposez des etiquettes ici (ou cliquez-les ci-dessous)
                   </p>
                 )}
@@ -400,7 +400,7 @@ export default function TeamSearchPage() {
             </CardHeader>
             <CardContent>
               <div className="relative mb-3">
-                <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-9000" />
+                <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-400" />
                 <Input
                   className="pl-8 h-8 text-sm"
                   placeholder="Filtrer..."
@@ -494,7 +494,7 @@ export default function TeamSearchPage() {
                           </button>
                         ))}
                       {allTags.length === 0 && (
-                        <span className="text-xs text-ink-9000">Aucune etiquette creee.</span>
+                        <span className="text-xs text-ink-400">Aucune etiquette creee.</span>
                       )}
                     </div>
                   )}
@@ -521,7 +521,7 @@ export default function TeamSearchPage() {
                     </Badge>
                   ))}
                   {teamList.length > 6 && (
-                    <span className="text-xs text-ink-9000">+{teamList.length - 6}</span>
+                    <span className="text-xs text-ink-400">+{teamList.length - 6}</span>
                   )}
                 </div>
                 <Button size="sm" onClick={() => setProjectOpen(true)}>
@@ -619,7 +619,7 @@ export default function TeamSearchPage() {
                                 </Badge>
                               ))}
                               {t.skills.length > 4 && (
-                                <span className="text-[10px] text-ink-9000 self-center">
+                                <span className="text-[10px] text-ink-400 self-center">
                                   +{t.skills.length - 4}
                                 </span>
                               )}
@@ -645,7 +645,7 @@ export default function TeamSearchPage() {
                     })}
                     {results.length === 0 && !loading && (
                       <tr>
-                        <td colSpan={6} className="text-center py-10 text-ink-9000">
+                        <td colSpan={6} className="text-center py-10 text-ink-400">
                           Aucun technicien ne correspond a ces criteres
                         </td>
                       </tr>

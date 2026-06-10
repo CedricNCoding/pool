@@ -272,7 +272,7 @@ export default function CertificationsPage() {
                     />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">{cert.name}</p>
-                      <p className="text-xs text-ink-9000">{cert.issuer}</p>
+                      <p className="text-xs text-ink-400">{cert.issuer}</p>
                       <div className="flex items-center gap-2 mt-1.5">
                         <Badge
                           variant="outline"
@@ -297,10 +297,10 @@ export default function CertificationsPage() {
                     </div>
                     {isAdmin && (
                       <div className="flex flex-col gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition">
-                        <button onClick={() => openEdit(cert)} className="text-ink-9000 hover:text-ink-800" title="Modifier">
+                        <button onClick={() => openEdit(cert)} className="text-ink-400 hover:text-ink-800" title="Modifier">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => handleDelete(cert)} className="text-ink-9000 hover:text-red-400" title="Supprimer">
+                        <button onClick={() => handleDelete(cert)} className="text-ink-400 hover:text-red-400" title="Supprimer">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>

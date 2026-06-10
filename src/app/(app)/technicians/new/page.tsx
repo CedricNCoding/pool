@@ -315,7 +315,7 @@ export default function NewTechnicianPage() {
                 }
               />
             </div>
-            <p className="col-span-3 text-xs text-ink-9000">
+            <p className="col-span-3 text-xs text-ink-400">
               Les coordonnees sont pre-remplies depuis l&apos;adresse de l&apos;entreprise ou de l&apos;agence selectionnee.
             </p>
           </CardContent>

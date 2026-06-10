@@ -172,10 +172,10 @@ export default function ApiKeysPage() {
                       {key.permissions}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-ink-9000">
+                  <TableCell className="text-sm text-ink-400">
                     {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString("fr-FR") : "Jamais"}
                   </TableCell>
-                  <TableCell className="text-sm text-ink-9000">
+                  <TableCell className="text-sm text-ink-400">
                     {key.expiresAt ? new Date(key.expiresAt).toLocaleDateString("fr-FR") : "Jamais"}
                   </TableCell>
                   <TableCell>

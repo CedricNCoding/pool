@@ -61,7 +61,7 @@ export default function AuditTrail({
                   {m.label}
                 </span>
                 <span className="text-ink-600 truncate flex-1">{l.details || "-"}</span>
-                <span className="text-ink-9000 text-xs whitespace-nowrap">
+                <span className="text-ink-400 text-xs whitespace-nowrap">
                   {l.user} · {new Date(l.createdAt).toLocaleDateString("fr-FR")}{" "}
                   {new Date(l.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
                 </span>

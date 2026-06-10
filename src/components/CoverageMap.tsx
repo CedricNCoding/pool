@@ -74,7 +74,7 @@ export default function CoverageMap() {
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-xs text-ink-9000 mb-3">
+        <p className="text-xs text-ink-400 mb-3">
           {skillId
             ? "Les zones sans point sont des zones blanches pour cette competence."
             : "Repartition de tous les techniciens actifs geolocalises."}

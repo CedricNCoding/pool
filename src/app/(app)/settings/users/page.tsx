@@ -111,7 +111,7 @@ export default function UsersPage() {
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
-                  <p className="text-xs text-ink-9000 mt-1">Le gestionnaire ne verra que les techniciens de cette entreprise</p>
+                  <p className="text-xs text-ink-400 mt-1">Le gestionnaire ne verra que les techniciens de cette entreprise</p>
                 </div>
               )}
               <DialogFooter>

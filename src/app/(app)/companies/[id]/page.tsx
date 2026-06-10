@@ -207,7 +207,7 @@ export default function CompanyDetailPage() {
         </CardHeader>
         <CardContent>
           {company.agencies.length === 0 ? (
-            <p className="text-sm text-ink-9000">Aucune agence. L&apos;entreprise n&apos;a que son siege.</p>
+            <p className="text-sm text-ink-400">Aucune agence. L&apos;entreprise n&apos;a que son siege.</p>
           ) : (
             <div className="space-y-2">
               {company.agencies.map((a) => (

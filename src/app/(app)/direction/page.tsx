@@ -56,7 +56,7 @@ function Kpi({ label, value, sub, icon: Icon, color }: { label: string; value: s
           <Icon className="h-5 w-5" style={{ color }} />
         </div>
         <p className="mt-2 text-3xl font-bold text-ink-900">{value}</p>
-        {sub && <p className="text-xs text-ink-9000 mt-0.5">{sub}</p>}
+        {sub && <p className="text-xs text-ink-400 mt-0.5">{sub}</p>}
       </CardContent>
     </Card>
   );
@@ -158,12 +158,12 @@ export default function DirectionPage() {
                 ["Competences couvertes", `${d.capital.coveredSkills}/${d.capital.totalSkills}`],
               ].map(([l, v]) => (
                 <div key={l as string}>
-                  <p className="text-xs text-ink-9000">{l}</p>
+                  <p className="text-xs text-ink-400">{l}</p>
                   <p className="text-xl font-semibold text-ink-900">{v}</p>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-ink-9000 mt-3">
+            <p className="text-xs text-ink-400 mt-3">
               La valeur technique de votre parc, a presenter aux clients et partenaires.
             </p>
           </CardContent>
@@ -192,7 +192,7 @@ export default function DirectionPage() {
                     </div>
                   </div>
                 ))}
-                {comp.items.length > 12 && <p className="text-xs text-ink-9000">et {comp.items.length - 12} autre(s).</p>}
+                {comp.items.length > 12 && <p className="text-xs text-ink-400">et {comp.items.length - 12} autre(s).</p>}
               </div>
             )}
           </CardContent>
@@ -203,10 +203,10 @@ export default function DirectionPage() {
           <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><AlertTriangle className="w-5 h-5 text-amber-400" /> Dependances critiques</CardTitle></CardHeader>
           <CardContent>
             {d.busFactor.length === 0 ? (
-              <p className="text-sm text-ink-9000">Aucune competence avancee tenue par un seul technicien.</p>
+              <p className="text-sm text-ink-400">Aucune competence avancee tenue par un seul technicien.</p>
             ) : (
               <>
-                <p className="text-xs text-ink-9000 mb-2">Competences (niveau avance) detenues par une seule personne — a securiser en formant un second.</p>
+                <p className="text-xs text-ink-400 mb-2">Competences (niveau avance) detenues par une seule personne — a securiser en formant un second.</p>
                 <div className="space-y-1.5 max-h-64 overflow-y-auto">
                   {d.busFactor.map((b, i) => (
                     <div key={i} className="flex items-center justify-between text-sm">
@@ -228,9 +228,9 @@ export default function DirectionPage() {
           <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><UserPlus className="w-5 h-5 text-amber-400" /> Besoin en recrutement</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <p className="text-xs text-ink-9000 mb-1">Departs a anticiper (90 jours)</p>
+              <p className="text-xs text-ink-400 mb-1">Departs a anticiper (90 jours)</p>
               {d.recruitment.departures.length === 0 ? (
-                <p className="text-sm text-ink-9000">Aucun depart proche.</p>
+                <p className="text-sm text-ink-400">Aucun depart proche.</p>
               ) : (
                 <div className="flex flex-wrap gap-1.5">
                   {d.recruitment.departures.map((t) => (
@@ -242,7 +242,7 @@ export default function DirectionPage() {
               )}
             </div>
             <div>
-              <p className="text-xs text-ink-9000 mb-1">Competences a renforcer (priorites)</p>
+              <p className="text-xs text-ink-400 mb-1">Competences a renforcer (priorites)</p>
               <div className="flex flex-wrap gap-1.5">
                 {d.recruitment.priorities.map((p, i) => (
                   <span key={i} className="text-xs px-2 py-0.5 rounded-full border" style={{ color: p.color, borderColor: p.color + "55" }}>
@@ -265,7 +265,7 @@ export default function DirectionPage() {
         </CardHeader>
         <CardContent>
           {objectives.length === 0 ? (
-            <p className="text-sm text-ink-9000">Aucun objectif. Fixez une cible (ex. « 80% habilites travail en hauteur »).</p>
+            <p className="text-sm text-ink-400">Aucun objectif. Fixez une cible (ex. « 80% habilites travail en hauteur »).</p>
           ) : (
             <div className="space-y-3">
               {objectives.map((o) => (
@@ -273,7 +273,7 @@ export default function DirectionPage() {
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="text-ink-900">
                       {o.label}
-                      {o.deadline && <span className="text-xs text-ink-9000"> · echeance {new Date(o.deadline).toLocaleDateString("fr-FR")}</span>}
+                      {o.deadline && <span className="text-xs text-ink-400"> · echeance {new Date(o.deadline).toLocaleDateString("fr-FR")}</span>}
                     </span>
                     <span className="flex items-center gap-2">
                       <span className={o.reached ? "text-emerald-400" : "text-ink-500"}>{o.currentPercent}% / {o.targetPercent}%</span>
@@ -298,14 +298,14 @@ export default function DirectionPage() {
           <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><Wallet className="w-5 h-5 text-cyan-400" /> Budget & ROI formation</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-              <div><p className="text-xs text-ink-9000">Investi (validees)</p><p className="text-xl font-semibold text-ink-900">{eur(budget.investedValidated)}</p></div>
-              <div><p className="text-xs text-ink-9000">Engage (en cours)</p><p className="text-xl font-semibold text-ink-900">{eur(budget.engaged)}</p></div>
-              <div><p className="text-xs text-ink-9000">Competences gagnees</p><p className="text-xl font-semibold text-ink-900 flex items-center gap-1"><TrendingUp className="w-4 h-4 text-emerald-400" />{budget.skillsGained}</p></div>
-              <div><p className="text-xs text-ink-9000">Cout / competence</p><p className="text-xl font-semibold text-ink-900">{eur(budget.costPerSkill)}</p></div>
+              <div><p className="text-xs text-ink-400">Investi (validees)</p><p className="text-xl font-semibold text-ink-900">{eur(budget.investedValidated)}</p></div>
+              <div><p className="text-xs text-ink-400">Engage (en cours)</p><p className="text-xl font-semibold text-ink-900">{eur(budget.engaged)}</p></div>
+              <div><p className="text-xs text-ink-400">Competences gagnees</p><p className="text-xl font-semibold text-ink-900 flex items-center gap-1"><TrendingUp className="w-4 h-4 text-emerald-400" />{budget.skillsGained}</p></div>
+              <div><p className="text-xs text-ink-400">Cout / competence</p><p className="text-xl font-semibold text-ink-900">{eur(budget.costPerSkill)}</p></div>
             </div>
             {budget.byModule.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-xs text-ink-9000">Detail par module (formations validees)</p>
+                <p className="text-xs text-ink-400">Detail par module (formations validees)</p>
                 {budget.byModule.map((m) => (
                   <div key={m.title} className="flex items-center justify-between text-sm">
                     <span className="text-ink-600">{m.title}</span>
@@ -314,7 +314,7 @@ export default function DirectionPage() {
                 ))}
               </div>
             )}
-            <p className="text-xs text-ink-9000 mt-3">Renseignez le cout des modules dans le menu Formation pour affiner le suivi.</p>
+            <p className="text-xs text-ink-400 mt-3">Renseignez le cout des modules dans le menu Formation pour affiner le suivi.</p>
           </CardContent>
         </Card>
       )}

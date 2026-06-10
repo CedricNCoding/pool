@@ -164,7 +164,7 @@ export default function TechnicianDocuments({
 
       {docs.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-ink-9000">
+          <CardContent className="py-10 text-center text-ink-400">
             <FileText className="w-10 h-10 mx-auto mb-2" />
             Aucun document. Deposez contrats, pieces d&apos;identite, visites medicales,
             habilitations...
@@ -184,7 +184,7 @@ export default function TechnicianDocuments({
                         <FileText className="w-5 h-5 text-ink-500 flex-shrink-0" />
                         <div className="min-w-0">
                           <div className="text-sm font-medium text-ink-900 truncate">{d.title}</div>
-                          <div className="text-xs text-ink-9000 flex items-center gap-2">
+                          <div className="text-xs text-ink-400 flex items-center gap-2">
                             <span className="truncate">{d.originalName}</span>
                             <span>· {fmtSize(d.size)}</span>
                             {d.expiryDate && <span>· exp. {fmtDate(d.expiryDate)}</span>}

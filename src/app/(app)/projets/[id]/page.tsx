@@ -239,7 +239,7 @@ export default function ProjectDetailPage() {
                           <div className="inline-block"><MiniRadar values={radarValues(t)} color={t.company.color} /></div>
                         </td>
                         <td className="py-2 px-4 no-print">
-                          <button onClick={() => removeTech(t.id)} className="text-ink-9000 hover:text-red-400" title="Retirer de l'equipe">
+                          <button onClick={() => removeTech(t.id)} className="text-ink-400 hover:text-red-400" title="Retirer de l'equipe">
                             <X className="w-4 h-4" />
                           </button>
                         </td>
@@ -247,7 +247,7 @@ export default function ProjectDetailPage() {
                     );
                   })}
                   {project.technicians.length === 0 && (
-                    <tr><td colSpan={6} className="text-center py-8 text-ink-9000">
+                    <tr><td colSpan={6} className="text-center py-8 text-ink-400">
                       Aucun technicien. Ajoutez-en depuis <Link href="/search" className="text-amber-400 hover:underline">Chercher une equipe</Link>.
                     </td></tr>
                   )}

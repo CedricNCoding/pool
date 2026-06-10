@@ -19,6 +19,7 @@ import {
 import {
   GraduationCap,
   Plus,
+  Pencil,
   Trash2,
   Clock,
   Target,
@@ -26,8 +27,10 @@ import {
   Route,
   CheckCircle,
   Loader2,
+  Search,
+  Users,
 } from "lucide-react";
-import { SKILL_LEVELS } from "@/lib/constants";
+import { SKILL_LEVELS, SERVICES } from "@/lib/constants";
 import { useSession } from "@/lib/hooks";
 
 interface Skill { id: string; name: string; category: { name: string; color: string } }
@@ -37,6 +40,7 @@ interface TModule {
   title: string;
   description: string | null;
   durationHours: number | null;
+  cost?: number | null;
   targetSkills: Skill[];
   _count: { assignments: number };
 }
@@ -89,6 +93,7 @@ export default function FormationPage() {
   const [paths, setPaths] = useState<TPath[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [categories, setCategories] = useState<SkillCategory[]>([]);
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
 
   const fetchAll = useCallback(() => {
     fetch("/api/training/modules").then((r) => r.json()).then(setModules).catch(() => {});
@@ -98,10 +103,12 @@ export default function FormationPage() {
   useEffect(() => {
     fetchAll();
     fetch("/api/skills/categories").then((r) => r.json()).then(setCategories).catch(() => {});
+    fetch("/api/companies").then((r) => r.json()).then((d) => setCompanies(Array.isArray(d) ? d : [])).catch(() => {});
   }, [fetchAll]);
 
-  // ---- New module --------------------------------------------------------
+  // ---- Session (creation / edition) --------------------------------------
   const [modOpen, setModOpen] = useState(false);
+  const [editModId, setEditModId] = useState<string | null>(null);
   const [modForm, setModForm] = useState({ title: "", description: "", durationHours: "", cost: "", skillIds: [] as string[] });
   const [savingMod, setSavingMod] = useState(false);
   function toggleModSkill(id: string) {
@@ -110,30 +117,51 @@ export default function FormationPage() {
       skillIds: f.skillIds.includes(id) ? f.skillIds.filter((s) => s !== id) : [...f.skillIds, id],
     }));
   }
-  async function createModule() {
+  function openNewModule() {
+    setEditModId(null);
+    setModForm({ title: "", description: "", durationHours: "", cost: "", skillIds: [] });
+    setModOpen(true);
+  }
+  function openEditModule(m: TModule) {
+    setEditModId(m.id);
+    setModForm({
+      title: m.title,
+      description: m.description ?? "",
+      durationHours: m.durationHours != null ? String(m.durationHours) : "",
+      cost: m.cost != null ? String(m.cost) : "",
+      skillIds: m.targetSkills.map((s) => s.id),
+    });
+    setModOpen(true);
+  }
+  async function saveModule() {
     if (!modForm.title.trim()) return;
     setSavingMod(true);
-    const res = await fetch("/api/training/modules", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: modForm.title,
-        description: modForm.description,
-        durationHours: modForm.durationHours,
-        cost: modForm.cost,
-        targetSkillIds: modForm.skillIds,
-      }),
-    });
+    const res = await fetch(
+      editModId ? `/api/training/modules/${editModId}` : "/api/training/modules",
+      {
+        method: editModId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: modForm.title,
+          description: modForm.description,
+          durationHours: modForm.durationHours,
+          cost: modForm.cost,
+          targetSkillIds: modForm.skillIds,
+        }),
+      }
+    );
     setSavingMod(false);
     if (res.ok) {
       setModOpen(false);
+      setEditModId(null);
       setModForm({ title: "", description: "", durationHours: "", cost: "", skillIds: [] });
       fetchAll();
     }
   }
 
-  // ---- New path ----------------------------------------------------------
+  // ---- Parcours (creation / edition) -------------------------------------
   const [pathOpen, setPathOpen] = useState(false);
+  const [editPathId, setEditPathId] = useState<string | null>(null);
   const [pathForm, setPathForm] = useState({ title: "", description: "", moduleIds: [] as string[] });
   const [savingPath, setSavingPath] = useState(false);
   function togglePathModule(id: string) {
@@ -142,20 +170,108 @@ export default function FormationPage() {
       moduleIds: f.moduleIds.includes(id) ? f.moduleIds.filter((m) => m !== id) : [...f.moduleIds, id],
     }));
   }
-  async function createPath() {
+  function openNewPath() {
+    setEditPathId(null);
+    setPathForm({ title: "", description: "", moduleIds: [] });
+    setPathOpen(true);
+  }
+  function openEditPath(p: TPath) {
+    setEditPathId(p.id);
+    setPathForm({
+      title: p.title,
+      description: p.description ?? "",
+      moduleIds: p.modules.map((pm) => pm.module.id),
+    });
+    setPathOpen(true);
+  }
+  async function savePath() {
     if (!pathForm.title.trim()) return;
     setSavingPath(true);
-    const res = await fetch("/api/training/paths", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pathForm),
-    });
+    const res = await fetch(
+      editPathId ? `/api/training/paths/${editPathId}` : "/api/training/paths",
+      {
+        method: editPathId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pathForm),
+      }
+    );
     setSavingPath(false);
     if (res.ok) {
       setPathOpen(false);
+      setEditPathId(null);
       setPathForm({ title: "", description: "", moduleIds: [] });
       fetchAll();
     }
+  }
+
+  // ---- Affectation par criteres (recherche de techniciens -> parcours) ----
+  type AssignTech = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    service: string;
+    company: { name: string; color: string };
+  };
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignPathId, setAssignPathId] = useState("");
+  const [assignF, setAssignF] = useState({ q: "", companyId: "", service: "", skillId: "", skillLevel: "" });
+  const [assignResults, setAssignResults] = useState<AssignTech[]>([]);
+  const [assignSel, setAssignSel] = useState<Set<string>>(new Set());
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [assignSaving, setAssignSaving] = useState(false);
+
+  const allSkills = categories.flatMap((c) => (c.skills ?? []).map((s) => ({ ...s, color: c.color })));
+
+  const searchAssignTechs = useCallback(async () => {
+    setAssignLoading(true);
+    const p = new URLSearchParams({ isActive: "true", limit: "100" });
+    if (assignF.q) p.set("search", assignF.q);
+    if (assignF.companyId) p.set("companyId", assignF.companyId);
+    if (assignF.service) p.set("service", assignF.service);
+    if (assignF.skillId) p.set("skillId", assignF.skillId);
+    if (assignF.skillLevel) p.set("skillLevel", assignF.skillLevel);
+    try {
+      const res = await fetch(`/api/technicians?${p.toString()}`);
+      const d = await res.json();
+      setAssignResults(Array.isArray(d.data) ? d.data : []);
+    } catch {
+      setAssignResults([]);
+    } finally {
+      setAssignLoading(false);
+    }
+  }, [assignF]);
+
+  function openAssign() {
+    setAssignPathId(paths[0]?.id ?? "");
+    setAssignF({ q: "", companyId: "", service: "", skillId: "", skillLevel: "" });
+    setAssignResults([]);
+    setAssignSel(new Set());
+    setAssignOpen(true);
+  }
+  function toggleAssignTech(id: string) {
+    setAssignSel((prev) => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  }
+  async function assignSelectedToPath() {
+    if (!assignPathId || assignSel.size === 0) return;
+    setAssignSaving(true);
+    await Promise.all(
+      Array.from(assignSel).map((technicianId) =>
+        fetch("/api/training/assignments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ technicianId, pathId: assignPathId, status: "propose" }),
+        }).catch(() => {})
+      )
+    );
+    setAssignSaving(false);
+    setAssignOpen(false);
+    setTab("assignments");
+    fetchAll();
   }
 
   // ---- Preselection ------------------------------------------------------
@@ -224,7 +340,7 @@ export default function FormationPage() {
     fetchAll();
   }
   async function deleteModule(id: string) {
-    if (!confirm("Supprimer ce module ?")) return;
+    if (!confirm("Supprimer cette session ?")) return;
     await fetch(`/api/training/modules/${id}`, { method: "DELETE" });
     fetchAll();
   }
@@ -244,7 +360,7 @@ export default function FormationPage() {
       {/* Tabs */}
       <div className="flex gap-1 mb-6 border-b border-ink-900/10">
         {([
-          ["modules", "Modeles", modules.length],
+          ["modules", "Sessions", modules.length],
           ["paths", "Parcours", paths.length],
           ["assignments", "Affectations", assignments.length],
         ] as const).map(([key, label, count]) => (
@@ -257,7 +373,7 @@ export default function FormationPage() {
                 : "border-transparent text-ink-500 hover:text-ink-800"
             }`}
           >
-            {label} <span className="text-xs text-ink-9000">({count})</span>
+            {label} <span className="text-xs text-ink-400">({count})</span>
           </button>
         ))}
       </div>
@@ -267,8 +383,8 @@ export default function FormationPage() {
         <div className="space-y-4">
           {isAdmin && (
             <div className="flex justify-end">
-              <Button onClick={() => setModOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" /> Nouveau modele
+              <Button onClick={openNewModule}>
+                <Plus className="w-4 h-4 mr-2" /> Nouvelle session
               </Button>
             </div>
           )}
@@ -279,9 +395,14 @@ export default function FormationPage() {
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-ink-900">{m.title}</h3>
                     {isAdmin && (
-                      <button onClick={() => deleteModule(m.id)} className="text-ink-9000 hover:text-red-400 opacity-0 group-hover:opacity-100">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100">
+                        <button onClick={() => openEditModule(m)} className="text-ink-400 hover:text-signal-600" title="Modifier">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => deleteModule(m.id)} className="text-ink-400 hover:text-red-500" title="Supprimer">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     )}
                   </div>
                   {m.description && <p className="text-sm text-ink-500 mt-1 line-clamp-2">{m.description}</p>}
@@ -292,7 +413,7 @@ export default function FormationPage() {
                     <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" />{m._count.assignments}</span>
                   </div>
                   <div className="flex items-center gap-1 mt-2 flex-wrap">
-                    <Target className="w-3 h-3 text-ink-9000" />
+                    <Target className="w-3 h-3 text-ink-400" />
                     {m.targetSkills.map((s) => (
                       <Badge key={s.id} variant="outline" className="text-[10px]" style={{ borderColor: s.category.color, color: s.category.color }}>
                         {s.name}
@@ -308,7 +429,7 @@ export default function FormationPage() {
                 </CardContent>
               </Card>
             ))}
-            {modules.length === 0 && <p className="text-ink-9000 text-sm col-span-full">Aucun modele de formation.</p>}
+            {modules.length === 0 && <p className="text-ink-400 text-sm col-span-full">Aucune session de formation.</p>}
           </div>
         </div>
       )}
@@ -318,7 +439,7 @@ export default function FormationPage() {
         <div className="space-y-4">
           {isAdmin && (
             <div className="flex justify-end">
-              <Button onClick={() => setPathOpen(true)} disabled={modules.length === 0}>
+              <Button onClick={openNewPath} disabled={modules.length === 0}>
                 <Plus className="w-4 h-4 mr-2" /> Nouveau parcours
               </Button>
             </div>
@@ -329,12 +450,17 @@ export default function FormationPage() {
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-ink-900 flex items-center gap-2">
-                      <Route className="w-4 h-4 text-amber-400" />{p.title}
+                      <Route className="w-4 h-4 text-signal-500" />{p.title}
                     </h3>
                     {isAdmin && (
-                      <button onClick={() => deletePath(p.id)} className="text-ink-9000 hover:text-red-400 opacity-0 group-hover:opacity-100">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100">
+                        <button onClick={() => openEditPath(p)} className="text-ink-400 hover:text-signal-600" title="Modifier">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => deletePath(p.id)} className="text-ink-400 hover:text-red-500" title="Supprimer">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     )}
                   </div>
                   {p.description && <p className="text-sm text-ink-500 mt-1">{p.description}</p>}
@@ -349,14 +475,22 @@ export default function FormationPage() {
                 </CardContent>
               </Card>
             ))}
-            {paths.length === 0 && <p className="text-ink-9000 text-sm col-span-full">Aucun parcours.</p>}
+            {paths.length === 0 && <p className="text-ink-400 text-sm col-span-full">Aucun parcours.</p>}
           </div>
         </div>
       )}
 
       {/* ----- Affectations ----- */}
       {tab === "assignments" && (
-        <Card>
+        <div className="space-y-4">
+          {isAdmin && (
+            <div className="flex justify-end">
+              <Button onClick={openAssign} disabled={paths.length === 0}>
+                <Users className="w-4 h-4 mr-2" /> Affecter par criteres
+              </Button>
+            </div>
+          )}
+          <Card>
           <CardContent className="p-0">
             <table className="w-full text-sm">
               <thead className="text-xs text-ink-500 border-b border-ink-900/10">
@@ -400,9 +534,9 @@ export default function FormationPage() {
                             </Button>
                           )}
                           {a.status !== "valide" && (
-                            <Button size="sm" variant="ghost" className="text-ink-9000" onClick={() => setStatus(a.id, "annule")}>Annuler</Button>
+                            <Button size="sm" variant="ghost" className="text-ink-400" onClick={() => setStatus(a.id, "annule")}>Annuler</Button>
                           )}
-                          <button onClick={() => deleteAssignment(a.id)} className="text-ink-9000 hover:text-red-400 ml-1">
+                          <button onClick={() => deleteAssignment(a.id)} className="text-ink-400 hover:text-red-400 ml-1">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -411,20 +545,21 @@ export default function FormationPage() {
                   );
                 })}
                 {assignments.length === 0 && (
-                  <tr><td colSpan={4} className="text-center py-10 text-ink-9000">
-                    Aucune affectation. Utilisez la « Preselection » d&apos;un module pour proposer une formation.
+                  <tr><td colSpan={4} className="text-center py-10 text-ink-400">
+                    Aucune affectation. Utilisez « Affecter par criteres » ou la preselection d&apos;une session.
                   </td></tr>
                 )}
               </tbody>
             </table>
           </CardContent>
-        </Card>
+          </Card>
+        </div>
       )}
 
       {/* ===== Dialog : nouveau module ===== */}
       <Dialog open={modOpen} onOpenChange={setModOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Nouveau modele de formation</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editModId ? "Modifier la session" : "Nouvelle session de formation"}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2">
@@ -469,8 +604,8 @@ export default function FormationPage() {
           </div>
           <DialogFooter>
             <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>
-            <Button onClick={createModule} disabled={savingMod || !modForm.title.trim()}>
-              {savingMod && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Creer
+            <Button onClick={saveModule} disabled={savingMod || !modForm.title.trim()}>
+              {savingMod && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}{editModId ? "Enregistrer" : "Creer"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -479,7 +614,7 @@ export default function FormationPage() {
       {/* ===== Dialog : nouveau parcours ===== */}
       <Dialog open={pathOpen} onOpenChange={setPathOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Nouveau parcours</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editPathId ? "Modifier le parcours" : "Nouveau parcours"}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
             <div>
               <Label>Titre *</Label>
@@ -490,7 +625,7 @@ export default function FormationPage() {
               <Textarea rows={2} value={pathForm.description} onChange={(e) => setPathForm((f) => ({ ...f, description: e.target.value }))} />
             </div>
             <div>
-              <Label>Modules (l&apos;ordre = ordre de selection)</Label>
+              <Label>Sessions (l&apos;ordre = ordre de selection)</Label>
               <div className="max-h-44 overflow-y-auto border border-ink-900/10 rounded-lg p-2 space-y-1">
                 {modules.map((m) => {
                   const idx = pathForm.moduleIds.indexOf(m.id);
@@ -512,8 +647,86 @@ export default function FormationPage() {
           </div>
           <DialogFooter>
             <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>
-            <Button onClick={createPath} disabled={savingPath || !pathForm.title.trim() || pathForm.moduleIds.length === 0}>
-              {savingPath && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Creer
+            <Button onClick={savePath} disabled={savingPath || !pathForm.title.trim() || pathForm.moduleIds.length === 0}>
+              {savingPath && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}{editPathId ? "Enregistrer" : "Creer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===== Dialog : affectation par criteres ===== */}
+      <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader><DialogTitle>Affecter des techniciens a un parcours</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label>Parcours cible *</Label>
+              <select
+                className="w-full px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm"
+                value={assignPathId}
+                onChange={(e) => setAssignPathId(e.target.value)}
+              >
+                {paths.map((p) => (
+                  <option key={p.id} value={p.id}>{p.title}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Criteres de recherche (comme « Chercher une equipe ») */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="relative sm:col-span-2">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
+                <Input className="pl-8" placeholder="Nom ou email..." value={assignF.q} onChange={(e) => setAssignF((f) => ({ ...f, q: e.target.value }))} />
+              </div>
+              {isAdmin && (
+                <select className="px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm" value={assignF.companyId} onChange={(e) => setAssignF((f) => ({ ...f, companyId: e.target.value }))}>
+                  <option value="">Toutes entreprises</option>
+                  {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              )}
+              <select className="px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm" value={assignF.service} onChange={(e) => setAssignF((f) => ({ ...f, service: e.target.value }))}>
+                <option value="">Tous services</option>
+                {SERVICES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+              <select className="px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm" value={assignF.skillId} onChange={(e) => setAssignF((f) => ({ ...f, skillId: e.target.value }))}>
+                <option value="">Toute competence</option>
+                {allSkills.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <select className="px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm" value={assignF.skillLevel} onChange={(e) => setAssignF((f) => ({ ...f, skillLevel: e.target.value }))} disabled={!assignF.skillId}>
+                <option value="">Niveau min.</option>
+                {SKILL_LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label} ({l.value}+)</option>)}
+              </select>
+              <Button variant="outline" onClick={searchAssignTechs} disabled={assignLoading} className="sm:col-span-2">
+                {assignLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Search className="w-4 h-4 mr-2" />} Rechercher
+              </Button>
+            </div>
+
+            {/* Resultats */}
+            <div className="max-h-60 overflow-y-auto border border-ink-900/10 rounded-lg divide-y divide-ink-900/5">
+              {assignResults.length === 0 ? (
+                <p className="text-sm text-ink-400 p-4 text-center">{assignLoading ? "Recherche..." : "Lancez une recherche pour lister les techniciens."}</p>
+              ) : (
+                assignResults.map((t) => {
+                  const sel = assignSel.has(t.id);
+                  return (
+                    <button key={t.id} onClick={() => toggleAssignTech(t.id)} className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm ${sel ? "bg-signal-500/10" : "hover:bg-paper-2"}`}>
+                      <span className={`w-4 h-4 rounded border flex items-center justify-center ${sel ? "bg-signal-500 border-signal-500" : "border-ink-900/25"}`}>
+                        {sel && <CheckCircle className="w-3 h-3 text-[#0B1220]" />}
+                      </span>
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.company.color }} />
+                      <span className="font-medium text-ink-900">{t.firstName} {t.lastName}</span>
+                      <span className="text-xs text-ink-400 ml-auto">{t.company.name}</span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <span className="text-sm text-ink-500 mr-auto self-center">{assignSel.size} selectionne(s)</span>
+            <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>
+            <Button onClick={assignSelectedToPath} disabled={assignSaving || !assignPathId || assignSel.size === 0}>
+              {assignSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Affecter
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -544,7 +757,7 @@ export default function FormationPage() {
               {loadingWeak ? (
                 <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-ink-500" /></div>
               ) : weak.length === 0 ? (
-                <p className="text-sm text-ink-9000 text-center py-6">Aucun technicien en faiblesse sous ce seuil.</p>
+                <p className="text-sm text-ink-400 text-center py-6">Aucun technicien en faiblesse sous ce seuil.</p>
               ) : (
                 weak.map((t) => (
                   <div key={t.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-paper-2">

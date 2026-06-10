@@ -91,7 +91,7 @@ export default function TechnicianFormation({ technicianId }: { technicianId: st
 
       {assignments.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-ink-9000">
+          <CardContent className="py-10 text-center text-ink-400">
             <GraduationCap className="w-10 h-10 mx-auto mb-2" />
             Aucune formation. Proposez-en une (ex. pour combler une competence faible).
           </CardContent>
@@ -124,7 +124,7 @@ export default function TechnicianFormation({ technicianId }: { technicianId: st
         </div>
       )}
 
-      <p className="text-xs text-ink-9000 no-print">
+      <p className="text-xs text-ink-400 no-print">
         La gestion complete (validation, parcours) se fait dans le menu{" "}
         <Link href="/formation" className="text-amber-400 hover:underline">Formation</Link>.
       </p>

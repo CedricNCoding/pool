@@ -216,7 +216,7 @@ export default function SkillsPage() {
                   </div>
                 ))}
                 {cat.skills.length === 0 && (
-                  <p className="text-sm text-ink-9000 col-span-full">
+                  <p className="text-sm text-ink-400 col-span-full">
                     Aucune competence dans cette famille.
                   </p>
                 )}

@@ -69,11 +69,11 @@ export default function NotificationBell() {
           <div className="fixed left-[16.5rem] top-20 z-50 w-[370px] max-h-[70vh] overflow-hidden rounded-xl border border-ink-900/10 bg-paper-bone shadow-2xl flex flex-col">
             <div className="px-4 py-3 border-b border-ink-900/10 flex items-center justify-between">
               <span className="text-sm font-semibold text-ink-900">Notifications</span>
-              <span className="text-xs text-ink-9000">{total} a traiter</span>
+              <span className="text-xs text-ink-400">{total} a traiter</span>
             </div>
             <div className="overflow-y-auto">
               {items.length === 0 ? (
-                <p className="px-4 py-8 text-center text-sm text-ink-9000">
+                <p className="px-4 py-8 text-center text-sm text-ink-400">
                   Rien a signaler. Tout est a jour.
                 </p>
               ) : (

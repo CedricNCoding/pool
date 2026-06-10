@@ -669,7 +669,7 @@ export default function TechniciansPage() {
                                   </span>
                                 ))}
                                 {tech.tags.length > 3 && (
-                                  <span className="text-[10px] text-ink-9000 self-center">+{tech.tags.length - 3}</span>
+                                  <span className="text-[10px] text-ink-400 self-center">+{tech.tags.length - 3}</span>
                                 )}
                               </div>
                             )}
@@ -714,7 +714,7 @@ export default function TechniciansPage() {
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {topSkills.length === 0 && (
-                            <span className="text-xs text-ink-9000">--</span>
+                            <span className="text-xs text-ink-400">--</span>
                           )}
                           {topSkills.map((ts) => (
                             <Badge
@@ -734,7 +734,7 @@ export default function TechniciansPage() {
                             </Badge>
                           ))}
                           {tech.skills.length > 3 && (
-                            <span className="text-xs text-ink-9000 self-center ml-1">
+                            <span className="text-xs text-ink-400 self-center ml-1">
                               +{tech.skills.length - 3}
                             </span>
                           )}
@@ -753,7 +753,7 @@ export default function TechniciansPage() {
                             {activeCerts.length} cert.
                           </Badge>
                         ) : (
-                          <span className="text-xs text-ink-9000">--</span>
+                          <span className="text-xs text-ink-400">--</span>
                         )}
                       </TableCell>
 
@@ -844,7 +844,7 @@ export default function TechniciansPage() {
                       <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: tech.company.color }} />
                       <span className="truncate">{tech.company.name}</span>
                     </div>
-                    <div className="text-xs text-ink-9000 mt-0.5">{getServiceLabel(tech.service)}</div>
+                    <div className="text-xs text-ink-400 mt-0.5">{getServiceLabel(tech.service)}</div>
                     <div className="flex flex-wrap items-center gap-1.5 mt-2">
                       <Badge variant="outline" className="text-[10px]" style={{ color: contractColor, borderColor: contractColor + "55" }}>
                         {tech.contractType}

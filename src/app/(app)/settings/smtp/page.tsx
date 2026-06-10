@@ -192,7 +192,7 @@ export default function SmtpPage() {
                 Envoyer le digest des echeances
               </Button>
             </div>
-            <p className="text-xs text-ink-9000">
+            <p className="text-xs text-ink-400">
               Le digest recapitule les certifications et documents (visite medicale,
               habilitations...) arrivant a echeance sous 90 jours, envoye a l&apos;adresse
               expediteur. A automatiser par cron en production.

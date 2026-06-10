@@ -11,7 +11,7 @@ import { Users, Award, AlertTriangle, Building2, Clock, MapPin, FileText } from 
 const TechniciansMap = dynamic(() => import("@/components/TechniciansMap"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[360px] items-center justify-center rounded-lg border border-ink-900/10 bg-white text-sm text-ink-9000">
+    <div className="flex h-[360px] items-center justify-center rounded-lg border border-ink-900/10 bg-white text-sm text-ink-400">
       Chargement de la carte...
     </div>
   ),
@@ -352,7 +352,7 @@ export default function DashboardPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="py-12 text-center text-sm text-ink-9000">
+                <p className="py-12 text-center text-sm text-ink-400">
                   Aucune donnee disponible
                 </p>
               )}
@@ -404,7 +404,7 @@ export default function DashboardPage() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="py-12 text-center text-sm text-ink-9000">
+                <p className="py-12 text-center text-sm text-ink-400">
                   Aucune donnee disponible
                 </p>
               )}
@@ -452,7 +452,7 @@ A renouveler (certifs + documents)
                           )}
                           {cert.certName}
                         </p>
-                        <p className="mt-1 text-xs text-ink-9000">
+                        <p className="mt-1 text-xs text-ink-400">
                           Expire le{" "}
                           {new Date(cert.expiryDate).toLocaleDateString(
                             "fr-FR",
@@ -473,7 +473,7 @@ A renouveler (certifs + documents)
               ) : (
                 <div className="py-8 text-center">
                   <Award className="mx-auto h-8 w-8 text-ink-500" />
-                  <p className="mt-2 text-sm text-ink-9000">
+                  <p className="mt-2 text-sm text-ink-400">
                     Rien a renouveler prochainement
                   </p>
                 </div>
@@ -530,7 +530,7 @@ A renouveler (certifs + documents)
                   ))}
                 </div>
               ) : (
-                <p className="py-8 text-center text-sm text-ink-9000">
+                <p className="py-8 text-center text-sm text-ink-400">
                   Aucune activite recente
                 </p>
               )}

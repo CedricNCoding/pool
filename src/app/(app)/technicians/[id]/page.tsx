@@ -8,7 +8,7 @@ import dynamic from "next/dynamic";
 const InterventionMap = dynamic(() => import("@/components/InterventionMap"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[360px] rounded-lg border border-ink-900/10 bg-white flex items-center justify-center text-ink-9000 text-sm">
+    <div className="w-full h-[360px] rounded-lg border border-ink-900/10 bg-white flex items-center justify-center text-ink-400 text-sm">
       Chargement de la carte...
     </div>
   ),
@@ -626,7 +626,7 @@ export default function TechnicianDetailPage() {
                   {contractMeta?.label ?? tech.contractType}
                 </Badge>
                 {(tech.contractStart || tech.contractEnd) && (
-                  <span className="text-xs text-ink-9000">
+                  <span className="text-xs text-ink-400">
                     {fmtDate(tech.contractStart)} - {fmtDate(tech.contractEnd)}
                   </span>
                 )}
@@ -674,7 +674,7 @@ export default function TechnicianDetailPage() {
                   <div className="flex flex-wrap gap-x-6 gap-y-1 mt-3">
                     {stats.map(([label, value]) => (
                       <span key={label} className="text-sm">
-                        <span className="text-ink-9000">{label} </span>
+                        <span className="text-ink-400">{label} </span>
                         <span className="font-semibold text-ink-900">{value}</span>
                       </span>
                     ))}
@@ -799,7 +799,7 @@ export default function TechnicianDetailPage() {
                     </ResponsiveContainer>
                   </div>
                 ) : (
-                  <p className="text-sm text-ink-9000">
+                  <p className="text-sm text-ink-400">
                     Aucune competence renseignee.
                   </p>
                 )}
@@ -820,13 +820,13 @@ export default function TechnicianDetailPage() {
                 </Button>
               </CardHeader>
               <CardContent className="space-y-6">
-                <p className="text-xs text-ink-9000 -mt-2 no-print">
+                <p className="text-xs text-ink-400 -mt-2 no-print">
                   Echelle 0 a 5 (0 = Aucune). Cliquez un palier pour l&apos;attribuer ;
                   recliquez le palier actif pour l&apos;effacer (non renseigne). Pensez
                   a « Mettre a jour ».
                 </p>
                 {skillCategories.length === 0 && (
-                  <p className="text-sm text-ink-9000">
+                  <p className="text-sm text-ink-400">
                     Chargement du referentiel...
                   </p>
                 )}
@@ -909,7 +909,7 @@ export default function TechnicianDetailPage() {
               </CardHeader>
               <CardContent>
                 {historyBySkill.length === 0 ? (
-                  <p className="text-sm text-ink-9000">
+                  <p className="text-sm text-ink-400">
                     Aucun historique pour l&apos;instant. Chaque modification de
                     niveau dans le barometre sera enregistree ici, avec sa date,
                     pour suivre la progression.
@@ -926,7 +926,7 @@ export default function TechnicianDetailPage() {
                           <span className="text-sm font-medium text-ink-800">
                             {h.skillName}
                           </span>
-                          <span className="text-xs text-ink-9000">
+                          <span className="text-xs text-ink-400">
                             {h.categoryName}
                           </span>
                         </div>
@@ -948,7 +948,7 @@ export default function TechnicianDetailPage() {
                                 >
                                   {levelLabel(e.level)}
                                 </Badge>
-                                <span className="text-[10px] text-ink-9000 mt-0.5">
+                                <span className="text-[10px] text-ink-400 mt-0.5">
                                   {fmtDate(e.recordedAt)}
                                 </span>
                               </div>
@@ -1080,7 +1080,7 @@ export default function TechnicianDetailPage() {
             </div>
 
             {Object.entries(certsByCategory).length === 0 && (
-              <p className="text-sm text-ink-9000">
+              <p className="text-sm text-ink-400">
                 Aucune certification renseignee.
               </p>
             )}
@@ -1142,7 +1142,7 @@ export default function TechnicianDetailPage() {
                               {statusLabel}
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-ink-9000">
+                          <div className="flex items-center gap-3 mt-1 text-xs text-ink-400">
                             <span>{tc.certification.issuer}</span>
                             <span>Obtenu le {fmtDate(tc.obtainedDate)}</span>
                             {tc.expiryDate && (
@@ -1156,7 +1156,7 @@ export default function TechnicianDetailPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="no-print text-ink-9000 hover:text-red-400"
+                          className="no-print text-ink-400 hover:text-red-400"
                           onClick={() =>
                             removeCertification(tc.certificationId)
                           }
@@ -1196,7 +1196,7 @@ export default function TechnicianDetailPage() {
                       name={fullName}
                     />
                   ) : (
-                    <div className="w-full h-full bg-white flex items-center justify-center text-ink-9000 text-sm">
+                    <div className="w-full h-full bg-white flex items-center justify-center text-ink-400 text-sm">
                       Coordonnees non renseignees
                     </div>
                   )}
@@ -1204,19 +1204,19 @@ export default function TechnicianDetailPage() {
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-white rounded-lg p-4">
-                    <p className="text-xs text-ink-9000 mb-1">Latitude</p>
+                    <p className="text-xs text-ink-400 mb-1">Latitude</p>
                     <p className="text-sm font-medium">
                       {tech.interventionCenterLat ?? "-"}
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-4">
-                    <p className="text-xs text-ink-9000 mb-1">Longitude</p>
+                    <p className="text-xs text-ink-400 mb-1">Longitude</p>
                     <p className="text-sm font-medium">
                       {tech.interventionCenterLng ?? "-"}
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-4">
-                    <p className="text-xs text-ink-9000 mb-1">
+                    <p className="text-xs text-ink-400 mb-1">
                       Rayon d&apos;intervention
                     </p>
                     <p className="text-sm font-medium">
@@ -1239,15 +1239,15 @@ export default function TechnicianDetailPage() {
               <CardContent>
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                   <div>
-                    <dt className="text-xs text-ink-9000">Email</dt>
+                    <dt className="text-xs text-ink-400">Email</dt>
                     <dd className="text-sm">{tech.email}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-ink-9000">Telephone</dt>
+                    <dt className="text-xs text-ink-400">Telephone</dt>
                     <dd className="text-sm">{tech.phone || "-"}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-ink-9000">Entreprise</dt>
+                    <dt className="text-xs text-ink-400">Entreprise</dt>
                     <dd className="text-sm flex items-center gap-2">
                       <span
                         className="w-2.5 h-2.5 rounded-full inline-block"
@@ -1255,20 +1255,20 @@ export default function TechnicianDetailPage() {
                       />
                       {tech.company.name}
                       {tech.company.city && (
-                        <span className="text-ink-9000">
+                        <span className="text-ink-400">
                           ({tech.company.city})
                         </span>
                       )}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-ink-9000">Agence</dt>
+                    <dt className="text-xs text-ink-400">Agence</dt>
                     <dd className="text-sm">
                       {tech.agency ? (
                         <>
                           {tech.agency.name}
                           {tech.agency.city && (
-                            <span className="text-ink-9000">
+                            <span className="text-ink-400">
                               {" "}
                               ({tech.agency.city})
                             </span>
@@ -1303,13 +1303,13 @@ export default function TechnicianDetailPage() {
               <CardContent>
                 <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-4">
                   <div>
-                    <dt className="text-xs text-ink-9000">
+                    <dt className="text-xs text-ink-400">
                       Date de creation
                     </dt>
                     <dd className="text-sm">{fmtDate(tech.createdAt)}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-ink-9000">
+                    <dt className="text-xs text-ink-400">
                       Date de depart
                     </dt>
                     <dd className="text-sm">
@@ -1317,7 +1317,7 @@ export default function TechnicianDetailPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-ink-9000">
+                    <dt className="text-xs text-ink-400">
                       Suppression programmee
                     </dt>
                     <dd className="text-sm">

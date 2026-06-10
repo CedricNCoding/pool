@@ -74,7 +74,7 @@ export default function ProjectsPage() {
             </div>
             <button
               onClick={() => remove(p.id, p.title)}
-              className="text-ink-9000 hover:text-red-400 opacity-0 group-hover:opacity-100 transition flex-shrink-0"
+              className="text-ink-400 hover:text-red-400 opacity-0 group-hover:opacity-100 transition flex-shrink-0"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -91,7 +91,7 @@ export default function ProjectsPage() {
               {p._count.technicians}
             </span>
             {p.company && (
-              <span className="text-xs text-ink-9000 flex items-center gap-1">
+              <span className="text-xs text-ink-400 flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: p.company.color }} />
                 {p.company.name}
               </span>
@@ -143,7 +143,7 @@ export default function ProjectsPage() {
       </div>
 
       {projects.length === 0 ? (
-        <div className="text-center py-20 text-ink-9000">
+        <div className="text-center py-20 text-ink-400">
           <FolderKanban className="w-12 h-12 mx-auto mb-3" />
           <p>Aucun projet. Composez une equipe depuis « Chercher une equipe ».</p>
         </div>
@@ -177,7 +177,7 @@ export default function ProjectsPage() {
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: st.color }} />
                     {st.label}
                   </span>
-                  <span className="text-xs text-ink-9000">{list.length}</span>
+                  <span className="text-xs text-ink-400">{list.length}</span>
                 </div>
                 <div className="space-y-3">
                   {list.map((p) => card(p, true))}

@@ -126,7 +126,7 @@ export default function ParcPage() {
                   <span className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: s.color }} />
                     {s.name}
-                    <span className="text-xs text-ink-9000">{s.family}</span>
+                    <span className="text-xs text-ink-400">{s.family}</span>
                   </span>
                   <Badge
                     variant="outline"
@@ -153,7 +153,7 @@ export default function ParcPage() {
             <Badge variant="secondary">{data.incompleteDossiers.length}</Badge>
           </CardTitle>
           <div className="relative w-56">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-9000" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-400" />
             <Input
               className="pl-8 h-9 text-sm"
               placeholder="Filtrer (nom, service)..."
@@ -164,7 +164,7 @@ export default function ParcPage() {
         </CardHeader>
         <CardContent className="p-0">
           {dossiers.length === 0 ? (
-            <p className="p-5 text-sm text-ink-9000">
+            <p className="p-5 text-sm text-ink-400">
               {data.incompleteDossiers.length === 0 ? "Tous les dossiers sont complets." : "Aucun resultat."}
             </p>
           ) : (

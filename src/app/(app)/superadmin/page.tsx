@@ -122,7 +122,7 @@ export default function SuperadminPage() {
               </button>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-ink-9000 mb-3">/{t.slug}</p>
+              <p className="text-xs text-ink-400 mb-3">/{t.slug}</p>
               <div className="flex items-center gap-4 text-sm text-ink-600">
                 <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" />{t._count.companies}</span>
                 <span className="flex items-center gap-1"><Wrench className="w-3.5 h-3.5" />{t._count.technicians}</span>
@@ -156,7 +156,7 @@ export default function SuperadminPage() {
               <Label>Mot de passe admin *</Label>
               <Input type="text" value={form.adminPassword} onChange={(e) => setForm((f) => ({ ...f, adminPassword: e.target.value }))} placeholder="8 caracteres minimum" />
             </div>
-            <p className="text-xs text-ink-9000">Le referentiel (competences, certifications) est copie depuis le tenant Demo.</p>
+            <p className="text-xs text-ink-400">Le referentiel (competences, certifications) est copie depuis le tenant Demo.</p>
           </div>
           <DialogFooter>
             <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>
