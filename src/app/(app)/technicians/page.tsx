@@ -348,7 +348,7 @@ export default function TechniciansPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-copper-500">
             <Users className="w-5 h-5 text-white" />
           </div>
           <div>

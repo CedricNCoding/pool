@@ -234,7 +234,7 @@ export default function DirectionPage() {
               ) : (
                 <div className="flex flex-wrap gap-1.5">
                   {d.recruitment.departures.map((t) => (
-                    <Link key={t.id} href={`/technicians/${t.id}`} className="text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 hover:underline">
+                    <Link key={t.id} href={`/technicians/${t.id}`} className="text-xs px-2 py-0.5 rounded-full bg-copper-500/15 text-copper-300 hover:underline">
                       {t.name} ({new Date(t.date).toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })})
                     </Link>
                   ))}

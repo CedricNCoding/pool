@@ -82,8 +82,8 @@ export default function Sidebar() {
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg text-sm transition-colors",
               pathname.startsWith("/superadmin")
-                ? "bg-amber-600 text-[#0B1220]"
-                : "text-amber-300 bg-amber-500/10 hover:bg-amber-500/20"
+                ? "bg-copper-600 text-[#0B1220]"
+                : "text-copper-300 bg-copper-500/10 hover:bg-copper-500/20"
             )}
           >
             <Building className="w-4 h-4" />
@@ -100,7 +100,7 @@ export default function Sidebar() {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
                 active
-                  ? "bg-amber-500 text-[#0B1220]"
+                  ? "bg-copper-500 text-[#0B1220]"
                   : "text-slate-300 hover:bg-slate-800 hover:text-white"
               )}
             >
@@ -135,7 +135,7 @@ export default function Sidebar() {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
                     active
-                      ? "bg-amber-500 text-[#0B1220]"
+                      ? "bg-copper-500 text-[#0B1220]"
                       : "text-slate-300 hover:bg-slate-800 hover:text-white"
                   )}
                 >

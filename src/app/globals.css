@@ -5,9 +5,23 @@
   --font-mono: var(--font-geist-mono);
   --color-background: #f8fafc;
   --color-foreground: #0f172a;
-  /* Charte Spektalis : ambre signal-500 (texte foncé ink sur ambre). */
-  --color-primary: #E89B2C;
+  /* Praxis (module Suite Spektalis) : accent cuivre #D97706. Texte ink sur cuivre. */
+  --color-primary: #D97706;
   --color-primary-foreground: #0B1220;
+  /* Echelle cuivre Praxis (utilisable en bg-copper-500, text-copper-400, ...) */
+  --color-copper-50: #FBF1E6;
+  --color-copper-100: #F6E0C7;
+  --color-copper-200: #EDC195;
+  --color-copper-300: #E3A263;
+  --color-copper-400: #DC8A3A;
+  --color-copper-500: #D97706;
+  --color-copper-600: #B45309;
+  --color-copper-700: #92400E;
+  --color-copper-800: #743210;
+  /* Surfaces ink Spektalis */
+  --color-ink-900: #0B1220;
+  --color-ink-800: #131C2E;
+  --color-ink-700: #1F2A40;
 }
 
 body {

@@ -61,7 +61,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-copper-500 focus:border-transparent outline-none transition"
               placeholder="admin@avpool.local"
               required
             />
@@ -75,7 +75,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-copper-500 focus:border-transparent outline-none transition"
               placeholder="********"
               required
             />
@@ -84,7 +84,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-[#0B1220] font-medium rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-copper-500 hover:bg-copper-600 text-[#0B1220] font-medium rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             Se connecter
