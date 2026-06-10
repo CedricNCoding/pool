@@ -60,16 +60,21 @@ export async function PATCH(
   if (body.description !== undefined) data.description = body.description?.trim() || null;
   if (body.status !== undefined) data.status = body.status;
 
-  if (Array.isArray(body.technicianIds)) {
-    let allowedIds: string[] = body.technicianIds;
+  // technicianIds = remplacement complet ; addTechnicianIds = ajout (sans retirer).
+  const replaceIds = Array.isArray(body.technicianIds) ? body.technicianIds : null;
+  const addIds = Array.isArray(body.addTechnicianIds) ? body.addTechnicianIds : null;
+  if (replaceIds || addIds) {
+    let allowedIds: string[] = (replaceIds ?? addIds) as string[];
     if (session.role !== "admin") {
       const techs = await prisma.technician.findMany({
-        where: { id: { in: body.technicianIds }, companyId: session.companyId ?? "__none__" },
+        where: { id: { in: allowedIds }, companyId: session.companyId ?? "__none__" },
         select: { id: true },
       });
       allowedIds = techs.map((t) => t.id);
     }
-    data.technicians = { set: allowedIds.map((tid) => ({ id: tid })) };
+    data.technicians = replaceIds
+      ? { set: allowedIds.map((tid) => ({ id: tid })) }
+      : { connect: allowedIds.map((tid) => ({ id: tid })) };
   }
 
   const updated = await prisma.project.update({

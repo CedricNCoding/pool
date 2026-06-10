@@ -19,6 +19,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { CONTRACT_TYPES, SERVICES, AVAILABILITY } from "@/lib/constants";
+import { CITIES, findCity, nearestCity } from "@/lib/cities";
 
 interface Company {
   id: string;
@@ -482,35 +483,34 @@ export default function EditTechnicianPage() {
             <CardTitle>Zone d&apos;intervention</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-3 gap-4">
-            <div>
-              <Label>Latitude</Label>
-              <Input
-                type="number"
-                step="any"
-                value={form.interventionCenterLat}
-                onChange={(e) =>
+            <div className="col-span-2">
+              <Label>Ville de rattachement</Label>
+              <select
+                className="w-full px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm h-10"
+                value={(() => {
+                  const lat = parseFloat(form.interventionCenterLat);
+                  const lng = parseFloat(form.interventionCenterLng);
+                  return Number.isFinite(lat) && Number.isFinite(lng)
+                    ? nearestCity(lat, lng)?.name ?? ""
+                    : "";
+                })()}
+                onChange={(e) => {
+                  const c = findCity(e.target.value);
                   setForm((f) => ({
                     ...f,
-                    interventionCenterLat: e.target.value,
-                  }))
-                }
-                placeholder="48.8566"
-              />
-            </div>
-            <div>
-              <Label>Longitude</Label>
-              <Input
-                type="number"
-                step="any"
-                value={form.interventionCenterLng}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    interventionCenterLng: e.target.value,
-                  }))
-                }
-                placeholder="2.3522"
-              />
+                    interventionCenterLat: c ? String(c.lat) : "",
+                    interventionCenterLng: c ? String(c.lng) : "",
+                  }));
+                }}
+              >
+                <option value="">— Choisir une ville —</option>
+                {CITIES.map((c) => (
+                  <option key={c.name} value={c.name}>{c.name}</option>
+                ))}
+              </select>
+              <p className="text-xs text-ink-400 mt-1">
+                Centre de la zone d&apos;intervention. La recherche d&apos;equipe par ville s&apos;appuie dessus.
+              </p>
             </div>
             <div>
               <Label>Rayon (km)</Label>

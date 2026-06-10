@@ -30,6 +30,7 @@ import {
   Tag as TagIcon,
 } from "lucide-react";
 import { SKILL_LEVELS, CERT_CATEGORIES, availabilityMeta } from "@/lib/constants";
+import { CITIES } from "@/lib/cities";
 import { useSession } from "@/lib/hooks";
 import MiniRadar from "@/components/MiniRadar";
 
@@ -74,25 +75,6 @@ type Criterion = {
   minLevel: number;
 };
 
-const CITIES: { name: string; lat: number; lng: number }[] = [
-  { name: "Paris", lat: 48.8566, lng: 2.3522 },
-  { name: "Lyon", lat: 45.764, lng: 4.8357 },
-  { name: "Marseille", lat: 43.2965, lng: 5.3698 },
-  { name: "Toulouse", lat: 43.6047, lng: 1.4442 },
-  { name: "Nice", lat: 43.7102, lng: 7.262 },
-  { name: "Nantes", lat: 47.2184, lng: -1.5536 },
-  { name: "Strasbourg", lat: 48.5734, lng: 7.7521 },
-  { name: "Montpellier", lat: 43.6108, lng: 3.8767 },
-  { name: "Bordeaux", lat: 44.8378, lng: -0.5792 },
-  { name: "Lille", lat: 50.6292, lng: 3.0573 },
-  { name: "Rennes", lat: 48.1173, lng: -1.6778 },
-  { name: "Reims", lat: 49.2583, lng: 4.0317 },
-  { name: "Dijon", lat: 47.322, lng: 5.0415 },
-  { name: "Grenoble", lat: 45.1885, lng: 5.7245 },
-  { name: "Angers", lat: 47.4784, lng: -0.5632 },
-  { name: "Nancy", lat: 48.6921, lng: 6.1844 },
-];
-
 export default function TeamSearchPage() {
   const router = useRouter();
   const { user } = useSession();
@@ -117,6 +99,11 @@ export default function TeamSearchPage() {
   const [projectOpen, setProjectOpen] = useState(false);
   const [projectForm, setProjectForm] = useState({ title: "", description: "" });
   const [savingProject, setSavingProject] = useState(false);
+  // Ajout de l'equipe selectionnee a un projet existant
+  const [existingProjects, setExistingProjects] = useState<{ id: string; title: string; status: string }[]>([]);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addProjectId, setAddProjectId] = useState("");
+  const [savingAdd, setSavingAdd] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -124,13 +111,15 @@ export default function TeamSearchPage() {
       fetch("/api/certifications").then((r) => r.json()),
       fetch("/api/companies").then((r) => r.json()),
       fetch("/api/tags").then((r) => r.json()),
-    ]).then(([cats, certs, comps, tagsData]) => {
+      fetch("/api/projects").then((r) => r.json()),
+    ]).then(([cats, certs, comps, tagsData, projData]) => {
       setCategories(cats);
       setCertifications(certs);
       setCompanies(comps);
       setAllTags(
         (tagsData as { name: string; color: string }[]).map((t) => ({ name: t.name, color: t.color }))
       );
+      setExistingProjects(Array.isArray(projData) ? projData : []);
     });
   }, []);
 
@@ -230,6 +219,24 @@ export default function TeamSearchPage() {
     if (res.ok) {
       const p = await res.json();
       router.push(`/projets/${p.id}`);
+    }
+  }
+  function openAddToProject() {
+    setAddProjectId(existingProjects[0]?.id ?? "");
+    setAddOpen(true);
+  }
+  async function addToProject() {
+    if (!addProjectId || teamList.length === 0) return;
+    setSavingAdd(true);
+    const res = await fetch(`/api/projects/${addProjectId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ addTechnicianIds: teamList.map((t) => t.id) }),
+    });
+    setSavingAdd(false);
+    if (res.ok) {
+      setAddOpen(false);
+      router.push(`/projets/${addProjectId}`);
     }
   }
 
@@ -524,10 +531,18 @@ export default function TeamSearchPage() {
                     <span className="text-xs text-ink-400">+{teamList.length - 6}</span>
                   )}
                 </div>
-                <Button size="sm" onClick={() => setProjectOpen(true)}>
-                  <FolderPlus className="w-4 h-4 mr-1" />
-                  Creer un projet
-                </Button>
+                <div className="flex items-center gap-2">
+                  {existingProjects.length > 0 && (
+                    <Button size="sm" variant="outline" onClick={openAddToProject}>
+                      <FolderPlus className="w-4 h-4 mr-1" />
+                      Ajouter a un projet
+                    </Button>
+                  )}
+                  <Button size="sm" onClick={() => setProjectOpen(true)}>
+                    <FolderPlus className="w-4 h-4 mr-1" />
+                    Creer un projet
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -697,6 +712,38 @@ export default function TeamSearchPage() {
             >
               {savingProject && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Creer le projet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog : ajouter l'equipe a un projet existant */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter a un projet existant</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-ink-500">
+              {teamList.length} technicien{teamList.length > 1 ? "s" : ""} seront ajoutes au projet selectionne (sans retirer les membres actuels).
+            </p>
+            <div>
+              <Label>Projet *</Label>
+              <select
+                className="w-full px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm"
+                value={addProjectId}
+                onChange={(e) => setAddProjectId(e.target.value)}
+              >
+                {existingProjects.map((p) => (
+                  <option key={p.id} value={p.id}>{p.title}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>
+            <Button onClick={addToProject} disabled={savingAdd || !addProjectId || teamList.length === 0}>
+              {savingAdd && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Ajouter
             </Button>
           </DialogFooter>
         </DialogContent>
