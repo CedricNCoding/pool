@@ -19,6 +19,7 @@ import {
   GraduationCap,
   Activity,
   Gauge,
+  CircleUser,
   PanelLeftClose,
   PanelLeftOpen,
   X,
@@ -172,6 +173,19 @@ export function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobil
             </div>
           </div>
         )}
+        <Link
+          href="/account"
+          onClick={onCloseMobile}
+          title={collapsed ? "Mon compte" : undefined}
+          className={cn(
+            "flex items-center gap-3 w-full text-sm transition-colors px-5 py-2",
+            pathname.startsWith("/account") ? "text-signal-500" : "text-ink-300 hover:text-paper",
+            collapsed && "md:px-0 md:py-2.5 md:justify-center md:gap-0"
+          )}
+        >
+          <CircleUser size={18} strokeWidth={1.5} className="shrink-0" />
+          <span className={cn(collapsed && "md:hidden")}>Mon compte</span>
+        </Link>
         <button
           onClick={logout}
           title={collapsed ? "Deconnexion" : undefined}
