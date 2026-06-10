@@ -225,7 +225,7 @@ export default function DirectionPage() {
 
         {/* Recrutement */}
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><UserPlus className="w-5 h-5 text-blue-400" /> Besoin en recrutement</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><UserPlus className="w-5 h-5 text-amber-400" /> Besoin en recrutement</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div>
               <p className="text-xs text-slate-500 mb-1">Departs a anticiper (90 jours)</p>

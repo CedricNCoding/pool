@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
+// Charte Spektalis : pile grotesque (Inter Tight) + mono technique (JetBrains Mono).
+const interTight = Inter_Tight({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
+const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "AV Pool - Gestion du pool techniciens audiovisuel",
-  description: "Plateforme de gestion du pool de techniciens audiovisuel professionnel",
+  title: "Spektalis Pool — gestion du pool de techniciens audiovisuel",
+  description: "Module Pool de la suite Spektalis : gestion des techniciens audiovisuel.",
 };
 
 export default function RootLayout({
@@ -25,7 +27,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${interTight.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-slate-950 text-slate-100">{children}</body>
     </html>

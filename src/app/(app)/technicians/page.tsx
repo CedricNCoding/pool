@@ -348,7 +348,7 @@ export default function TechniciansPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500">
             <Users className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -538,7 +538,7 @@ export default function TechniciansPage() {
             <a
               href={`/api/export?format=csv${companyId ? `&companyId=${companyId}` : ""}`}
               download
-              className="text-sm text-blue-400 hover:underline px-2"
+              className="text-sm text-amber-400 hover:underline px-2"
             >
               Exporter
             </a>

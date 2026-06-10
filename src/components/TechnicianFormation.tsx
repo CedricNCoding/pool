@@ -126,7 +126,7 @@ export default function TechnicianFormation({ technicianId }: { technicianId: st
 
       <p className="text-xs text-slate-500 no-print">
         La gestion complete (validation, parcours) se fait dans le menu{" "}
-        <Link href="/formation" className="text-blue-400 hover:underline">Formation</Link>.
+        <Link href="/formation" className="text-amber-400 hover:underline">Formation</Link>.
       </p>
 
       <Dialog open={open} onOpenChange={setOpen}>

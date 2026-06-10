@@ -5,8 +5,9 @@
   --font-mono: var(--font-geist-mono);
   --color-background: #f8fafc;
   --color-foreground: #0f172a;
-  --color-primary: #1e40af;
-  --color-primary-foreground: #ffffff;
+  /* Charte Spektalis : ambre signal-500 (texte foncé ink sur ambre). */
+  --color-primary: #E89B2C;
+  --color-primary-foreground: #0B1220;
 }
 
 body {

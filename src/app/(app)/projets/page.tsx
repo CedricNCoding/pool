@@ -100,7 +100,7 @@ export default function ProjectsPage() {
 
           {p.description && <p className="text-sm text-slate-400 mt-2 line-clamp-2">{p.description}</p>}
 
-          <Link href={`/projets/${p.id}`} className="text-xs text-blue-400 hover:underline mt-2 inline-flex items-center gap-1">
+          <Link href={`/projets/${p.id}`} className="text-xs text-amber-400 hover:underline mt-2 inline-flex items-center gap-1">
             Ouvrir <ArrowRight className="w-3 h-3" />
           </Link>
         </CardContent>

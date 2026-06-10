@@ -279,7 +279,7 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg text-slate-50">
-            <MapPin className="h-5 w-5 text-blue-400" />
+            <MapPin className="h-5 w-5 text-amber-400" />
             Carte des techniciens
             {locations && (
               <Badge variant="secondary">{locations.length} localises</Badge>
@@ -485,7 +485,7 @@ A renouveler (certifs + documents)
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg text-slate-50">
-                <Clock className="h-5 w-5 text-blue-400" />
+                <Clock className="h-5 w-5 text-amber-400" />
                 Activite recente
               </CardTitle>
             </CardHeader>

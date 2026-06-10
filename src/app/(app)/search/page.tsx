@@ -380,19 +380,19 @@ export default function TeamSearchPage() {
               <div className="flex gap-1">
                 <button
                   onClick={() => setPaletteTab("skill")}
-                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "skill" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400"}`}
+                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "skill" ? "bg-amber-500 text-[#0B1220]" : "bg-slate-800 text-slate-400"}`}
                 >
                   Competences
                 </button>
                 <button
                   onClick={() => setPaletteTab("cert")}
-                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "cert" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400"}`}
+                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "cert" ? "bg-amber-500 text-[#0B1220]" : "bg-slate-800 text-slate-400"}`}
                 >
                   Certifs
                 </button>
                 <button
                   onClick={() => setPaletteTab("tag")}
-                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "tag" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400"}`}
+                  className={`flex-1 text-xs py-1.5 rounded-md ${paletteTab === "tag" ? "bg-amber-500 text-[#0B1220]" : "bg-slate-800 text-slate-400"}`}
                 >
                   Etiquettes
                 </button>
@@ -510,7 +510,7 @@ export default function TeamSearchPage() {
             <Card className="border-blue-700/50 bg-blue-950/20">
               <CardContent className="py-3 flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge className="bg-blue-600 text-white">{teamList.length}</Badge>
+                  <Badge className="bg-amber-500 text-[#0B1220]">{teamList.length}</Badge>
                   <span className="text-sm text-slate-300">dans l&apos;equipe :</span>
                   {teamList.slice(0, 6).map((t) => (
                     <Badge key={t.id} variant="outline" className="text-xs gap-1">
@@ -544,7 +544,7 @@ export default function TeamSearchPage() {
               </CardTitle>
               <Link
                 href="/projets"
-                className="text-sm text-blue-400 hover:underline"
+                className="text-sm text-amber-400 hover:underline"
               >
                 Voir les projets
               </Link>
@@ -574,8 +574,8 @@ export default function TeamSearchPage() {
                               title={inTeam ? "Retirer de l'equipe" : "Ajouter a l'equipe"}
                               className={`w-6 h-6 rounded-md flex items-center justify-center border transition ${
                                 inTeam
-                                  ? "bg-blue-600 border-blue-600 text-white"
-                                  : "border-slate-600 text-slate-400 hover:border-blue-500"
+                                  ? "bg-amber-500 border-blue-600 text-white"
+                                  : "border-slate-600 text-slate-400 hover:border-amber-500"
                               }`}
                             >
                               {inTeam ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
@@ -603,7 +603,7 @@ export default function TeamSearchPage() {
                               {t.agency?.city || "Siege"}
                             </div>
                             {t.distanceKm !== undefined && (
-                              <div className="text-blue-400">a {t.distanceKm} km</div>
+                              <div className="text-amber-400">a {t.distanceKm} km</div>
                             )}
                           </td>
                           <td className="py-2 px-3">

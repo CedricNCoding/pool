@@ -107,7 +107,7 @@ export default function ProjectDetailPage() {
   if (!project) {
     return (
       <div className="p-8">
-        <Link href="/projets" className="text-blue-400 hover:underline">← Retour aux projets</Link>
+        <Link href="/projets" className="text-amber-400 hover:underline">← Retour aux projets</Link>
         <p className="text-red-400 mt-4">Projet introuvable.</p>
       </div>
     );
@@ -248,7 +248,7 @@ export default function ProjectDetailPage() {
                   })}
                   {project.technicians.length === 0 && (
                     <tr><td colSpan={6} className="text-center py-8 text-slate-500">
-                      Aucun technicien. Ajoutez-en depuis <Link href="/search" className="text-blue-400 hover:underline">Chercher une equipe</Link>.
+                      Aucun technicien. Ajoutez-en depuis <Link href="/search" className="text-amber-400 hover:underline">Chercher une equipe</Link>.
                     </td></tr>
                   )}
                 </tbody>

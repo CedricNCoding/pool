@@ -55,12 +55,14 @@ export default function Sidebar() {
     <aside className="w-64 bg-slate-900 text-white flex flex-col min-h-screen">
       <div className="p-6 border-b border-slate-700">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
-            <Monitor className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center">
+            <Monitor className="w-5 h-5 text-[#0B1220]" />
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight">AV Pool</h1>
-            <p className="text-xs text-slate-400">Techniciens AV</p>
+            <h1 className="font-bold text-lg leading-tight">
+              Spektalis <span className="text-amber-400">Pool</span>
+            </h1>
+            <p className="text-xs text-slate-400">Techniciens audiovisuel</p>
           </div>
         </Link>
       </div>
@@ -84,7 +86,7 @@ export default function Sidebar() {
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg text-sm transition-colors",
               pathname.startsWith("/superadmin")
-                ? "bg-amber-600 text-white"
+                ? "bg-amber-600 text-[#0B1220]"
                 : "text-amber-300 bg-amber-500/10 hover:bg-amber-500/20"
             )}
           >
@@ -102,7 +104,7 @@ export default function Sidebar() {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
                 active
-                  ? "bg-blue-600 text-white"
+                  ? "bg-amber-500 text-[#0B1220]"
                   : "text-slate-300 hover:bg-slate-800 hover:text-white"
               )}
             >
@@ -137,7 +139,7 @@ export default function Sidebar() {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
                     active
-                      ? "bg-blue-600 text-white"
+                      ? "bg-amber-500 text-[#0B1220]"
                       : "text-slate-300 hover:bg-slate-800 hover:text-white"
                   )}
                 >

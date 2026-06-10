@@ -253,7 +253,7 @@ export default function FormationPage() {
             onClick={() => setTab(key)}
             className={`px-4 py-2 text-sm border-b-2 -mb-px transition ${
               tab === key
-                ? "border-blue-500 text-slate-100"
+                ? "border-amber-500 text-slate-100"
                 : "border-transparent text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -329,7 +329,7 @@ export default function FormationPage() {
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-slate-100 flex items-center gap-2">
-                      <Route className="w-4 h-4 text-blue-400" />{p.title}
+                      <Route className="w-4 h-4 text-amber-400" />{p.title}
                     </h3>
                     {isAdmin && (
                       <button onClick={() => deletePath(p.id)} className="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100">
@@ -498,9 +498,9 @@ export default function FormationPage() {
                     <button
                       key={m.id}
                       onClick={() => togglePathModule(m.id)}
-                      className={`w-full flex items-center gap-2 text-left text-sm px-2 py-1.5 rounded ${idx >= 0 ? "bg-blue-600/20 text-slate-100" : "text-slate-400 hover:bg-slate-800"}`}
+                      className={`w-full flex items-center gap-2 text-left text-sm px-2 py-1.5 rounded ${idx >= 0 ? "bg-amber-500/20 text-slate-100" : "text-slate-400 hover:bg-slate-800"}`}
                     >
-                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${idx >= 0 ? "bg-blue-600 text-white" : "bg-slate-700"}`}>
+                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${idx >= 0 ? "bg-amber-500 text-[#0B1220]" : "bg-slate-700"}`}>
                         {idx >= 0 ? idx + 1 : ""}
                       </span>
                       {m.title}
