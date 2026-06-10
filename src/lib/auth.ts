@@ -106,8 +106,13 @@ export async function authenticateUser(
   email: string,
   password: string
 ): Promise<SessionUser | null> {
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { tenant: { select: { status: true } } },
+  });
   if (!user || !user.isActive) return null;
+  // Tenant suspendu -> connexion refusee (superadmin n'a pas de tenant)
+  if (user.tenant && user.tenant.status !== "active") return null;
   const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) return null;
   return {

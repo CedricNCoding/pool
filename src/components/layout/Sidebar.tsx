@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Monitor,
   Users,
+  Building,
   Building2,
   Award,
   Search,
@@ -76,6 +77,21 @@ export default function Sidebar() {
           </button>
           <NotificationBell />
         </div>
+
+        {user?.role === "superadmin" && (
+          <Link
+            href="/superadmin"
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg text-sm transition-colors",
+              pathname.startsWith("/superadmin")
+                ? "bg-amber-600 text-white"
+                : "text-amber-300 bg-amber-500/10 hover:bg-amber-500/20"
+            )}
+          >
+            <Building className="w-4 h-4" />
+            Tenants (super admin)
+          </Link>
+        )}
 
         {mainNav.map((item) => {
           const active = pathname.startsWith(item.href);
