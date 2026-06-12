@@ -34,6 +34,7 @@ model Tenant {
   documents       Document[]
   events          TechnicianEvent[]
   assistanceRequests AssistanceRequest[]
+  webhooks        Webhook[]
 
   @@map("tenants")
 }
@@ -503,4 +504,25 @@ model AssistanceRequest {
   @@index([tenantId])
   @@index([technicianId])
   @@map("assistance_requests")
+}
+
+// Webhook sortant : Praxis POST le payload d'un événement vers une URL tierce,
+// signé en HMAC-SHA256 (en-tête X-Praxis-Signature) avec `secret`. Cloisonné
+// par tenant. `events` = "all" ou liste CSV (ex. "assistance.created").
+model Webhook {
+  id          String    @id @default(uuid())
+  tenantId    String?   @map("tenant_id")
+  url         String
+  events      String    @default("all")
+  secret      String
+  isActive    Boolean   @default(true) @map("is_active")
+  lastStatus  Int?      @map("last_status")
+  lastError   String?   @map("last_error")
+  lastFiredAt DateTime? @map("last_fired_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("webhooks")
 }

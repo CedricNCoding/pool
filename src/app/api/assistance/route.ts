@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
 import { setTenantContext } from "@/lib/tenant-context";
 import { technicianCode } from "@/lib/anon";
+import { dispatchWebhook } from "@/lib/webhooks";
 import { auditLog } from "@/lib/audit";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -54,6 +55,17 @@ export async function POST(req: NextRequest) {
     entityType: "assistance_request",
     entityId: reqRow.id,
     details: `Demande de renfort ${technicianCode(technicianId)}`,
+  });
+
+  // Webhook (non bloquant) : payload anonymisé — code, pas l'identité.
+  await dispatchWebhook("assistance.created", {
+    requestId: reqRow.id,
+    technicianCode: technicianCode(technicianId),
+    service: tech.service,
+    requesterCompanyId: session.companyId,
+    message,
+    status: "pending",
+    createdAt: reqRow.createdAt.toISOString(),
   });
 
   return NextResponse.json({ id: reqRow.id, status: reqRow.status, code: technicianCode(technicianId) }, { status: 201 });

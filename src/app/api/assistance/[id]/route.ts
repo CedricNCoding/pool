@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { setTenantContext } from "@/lib/tenant-context";
+import { technicianCode } from "@/lib/anon";
+import { dispatchWebhook } from "@/lib/webhooks";
 import { auditLog } from "@/lib/audit";
 
 // Arbitrage d'une demande de renfort — admin du tenant uniquement.
@@ -38,6 +40,13 @@ export async function PATCH(
     entityType: "assistance_request",
     entityId: id,
     details: status === "accepted" ? "Renfort accepté" : "Renfort refusé",
+  });
+
+  await dispatchWebhook("assistance.resolved", {
+    requestId: updated.id,
+    technicianCode: technicianCode(updated.technicianId),
+    status: updated.status,
+    resolvedAt: updated.resolvedAt?.toISOString() ?? null,
   });
 
   return NextResponse.json({ id: updated.id, status: updated.status });
