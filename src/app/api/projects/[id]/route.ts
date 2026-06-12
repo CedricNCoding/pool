@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireSession, type SessionUser } from "@/lib/auth";
 import { setTenantContext } from "@/lib/tenant-context";
 import { anonymizeTechnician } from "@/lib/anon";
+import { blockingTechnicians } from "@/lib/compliance";
 import { auditLog } from "@/lib/audit";
 
 function canAccess(session: SessionUser, companyId: string | null): boolean {
@@ -82,6 +83,14 @@ export async function PATCH(
         select: { id: true },
       });
       allowedIds = techs.map((t) => t.id);
+    }
+    // Conformité bloquante : médical dépassé / habilitation expirée -> refus (override admin).
+    const blocked = await blockingTechnicians(allowedIds, body.force === true && session.role === "admin");
+    if (blocked.length > 0) {
+      return NextResponse.json(
+        { error: "Techniciens non conformes — affectation bloquée", blocked },
+        { status: 409 }
+      );
     }
     data.technicians = replaceIds
       ? { set: allowedIds.map((tid) => ({ id: tid })) }

@@ -143,6 +143,9 @@ interface Technician {
   departureDate: string | null;
   scheduledDeletionDate: string | null;
   notes: string | null;
+  medicalVisitDate: string | null;
+  medicalVisitPeriodicityMonths: number;
+  drivingLicenses: string | null;
   createdAt: string;
   interventionCenterLat: number | null;
   interventionCenterLng: number | null;
@@ -1272,6 +1275,33 @@ export default function TechnicianDetailPage() {
                   <div>
                     <dt className="text-xs text-ink-400">Telephone</dt>
                     <dd className="text-sm">{tech.phone || "-"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-ink-400">Visite medicale</dt>
+                    <dd className="text-sm">
+                      {(() => {
+                        if (!tech.medicalVisitDate)
+                          return <span className="text-amber-600">Non renseignee</span>;
+                        const due = new Date(tech.medicalVisitDate);
+                        due.setMonth(due.getMonth() + (tech.medicalVisitPeriodicityMonths || 24));
+                        const overdue = due.getTime() < Date.now();
+                        const soon = !overdue && due.getTime() < Date.now() + 60 * 86400000;
+                        return (
+                          <span className={overdue ? "text-red-600 font-medium" : soon ? "text-amber-600" : ""}>
+                            Prochaine&nbsp;: {due.toLocaleDateString("fr-FR")}
+                            {overdue ? " — depassee" : soon ? " — bientot" : ""}
+                          </span>
+                        );
+                      })()}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-ink-400">Permis de conduire</dt>
+                    <dd className="text-sm">
+                      {tech.drivingLicenses
+                        ? tech.drivingLicenses.split(",").filter(Boolean).join(" · ")
+                        : "-"}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-xs text-ink-400">Entreprise</dt>

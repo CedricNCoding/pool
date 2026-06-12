@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
 import { setTenantContext } from "@/lib/tenant-context";
+import { blockingTechnicians } from "@/lib/compliance";
 import { auditLog } from "@/lib/audit";
 
 // Liste des projets (cloisonnee : admin = tout ; manager = son entreprise)
@@ -46,6 +47,16 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
     allowedIds = techs.map((t) => t.id);
+  }
+
+  // Conformité bloquante : un technicien non à jour (visite médicale dépassée,
+  // habilitation expirée) ne peut être affecté — sauf override explicite (admin).
+  const blocked = await blockingTechnicians(allowedIds, body.force === true && session.role === "admin");
+  if (blocked.length > 0) {
+    return NextResponse.json(
+      { error: "Techniciens non conformes — affectation bloquée", blocked },
+      { status: 409 }
+    );
   }
 
   const companyId =

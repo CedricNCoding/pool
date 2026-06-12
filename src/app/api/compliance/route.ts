@@ -30,6 +30,8 @@ export async function GET(req: NextRequest) {
       firstName: true,
       lastName: true,
       service: true,
+      medicalVisitDate: true,
+      medicalVisitPeriodicityMonths: true,
       documents: { select: { category: true, expiryDate: true } },
       certifications: {
         where: { status: "active", expiryDate: { lt: now } },
@@ -54,6 +56,12 @@ export async function GET(req: NextRequest) {
       }
       for (const c of t.certifications) {
         issues.push(`${c.certification.name} expiree`);
+      }
+      // Visite médicale structurée : échéance = dernière visite + périodicité.
+      if (t.medicalVisitDate) {
+        const due = new Date(t.medicalVisitDate);
+        due.setMonth(due.getMonth() + (t.medicalVisitPeriodicityMonths || 24));
+        if (due < now) issues.push("Visite medicale depassee");
       }
       return { id: t.id, name: `${t.firstName} ${t.lastName}`, service: t.service, issues };
     })
