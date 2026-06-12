@@ -4,6 +4,7 @@ import { requireSession, canAccessCompany } from "@/lib/auth";
 import { auditLog } from "@/lib/audit";
 import { haversineDistance } from "@/lib/geo";
 import { setTenantContext } from "@/lib/tenant-context";
+import { anonymizeTechnician } from "@/lib/anon";
 
 export async function GET(req: NextRequest) {
   const session = await requireSession();
@@ -23,13 +24,27 @@ export async function GET(req: NextRequest) {
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = Math.min(parseInt(url.searchParams.get("limit") || "50"), 100);
 
+  // pool=1 (Chercher une équipe) : un gestionnaire voit tout le tenant, mais les
+  // techniciens des AUTRES sociétés lui sont renvoyés anonymisés (cf. plus bas).
+  const pool = url.searchParams.get("pool") === "1";
+
   const where: Record<string, unknown> = {};
 
-  if (session.role !== "admin" && session.companyId) {
-    where.companyId = session.companyId;
+  if (session.role === "manager" && session.companyId) {
+    if (!pool) where.companyId = session.companyId;
+    // si pool : pas de restriction société -> tout le tenant (anonymisation après)
   } else if (companyId) {
     where.companyId = companyId;
   }
+
+  // Anonymisation serveur : pour un gestionnaire, masque l'identité et les
+  // coordonnées des techniciens d'une société autre que la sienne.
+  const guard = (
+    list: Array<{ id: string; companyId: string; [k: string]: unknown }>
+  ): unknown[] =>
+    session.role === "manager" && session.companyId
+      ? list.map((t) => (t.companyId !== session.companyId ? anonymizeTechnician(t) : t))
+      : list;
 
   if (service) where.service = service;
   if (contractType) where.contractType = contractType;
@@ -142,7 +157,7 @@ export async function GET(req: NextRequest) {
     const total = matched.length;
     const data = matched.slice((page - 1) * limit, (page - 1) * limit + limit);
     return NextResponse.json({
-      data,
+      data: guard(data),
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     });
   }
@@ -159,7 +174,7 @@ export async function GET(req: NextRequest) {
   ]);
 
   return NextResponse.json({
-    data: technicians,
+    data: guard(technicians),
     pagination: {
       page,
       limit,

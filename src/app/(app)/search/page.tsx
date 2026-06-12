@@ -28,6 +28,7 @@ import {
   Loader2,
   Search as SearchIcon,
   Tag as TagIcon,
+  HelpingHand,
 } from "lucide-react";
 import { SKILL_LEVELS, CERT_CATEGORIES, availabilityMeta } from "@/lib/constants";
 import { CITIES } from "@/lib/cities";
@@ -54,9 +55,13 @@ interface Company {
 }
 interface TechResult {
   id: string;
-  firstName: string;
-  lastName: string;
+  firstName: string | null;
+  lastName: string | null;
   service: string;
+  // Présents quand le technicien d'une autre société est anonymisé (pool renfort)
+  anon?: boolean;
+  code?: string;
+  companyId?: string;
   contractType: string;
   availabilityStatus: string;
   interventionRadiusKm: number;
@@ -104,6 +109,31 @@ export default function TeamSearchPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [addProjectId, setAddProjectId] = useState("");
   const [savingAdd, setSavingAdd] = useState(false);
+  // Demande de renfort sur un technicien externe (anonymisé)
+  const [renfortTech, setRenfortTech] = useState<TechResult | null>(null);
+  const [renfortMsg, setRenfortMsg] = useState("");
+  const [renfortSaving, setRenfortSaving] = useState(false);
+  const [renfortDone, setRenfortDone] = useState("");
+
+  function openRenfort(t: TechResult) {
+    setRenfortTech(t);
+    setRenfortMsg("");
+    setRenfortDone("");
+  }
+  async function submitRenfort() {
+    if (!renfortTech || !renfortMsg.trim()) return;
+    setRenfortSaving(true);
+    const res = await fetch("/api/assistance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ technicianId: renfortTech.id, message: renfortMsg }),
+    });
+    setRenfortSaving(false);
+    if (res.ok) {
+      setRenfortTech(null);
+      setRenfortDone(`Demande envoyée pour ${renfortTech.code}. Suivi dans « Renforts ».`);
+    }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -154,6 +184,8 @@ export default function TeamSearchPage() {
       }
       params.set("isActive", "true");
       params.set("limit", "60");
+      // Gestionnaire : inclure le pool inter-sociétés (anonymisé côté serveur).
+      if (user?.role === "manager") params.set("pool", "1");
 
       setLoading(true);
       fetch(`/api/technicians?${params}`)
@@ -582,31 +614,53 @@ export default function TeamSearchPage() {
                       const inTeam = !!team[t.id];
                       const topSkills = [...t.skills].sort((a, b) => b.level - a.level).slice(0, 4);
                       return (
-                        <tr key={t.id} className="border-b border-ink-900/10 hover:bg-paper-2">
+                        <tr key={t.id} className={`border-b border-ink-900/10 hover:bg-paper-2 ${t.anon ? "bg-paper-2/40" : ""}`}>
                           <td className="py-2 px-3">
-                            <button
-                              onClick={() => toggleTeam(t)}
-                              title={inTeam ? "Retirer de l'equipe" : "Ajouter a l'equipe"}
-                              className={`w-6 h-6 rounded-md flex items-center justify-center border transition ${
-                                inTeam
-                                  ? "bg-signal-500 border-blue-600 text-white"
-                                  : "border-ink-900/15 text-ink-500 hover:border-signal-500"
-                              }`}
-                            >
-                              {inTeam ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                            </button>
+                            {t.anon ? (
+                              <button
+                                onClick={() => openRenfort(t)}
+                                title="Demander un renfort"
+                                className="w-6 h-6 rounded-md flex items-center justify-center border border-signal-500/40 text-signal-600 hover:bg-signal-500/10 transition"
+                              >
+                                <HelpingHand className="w-3.5 h-3.5" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => toggleTeam(t)}
+                                title={inTeam ? "Retirer de l'equipe" : "Ajouter a l'equipe"}
+                                className={`w-6 h-6 rounded-md flex items-center justify-center border transition ${
+                                  inTeam
+                                    ? "bg-signal-500 border-signal-600 text-[#0B1220]"
+                                    : "border-ink-900/15 text-ink-500 hover:border-signal-500"
+                                }`}
+                              >
+                                {inTeam ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                              </button>
+                            )}
                           </td>
                           <td className="py-2 px-3">
-                            <Link href={`/technicians/${t.id}`} className="hover:underline">
+                            {t.anon ? (
                               <div className="font-medium text-ink-900 flex items-center gap-1.5">
-                                {t.firstName} {t.lastName}
+                                <span className="font-mono text-[13px]">{t.code}</span>
+                                <Badge variant="outline" className="text-[10px] text-ink-500">externe</Badge>
                                 <span
                                   className="w-2 h-2 rounded-full flex-shrink-0"
                                   style={{ backgroundColor: availabilityMeta(t.availabilityStatus).color }}
                                   title={availabilityMeta(t.availabilityStatus).label}
                                 />
                               </div>
-                            </Link>
+                            ) : (
+                              <Link href={`/technicians/${t.id}`} className="hover:underline">
+                                <div className="font-medium text-ink-900 flex items-center gap-1.5">
+                                  {t.firstName} {t.lastName}
+                                  <span
+                                    className="w-2 h-2 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: availabilityMeta(t.availabilityStatus).color }}
+                                    title={availabilityMeta(t.availabilityStatus).label}
+                                  />
+                                </div>
+                              </Link>
+                            )}
                             <div className="flex items-center gap-1.5 text-xs text-ink-500">
                               <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: t.company.color }} />
                               {t.company.name} · {t.service}
@@ -748,6 +802,52 @@ export default function TeamSearchPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog : demande de renfort (technicien externe anonymisé) */}
+      <Dialog open={!!renfortTech} onOpenChange={(o) => !o && setRenfortTech(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Demander un renfort</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="rounded-lg border border-ink-900/10 bg-paper-2 px-4 py-3 text-sm">
+              <div className="font-mono font-medium text-ink-900">{renfortTech?.code}</div>
+              <div className="text-ink-500 text-xs mt-0.5">
+                {renfortTech?.company.name} · {renfortTech?.service}
+              </div>
+            </div>
+            <p className="text-xs text-ink-500">
+              L&apos;identité du technicien reste masquée. Votre demande est transmise à l&apos;administrateur, qui organise la mise en relation.
+            </p>
+            <div>
+              <Label>Votre besoin *</Label>
+              <textarea
+                rows={4}
+                className="w-full px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm"
+                placeholder="ex : renfort sonorisation, 12-14 mars, sur Lyon. Compétence Dante niveau 3 requise."
+                value={renfortMsg}
+                onChange={(e) => setRenfortMsg(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>
+            <Button onClick={submitRenfort} disabled={renfortSaving || !renfortMsg.trim()}>
+              {renfortSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Envoyer la demande
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {renfortDone && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-lg bg-ink-900 text-paper px-4 py-3 text-sm shadow-lg">
+          <HelpingHand className="w-4 h-4 text-signal-500" />
+          {renfortDone}
+          <button onClick={() => setRenfortDone("")} className="text-ink-300 hover:text-paper ml-2">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

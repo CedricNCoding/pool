@@ -33,6 +33,7 @@ model Tenant {
   auditLogs       AuditLog[]
   documents       Document[]
   events          TechnicianEvent[]
+  assistanceRequests AssistanceRequest[]
 
   @@map("tenants")
 }
@@ -80,6 +81,7 @@ model Company {
   users       User[]
   apiKeys     ApiKey[]
   projects    Project[]
+  assistanceRequests AssistanceRequest[] @relation("AssistanceRequester")
 
   @@index([tenantId])
   @@map("companies")
@@ -143,6 +145,7 @@ model Technician {
   documents           Document[]
   tags                Tag[]
   events              TechnicianEvent[]
+  assistanceRequests  AssistanceRequest[] @relation("AssistanceTech")
 
   @@index([tenantId])
   @@map("technicians")
@@ -470,4 +473,28 @@ model TrainingAssignment {
 
   @@index([tenantId])
   @@map("training_assignments")
+}
+
+// Demande de renfort : un gestionnaire sollicite un technicien d'une AUTRE
+// société du tenant (vu anonymisé). Seul l'admin du tenant arbitre.
+model AssistanceRequest {
+  id                 String    @id @default(uuid())
+  tenantId           String?   @map("tenant_id")
+  technicianId       String    @map("technician_id")
+  requesterUserId    String?   @map("requester_user_id")
+  requesterCompanyId String?   @map("requester_company_id")
+  message            String
+  status             String    @default("pending") // pending | accepted | declined
+  adminNote          String?   @map("admin_note")
+  resolvedById       String?   @map("resolved_by_id")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  resolvedAt         DateTime? @map("resolved_at")
+
+  tenant           Tenant?    @relation(fields: [tenantId], references: [id])
+  technician       Technician @relation("AssistanceTech", fields: [technicianId], references: [id], onDelete: Cascade)
+  requesterCompany Company?   @relation("AssistanceRequester", fields: [requesterCompanyId], references: [id])
+
+  @@index([tenantId])
+  @@index([technicianId])
+  @@map("assistance_requests")
 }
