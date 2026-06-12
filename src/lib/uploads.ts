@@ -23,5 +23,7 @@ export const DOC_CATEGORIES = [
   { value: "habilitation", label: "Habilitation" },
   { value: "certificat", label: "Certificat" },
   { value: "diplome", label: "Diplome" },
+  { value: "cv", label: "CV" },
+  { value: "permis", label: "Permis de conduire" },
   { value: "autre", label: "Autre" },
 ] as const;

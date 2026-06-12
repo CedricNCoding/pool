@@ -45,6 +45,9 @@ interface Technician {
   availabilityStatus: string;
   availableUntil: string | null;
   notes: string | null;
+  medicalVisitDate: string | null;
+  medicalVisitPeriodicityMonths: number;
+  drivingLicenses: string | null;
   interventionCenterLat: number | null;
   interventionCenterLng: number | null;
   interventionRadiusKm: number;
@@ -93,6 +96,9 @@ export default function EditTechnicianPage() {
     departureDate: "",
     availabilityStatus: "disponible",
     availableUntil: "",
+    medicalVisitDate: "",
+    medicalVisitPeriodicityMonths: "24",
+    drivingLicenses: "",
   });
 
   function addTag(name: string) {
@@ -128,6 +134,9 @@ export default function EditTechnicianPage() {
         interventionCenterLng: tech.interventionCenterLng?.toString() || "",
         interventionRadiusKm: tech.interventionRadiusKm.toString(),
         notes: tech.notes || "",
+        medicalVisitDate: isoToInput(tech.medicalVisitDate),
+        medicalVisitPeriodicityMonths: String(tech.medicalVisitPeriodicityMonths ?? 24),
+        drivingLicenses: tech.drivingLicenses || "",
         isActive: tech.isActive,
         departureDate: isoToInput(tech.departureDate),
         availabilityStatus: tech.availabilityStatus || "disponible",
@@ -198,6 +207,9 @@ export default function EditTechnicianPage() {
           : null,
         interventionRadiusKm: parseInt(form.interventionRadiusKm) || 50,
         notes: form.notes || null,
+        medicalVisitDate: form.medicalVisitDate || null,
+        medicalVisitPeriodicityMonths: parseInt(form.medicalVisitPeriodicityMonths) || 24,
+        drivingLicenses: form.drivingLicenses || null,
         isActive: form.isActive,
         departureDate: form.departureDate || null,
         availabilityStatus: form.availabilityStatus,
@@ -524,6 +536,63 @@ export default function EditTechnicianPage() {
                   }))
                 }
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Suivi medical &amp; permis</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-3 gap-4">
+            <div>
+              <Label>Derniere visite medicale</Label>
+              <Input
+                type="date"
+                value={form.medicalVisitDate}
+                onChange={(e) => setForm((f) => ({ ...f, medicalVisitDate: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label>Periodicite</Label>
+              <select
+                className="w-full px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm h-10"
+                value={form.medicalVisitPeriodicityMonths}
+                onChange={(e) => setForm((f) => ({ ...f, medicalVisitPeriodicityMonths: e.target.value }))}
+              >
+                <option value="24">24 mois (suivi renforce)</option>
+                <option value="36">36 mois (nuit / jeune)</option>
+                <option value="48">48 mois (aptitude SIR)</option>
+                <option value="60">60 mois (suivi standard)</option>
+              </select>
+              <p className="text-xs text-ink-400 mt-1">Prochaine echeance = date + periodicite.</p>
+            </div>
+            <div>
+              <Label>Permis de conduire</Label>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {["B", "BE", "C", "CE", "D"].map((cat) => {
+                  const has = form.drivingLicenses.split(",").map((s) => s.trim()).includes(cat);
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => {
+                          const set = new Set(f.drivingLicenses.split(",").map((s) => s.trim()).filter(Boolean));
+                          if (set.has(cat)) set.delete(cat); else set.add(cat);
+                          return { ...f, drivingLicenses: Array.from(set).join(",") };
+                        })
+                      }
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium border transition ${
+                        has ? "bg-signal-500 border-signal-600 text-[#0B1220]" : "border-ink-900/15 text-ink-500 hover:border-signal-500"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-ink-400 mt-1">Le scan du permis et le CV se deposent dans l&apos;onglet Documents.</p>
             </div>
           </CardContent>
         </Card>

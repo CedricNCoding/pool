@@ -75,23 +75,6 @@ export async function generateTechnicianPdf(
   doc.setTextColor(20, 20, 20);
   let y = 38;
 
-  // --- QR code vers la fiche en ligne (pour identification sur site) ---
-  try {
-    const QRCode = (await import("qrcode")).default;
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const dataUrl = await QRCode.toDataURL(`${origin}/technicians/${tech.id}`, {
-      margin: 1,
-      width: 120,
-    });
-    doc.addImage(dataUrl, "PNG", W - 38, 32, 24, 24);
-    doc.setFontSize(7);
-    doc.setTextColor(120, 120, 120);
-    doc.text("Fiche en ligne", W - 36, 59);
-    doc.setTextColor(20, 20, 20);
-  } catch {
-    /* QR optionnel */
-  }
-
   // --- Identite ---
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");

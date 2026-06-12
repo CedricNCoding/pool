@@ -97,6 +97,16 @@ export async function PUT(
         ? new Date(body.departureDate)
         : existing.departureDate,
       notes: body.notes !== undefined ? body.notes : existing.notes,
+      medicalVisitDate:
+        body.medicalVisitDate !== undefined
+          ? body.medicalVisitDate ? new Date(body.medicalVisitDate) : null
+          : existing.medicalVisitDate,
+      medicalVisitPeriodicityMonths:
+        body.medicalVisitPeriodicityMonths !== undefined
+          ? parseInt(String(body.medicalVisitPeriodicityMonths)) || 24
+          : existing.medicalVisitPeriodicityMonths,
+      drivingLicenses:
+        body.drivingLicenses !== undefined ? body.drivingLicenses || null : existing.drivingLicenses,
       // Etiquettes : remplace l'ensemble par les noms fournis (cree les manquants).
       // Cle unique composee [tenantId, name] + tenantId explicite (l'extension ne
       // scope pas les ecritures imbriquees).

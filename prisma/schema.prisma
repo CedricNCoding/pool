@@ -131,6 +131,12 @@ model Technician {
   departureDate         DateTime? @map("departure_date")
   scheduledDeletionDate DateTime? @map("scheduled_deletion_date")
   notes                 String?
+  // Visite médicale du travail : date de la dernière + périodicité (mois) ->
+  // prochaine échéance = date + périodicité. Défaut 24 mois (suivi renforcé AV).
+  medicalVisitDate              DateTime? @map("medical_visit_date")
+  medicalVisitPeriodicityMonths Int       @default(24) @map("medical_visit_periodicity_months")
+  // Permis de conduire détenus (catégories séparées par des virgules : "B,C,CE")
+  drivingLicenses       String?   @map("driving_licenses")
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
 
