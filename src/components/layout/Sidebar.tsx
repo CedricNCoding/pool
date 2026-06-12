@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -64,6 +65,20 @@ interface SidebarProps {
 export function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useSession();
+
+  // Compteur de demandes de renfort en attente (badge).
+  const [renfortCount, setRenfortCount] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    const fetchCount = () =>
+      fetch("/api/assistance/count")
+        .then((r) => (r.ok ? r.json() : { pending: 0 }))
+        .then((d) => alive && setRenfortCount(d.pending || 0))
+        .catch(() => {});
+    fetchCount();
+    const t = setInterval(fetchCount, 60000);
+    return () => { alive = false; clearInterval(t); };
+  }, [pathname]);
 
   return (
     <aside
@@ -148,6 +163,7 @@ export function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobil
             active={item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href)}
             collapsed={collapsed}
             onClick={onCloseMobile}
+            badge={item.href === "/renforts" ? renfortCount : 0}
           />
         ))}
         {user?.role === "admin" && (
@@ -211,11 +227,13 @@ function NavLink({
   active,
   collapsed,
   onClick,
+  badge = 0,
 }: {
   item: NavItem;
   active: boolean;
   collapsed: boolean;
   onClick?: () => void;
+  badge?: number;
 }) {
   const Icon = item.icon;
   return (
@@ -224,15 +242,25 @@ function NavLink({
       onClick={onClick}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "flex items-center gap-3 text-sm transition-colors duration-[120ms]",
+        "flex items-center gap-3 text-sm transition-colors duration-[120ms] relative",
         active
           ? "bg-[rgba(232,155,44,0.10)] text-signal-500 border-l-2 border-signal-500 -ml-[2px] pl-[18px] pr-5 py-2"
           : "text-ink-200 hover:text-paper hover:bg-[rgba(245,242,235,0.04)] border-l-2 border-transparent -ml-[2px] pl-[18px] pr-5 py-2",
         collapsed && "md:px-0 md:py-2.5 md:gap-0 md:justify-center md:border-l-0 md:ml-0 md:pl-0 md:pr-0"
       )}
     >
-      <Icon size={18} strokeWidth={1.5} className="shrink-0" />
+      <span className="relative shrink-0">
+        <Icon size={18} strokeWidth={1.5} />
+        {badge > 0 && collapsed && (
+          <span className="hidden md:block absolute -top-1.5 -right-1.5 w-2 h-2 rounded-full bg-signal-500 ring-2 ring-ink-900" />
+        )}
+      </span>
       <span className={cn("truncate", collapsed && "md:hidden")}>{item.label}</span>
+      {badge > 0 && (
+        <span className={cn("ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-signal-500 text-[#0B1220] text-[11px] font-semibold flex items-center justify-center", collapsed && "md:hidden")}>
+          {badge > 99 ? "99+" : badge}
+        </span>
+      )}
     </Link>
   );
 }

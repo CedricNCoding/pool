@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, type SessionUser } from "@/lib/auth";
 import { setTenantContext } from "@/lib/tenant-context";
+import { anonymizeTechnician } from "@/lib/anon";
 import { auditLog } from "@/lib/audit";
 
 function canAccess(session: SessionUser, companyId: string | null): boolean {
@@ -36,6 +37,16 @@ export async function GET(
   if (!project) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
   if (!canAccess(session, project.companyId)) {
     return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+  }
+  // Défense en profondeur : si un membre vient d'une autre société (ajouté par
+  // un admin), un gestionnaire ne doit pas voir son identité.
+  if (session.role === "manager" && session.companyId) {
+    return NextResponse.json({
+      ...project,
+      technicians: project.technicians.map((t) =>
+        t.companyId !== session.companyId ? anonymizeTechnician(t) : t
+      ),
+    });
   }
   return NextResponse.json(project);
 }
