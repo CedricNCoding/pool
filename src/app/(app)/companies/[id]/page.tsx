@@ -43,6 +43,7 @@ interface Company {
   phone: string | null;
   email: string | null;
   color: string;
+  logoUrl: string | null;
   agencies: Agency[];
   _count: { technicians: number };
 }
@@ -60,6 +61,7 @@ export default function CompanyDetailPage() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [error, setError] = useState("");
 
   // Agency dialog
@@ -187,6 +189,45 @@ export default function CompanyDetailPage() {
                   <button key={c} onClick={() => set("color", c)} className={`w-7 h-7 rounded-full border-2 ${form.color === c ? "border-white" : "border-transparent"}`} style={{ backgroundColor: c }} />
                 ))}
               </div>
+            </div>
+          )}
+          {isAdmin && (
+            <div>
+              <Label>Logo (utilise dans les exports PDF)</Label>
+              <div className="flex items-center gap-4">
+                {company.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={company.logoUrl} alt="Logo" className="h-12 max-w-[140px] object-contain rounded border border-ink-900/10 bg-white p-1" />
+                ) : (
+                  <span className="text-sm text-ink-400">Aucun logo</span>
+                )}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  className="text-sm text-ink-600 file:mr-3 file:rounded-md file:border-0 file:bg-paper-2 file:px-3 file:py-1.5 file:text-ink-800 file:cursor-pointer"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploadingLogo(true);
+                    const fd = new FormData();
+                    fd.set("file", file);
+                    const res = await fetch(`/api/companies/${company.id}/logo`, { method: "POST", body: fd });
+                    setUploadingLogo(false);
+                    if (res.ok) fetchCompany();
+                    else alert((await res.json().catch(() => ({}))).error || "Echec de l'upload");
+                  }}
+                />
+                {uploadingLogo && <Loader2 className="w-4 h-4 animate-spin text-ink-400" />}
+                {company.logoUrl && (
+                  <button
+                    onClick={async () => { await fetch(`/api/companies/${company.id}/logo`, { method: "DELETE" }); fetchCompany(); }}
+                    className="text-xs text-red-500 hover:underline"
+                  >
+                    Retirer
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-ink-400 mt-1">PNG ou JPEG, max 1 Mo.</p>
             </div>
           )}
           {isAdmin && (

@@ -220,6 +220,22 @@ export default function TechniciansPage() {
   }, []);
 
   // Actions groupees
+  async function bulkExportPdf() {
+    if (selected.size === 0) return;
+    setBulkSaving(true);
+    try {
+      const ids = [...selected];
+      const full = await Promise.all(
+        ids.map((id) => fetch(`/api/technicians/${id}`).then((r) => (r.ok ? r.json() : null)))
+      );
+      const { generateTechniciansBatchPdf } = await import("@/lib/pdf");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await generateTechniciansBatchPdf(full.filter(Boolean) as any, "fiche");
+    } finally {
+      setBulkSaving(false);
+    }
+  }
+
   async function bulkCreateProject() {
     if (!bulkForm.title.trim() || selected.size === 0) return;
     setBulkSaving(true);
@@ -535,13 +551,9 @@ export default function TechniciansPage() {
             <Button size="sm" variant="outline" disabled={modules.length === 0} onClick={() => { setBulkForm((f) => ({ ...f, moduleId: "" })); setBulkFormationOpen(true); }}>
               Proposer une formation
             </Button>
-            <a
-              href={`/api/export?format=csv${companyId ? `&companyId=${companyId}` : ""}`}
-              download
-              className="text-sm text-amber-400 hover:underline px-2"
-            >
-              Exporter
-            </a>
+            <Button size="sm" variant="outline" disabled={bulkSaving} onClick={bulkExportPdf}>
+              {bulkSaving ? "Export..." : "Exporter PDF"}
+            </Button>
             <Button size="sm" variant="ghost" className="text-ink-500" onClick={() => setSelected(new Set())}>
               Deselectionner
             </Button>

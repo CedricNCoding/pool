@@ -11,7 +11,10 @@ export interface PdfTech {
   interventionCenterLat: number | null;
   interventionCenterLng: number | null;
   interventionRadiusKm: number;
-  company: { name: string; color: string; city: string | null };
+  medicalVisitDate?: string | null;
+  medicalVisitPeriodicityMonths?: number | null;
+  drivingLicenses?: string | null;
+  company: { name: string; color: string; city: string | null; logoUrl?: string | null };
   agency: { name: string; city: string | null } | null;
   skills: { level: number; skill: { name: string; category: { name: string } } }[];
   certifications: {
@@ -19,6 +22,19 @@ export interface PdfTech {
     certification: { name: string; issuer: string };
   }[];
   tags: { name: string }[];
+}
+
+function logoFormat(dataUrl: string): "PNG" | "JPEG" | null {
+  if (dataUrl.startsWith("data:image/png")) return "PNG";
+  if (dataUrl.startsWith("data:image/jpeg") || dataUrl.startsWith("data:image/jpg")) return "JPEG";
+  return null;
+}
+
+function nextMedical(t: PdfTech): string {
+  if (!t.medicalVisitDate) return "-";
+  const d = new Date(t.medicalVisitDate);
+  d.setMonth(d.getMonth() + (t.medicalVisitPeriodicityMonths || 24));
+  return d.toLocaleDateString("fr-FR");
 }
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -43,13 +59,17 @@ function fmt(d: string | null) {
   return d ? new Date(d).toLocaleDateString("fr-FR") : "-";
 }
 
+// opts.into : rend dans un document existant (export multi) sans le sauvegarder.
 export async function generateTechnicianPdf(
   tech: PdfTech,
-  mode: "fiche" | "attestation" = "fiche"
+  mode: "fiche" | "attestation" = "fiche",
+  opts?: { into?: unknown; autoTable?: unknown; noSave?: boolean }
 ) {
   const { jsPDF } = await import("jspdf");
-  const autoTable = (await import("jspdf-autotable")).default;
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const autoTable = (opts?.autoTable as any) ?? (await import("jspdf-autotable")).default;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const doc = (opts?.into as any) ?? new jsPDF({ unit: "mm", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const [r, g, b] = hexToRgb(tech.company.color);
   const fullName = `${tech.firstName} ${tech.lastName}`;
@@ -71,6 +91,20 @@ export async function generateTechnicianPdf(
   doc.text(`Edite le ${new Date().toLocaleDateString("fr-FR")}`, W - 14, 20, {
     align: "right",
   });
+
+  // Logo entreprise (data URL) sur une plaque blanche pour le contraste.
+  if (tech.company.logoUrl) {
+    const lf = logoFormat(tech.company.logoUrl);
+    if (lf) {
+      try {
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(W - 52, 4, 38, 16, 1.5, 1.5, "F");
+        doc.addImage(tech.company.logoUrl, lf, W - 50, 5, 34, 14);
+      } catch {
+        /* logo optionnel */
+      }
+    }
+  }
 
   doc.setTextColor(20, 20, 20);
   let y = 38;
@@ -100,6 +134,14 @@ export async function generateTechnicianPdf(
       14,
       y
     );
+    y += 6;
+  }
+  // Permis de conduire + visite medicale (utile pour les dossiers marche public)
+  const admin: string[] = [];
+  if (tech.drivingLicenses) admin.push(`Permis : ${tech.drivingLicenses.split(",").filter(Boolean).join(", ")}`);
+  if (tech.medicalVisitDate) admin.push(`Visite medicale valable jusqu'au ${nextMedical(tech)}`);
+  if (admin.length > 0) {
+    doc.text(admin.join("   |   "), 14, y);
     y += 6;
   }
   if (tech.tags.length > 0) {
@@ -133,7 +175,6 @@ export async function generateTechnicianPdf(
       margin: { left: 14, right: 14 },
       theme: "striped",
     });
-    // @ts-expect-error lastAutoTable est ajoute par le plugin
     y = doc.lastAutoTable.finalY + 6;
   }
 
@@ -153,7 +194,6 @@ export async function generateTechnicianPdf(
       margin: { left: 14, right: 14 },
       theme: "striped",
     });
-    // @ts-expect-error lastAutoTable
     y = doc.lastAutoTable.finalY + 6;
   }
 
@@ -168,7 +208,26 @@ export async function generateTechnicianPdf(
   }
 
   const safe = fullName.normalize("NFD").replace(/[^\w]+/g, "_");
-  doc.save(`${mode === "attestation" ? "attestation" : "fiche"}_${safe}.pdf`);
+  if (!opts?.noSave) {
+    doc.save(`${mode === "attestation" ? "attestation" : "fiche"}_${safe}.pdf`);
+  }
+  return doc;
+}
+
+// Export combine : un seul PDF, une fiche/dossier par technicien (marche public).
+export async function generateTechniciansBatchPdf(
+  techs: PdfTech[],
+  mode: "fiche" | "attestation" = "fiche"
+) {
+  if (techs.length === 0) return;
+  const { jsPDF } = await import("jspdf");
+  const autoTable = (await import("jspdf-autotable")).default;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  for (let i = 0; i < techs.length; i++) {
+    if (i > 0) doc.addPage();
+    await generateTechnicianPdf(techs[i], mode, { into: doc, autoTable, noSave: true });
+  }
+  doc.save(`dossiers_techniciens_${techs.length}.pdf`);
 }
 
 export interface PdfProject {
