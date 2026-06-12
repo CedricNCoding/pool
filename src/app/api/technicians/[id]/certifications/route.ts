@@ -47,8 +47,11 @@ export async function POST(
     const certDef = await prisma.certification.findFirst({ where: { id: certificationId }, select: { name: true } });
     const buf = Buffer.from(await file.arrayBuffer());
     const fileName = `${randomUUID()}${ext}`;
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
-    await fs.writeFile(path.join(UPLOAD_DIR, fileName), buf);
+    // Même convention que le coffre-fort : UPLOAD_DIR/{technicianId}/{fileName}
+    // (le service /api/documents/[id]/file lit ce chemin).
+    const dir = path.join(UPLOAD_DIR, id);
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(path.join(dir, fileName), buf);
     const doc = await prisma.document.create({
       data: {
         technicianId: id,

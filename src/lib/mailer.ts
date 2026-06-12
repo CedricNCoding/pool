@@ -1,6 +1,13 @@
 import nodemailer from "nodemailer";
 import { prisma } from "./db";
 
+// Échappe les valeurs issues de la base avant interpolation dans le HTML des
+// e-mails (un nom de technicien/certif ne doit pas injecter de HTML).
+const esc = (s: unknown): string =>
+  String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string)
+  );
+
 async function getSmtpConfig() {
   const settings = await prisma.setting.findMany({
     where: {
@@ -61,8 +68,8 @@ export async function sendCertExpiryReminder(params: {
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1E293B;">Rappel de renouvellement</h2>
-        <p>Bonjour ${params.techName},</p>
-        <p>Votre certification <strong>${params.certName}</strong> expire le
+        <p>Bonjour ${esc(params.techName)},</p>
+        <p>Votre certification <strong>${esc(params.certName)}</strong> expire le
         <strong>${params.expiryDate.toLocaleDateString("fr-FR")}</strong>
         (dans ${params.daysLeft} jours).</p>
         <p>Pensez a planifier votre renouvellement.</p>
@@ -82,9 +89,9 @@ export async function sendExpiryDigest(params: {
     .map((i) => {
       const color = i.daysLeft <= 30 ? "#EF4444" : i.daysLeft <= 60 ? "#F59E0B" : "#10B981";
       return `<tr>
-        <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;">${i.techName}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;">${esc(i.techName)}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;">${i.kind === "doc" ? "Document" : "Certification"}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;">${i.label}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;">${esc(i.label)}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;">${i.expiryDate.toLocaleDateString("fr-FR")}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #E2E8F0;color:${color};font-weight:600;">${i.daysLeft} j</td>
       </tr>`;

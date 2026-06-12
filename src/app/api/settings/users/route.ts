@@ -21,6 +21,13 @@ export async function POST(req: NextRequest) {
   setTenantContext(session.tenantId);
   const body = await req.json();
 
+  if (!body.email || !body.name?.trim()) {
+    return NextResponse.json({ error: "Nom et email requis" }, { status: 400 });
+  }
+  if (!body.password || String(body.password).length < 8) {
+    return NextResponse.json({ error: "Mot de passe : 8 caractères minimum" }, { status: 400 });
+  }
+
   const existing = await prisma.user.findFirst({ where: { email: body.email } });
   if (existing) {
     return NextResponse.json({ error: "Email deja utilise" }, { status: 400 });

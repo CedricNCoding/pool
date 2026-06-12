@@ -20,6 +20,10 @@ function getSecret(): Uint8Array {
   return new TextEncoder().encode(s);
 }
 
+// Hash bcrypt valide (cost 12) servant à équilibrer le temps de réponse du
+// login quand l'email n'existe pas — protège contre l'énumération par timing.
+const DUMMY_HASH = "$2b$12$s3FzI15Z.r53Rh2/o8yrx.EPFkaVhrYSJwgj920wZBbtLz8nFaM.S";
+
 export interface SessionUser {
   id: string;
   email: string;
@@ -110,10 +114,12 @@ export async function authenticateUser(
     where: { email },
     include: { tenant: { select: { status: true } } },
   });
+  // Timing constant : on exécute TOUJOURS un bcrypt.compare (hash factice si le
+  // compte n'existe pas) pour ne pas révéler l'existence d'un email.
+  const valid = await verifyPassword(password, user?.passwordHash ?? DUMMY_HASH);
   if (!user || !user.isActive) return null;
   // Tenant suspendu -> connexion refusee (superadmin n'a pas de tenant)
   if (user.tenant && user.tenant.status !== "active") return null;
-  const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) return null;
   return {
     id: user.id,
