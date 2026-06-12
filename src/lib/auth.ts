@@ -71,9 +71,30 @@ export async function getSession(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("av-pool-token")?.value;
   if (!token) return null;
-  const session = await verifyToken(token);
+  const claims = await verifyToken(token);
+  if (!claims?.id) return null;
+
+  // Révocation immédiate : le jeton authentifie, mais l'AUTORISATION (rôle,
+  // tenant, société, compte actif) est relue en base à chaque requête. Ainsi
+  // une désactivation, un changement de rôle ou un tenant suspendu prennent
+  // effet tout de suite, sans attendre l'expiration du jeton (8 h).
+  const user = await prisma.user.findUnique({
+    where: { id: claims.id },
+    include: { tenant: { select: { status: true } } },
+  });
+  if (!user || !user.isActive) return null;
+  if (user.tenant && user.tenant.status !== "active") return null;
+
+  const session: SessionUser = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role as "superadmin" | "admin" | "manager",
+    tenantId: user.tenantId,
+    companyId: user.companyId,
+  };
   // Pose le contexte tenant pour cloisonner toutes les requetes Prisma de la requete.
-  if (session) setTenantContext(session.tenantId ?? null);
+  setTenantContext(session.tenantId ?? null);
   return session;
 }
 
