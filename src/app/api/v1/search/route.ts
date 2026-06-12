@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { validateApiKey } from "@/lib/api-key";
+import { setTenantContext } from "@/lib/tenant-context";
 import { haversineDistance } from "@/lib/geo";
 import { auditLog } from "@/lib/audit";
 
@@ -20,6 +21,9 @@ export async function GET(req: NextRequest) {
       { status: 401 }
     );
   }
+  // Cloisonnement : la clé est rattachée à un tenant -> toutes les requêtes
+  // Prisma de cette requête sont filtrées par ce tenant.
+  setTenantContext(apiKey.tenantId);
 
   const url = new URL(req.url);
   const skillName = url.searchParams.get("skill");
