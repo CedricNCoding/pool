@@ -46,5 +46,7 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Exclut les assets statiques + les icônes de marque (publics, doivent
+  // s'afficher même déconnecté — sinon redirigés vers /login en 307).
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png).*)"],
 };
