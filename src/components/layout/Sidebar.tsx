@@ -25,6 +25,16 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
+  CalendarDays,
+  CalendarOff,
+  HardHat,
+  ShieldAlert,
+  ShieldCheck,
+  RefreshCw,
+  Grid3x3,
+  ClipboardCheck,
+  MessagesSquare,
+  FileText,
   type LucideIcon,
 } from "lucide-react";
 import { useSession } from "@/lib/hooks";
@@ -46,6 +56,25 @@ const mainNav: NavItem[] = [
   { href: "/projets", label: "Projets", icon: FolderKanban },
   { href: "/formation", label: "Formation", icon: GraduationCap },
   { href: "/parc", label: "Sante de l'equipe", icon: Activity },
+];
+
+const planningNav: NavItem[] = [
+  { href: "/planning", label: "Planning", icon: CalendarDays },
+  { href: "/absences", label: "Absences", icon: CalendarOff },
+];
+
+const securiteNav: NavItem[] = [
+  { href: "/epi", label: "EPI & materiel", icon: HardHat },
+  { href: "/securite", label: "Securite", icon: ShieldCheck },
+  { href: "/duerp", label: "DUERP", icon: ShieldAlert },
+  { href: "/renouvellements", label: "Habilitations", icon: RefreshCw },
+  { href: "/memoire", label: "Memoire technique", icon: FileText },
+];
+
+const rhNav: NavItem[] = [
+  { href: "/matrice", label: "Matrice competences", icon: Grid3x3 },
+  { href: "/campagnes", label: "Campagnes eval.", icon: ClipboardCheck },
+  { href: "/entretiens", label: "Entretiens", icon: MessagesSquare },
 ];
 
 const settingsNav: NavItem[] = [
@@ -166,6 +195,18 @@ export function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobil
             badge={item.href === "/renforts" ? renfortCount : 0}
           />
         ))}
+
+        {([["Planification", planningNav], ["Securite & conformite", securiteNav], ["Competences & RH", rhNav]] as const).map(([title, items]) => (
+          <div key={title}>
+            <div className={cn("pt-4 pb-1 px-5", collapsed && "md:hidden")}>
+              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">{title}</p>
+            </div>
+            {items.map((item) => (
+              <NavLink key={item.href} item={item} active={pathname.startsWith(item.href)} collapsed={collapsed} onClick={onCloseMobile} />
+            ))}
+          </div>
+        ))}
+
         {user?.role === "admin" && (
           <>
             <div className={cn("pt-4 pb-1 px-5", collapsed && "md:hidden")}>
