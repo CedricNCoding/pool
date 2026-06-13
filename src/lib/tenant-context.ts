@@ -19,7 +19,7 @@ const SCOPED = new Set([
   "AssistanceRequest", "Webhook", "TrainingAssignmentEvent",
   "TrainingSession", "TrainingSessionDocument", "TrainingSessionEvent",
   "Booking", "Absence", "Equipment", "EquipmentAssignment", "EquipmentCheck",
-  "RiskUnit", "RiskItem", "SafetyBriefing", "SafetyBriefingAttendee",
+  "RiskUnit", "RiskItem",
   "SafetyNotice", "SafetyNoticeAck", "SkillCampaign", "SkillSelfAssessment",
   "InterviewTemplate", "Interview", "TenderMemoSection",
 ]);

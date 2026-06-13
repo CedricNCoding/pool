@@ -165,7 +165,6 @@ model Technician {
   bookings              Booking[]
   absences              Absence[]
   equipmentAssignments  EquipmentAssignment[]
-  safetyAttendances     SafetyBriefingAttendee[]
   safetyAcks            SafetyNoticeAck[]
   selfAssessments       SkillSelfAssessment[]
   interviews            Interview[]
@@ -428,7 +427,6 @@ model Project {
   company     Company?     @relation(fields: [companyId], references: [id])
   technicians Technician[]
   bookings        Booking[]
-  safetyBriefings SafetyBriefing[]
 
   @@index([tenantId])
   @@map("projects")
@@ -747,41 +745,8 @@ model RiskItem {
 }
 
 // ============================================================================
-// SÉCURITÉ — causeries & consignes
+// SÉCURITÉ — consignes & accusés de réception
 // ============================================================================
-
-model SafetyBriefing {
-  id        String   @id @default(uuid())
-  tenantId  String?  @map("tenant_id")
-  date      DateTime
-  theme     String
-  animator  String?
-  projectId String?  @map("project_id")
-  notes     String?
-  createdAt DateTime @default(now()) @map("created_at")
-
-  project   Project?                 @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  attendees SafetyBriefingAttendee[]
-
-  @@index([tenantId])
-  @@map("safety_briefings")
-}
-
-model SafetyBriefingAttendee {
-  id           String    @id @default(uuid())
-  tenantId     String?   @map("tenant_id")
-  briefingId   String    @map("briefing_id")
-  technicianId String    @map("technician_id")
-  signedAt     DateTime? @map("signed_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
-
-  briefing   SafetyBriefing @relation(fields: [briefingId], references: [id], onDelete: Cascade)
-  technician Technician     @relation(fields: [technicianId], references: [id], onDelete: Cascade)
-
-  @@index([tenantId])
-  @@index([briefingId])
-  @@map("safety_briefing_attendees")
-}
 
 model SafetyNotice {
   id          String   @id @default(uuid())

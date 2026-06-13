@@ -65,7 +65,7 @@ const planningNav: NavItem[] = [
 
 const securiteNav: NavItem[] = [
   { href: "/epi", label: "EPI & materiel", icon: HardHat },
-  { href: "/securite", label: "Securite", icon: ShieldCheck },
+  { href: "/securite", label: "Consignes securite", icon: ShieldCheck },
   { href: "/duerp", label: "DUERP", icon: ShieldAlert },
   { href: "/renouvellements", label: "Habilitations", icon: RefreshCw },
   { href: "/memoire", label: "Memoire technique", icon: FileText },
