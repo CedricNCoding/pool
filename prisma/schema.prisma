@@ -36,6 +36,9 @@ model Tenant {
   assistanceRequests AssistanceRequest[]
   webhooks        Webhook[]
   trainingAssignmentEvents TrainingAssignmentEvent[]
+  trainingSessions         TrainingSession[]
+  trainingSessionDocuments TrainingSessionDocument[]
+  trainingSessionEvents    TrainingSessionEvent[]
 
   @@map("tenants")
 }
@@ -425,6 +428,7 @@ model TrainingModule {
   targetSkills Skill[]
   assignments  TrainingAssignment[]
   pathModules  TrainingPathModule[]
+  sessions     TrainingSession[]
 
   @@index([tenantId])
   @@map("training_modules")
@@ -442,6 +446,7 @@ model TrainingPath {
   tenant      Tenant?              @relation(fields: [tenantId], references: [id])
   modules     TrainingPathModule[]
   assignments TrainingAssignment[]
+  sessions    TrainingSession[]
 
   @@index([tenantId])
   @@map("training_paths")
@@ -465,8 +470,13 @@ model TrainingAssignment {
   technicianId  String    @map("technician_id")
   moduleId      String?   @map("module_id")
   pathId        String?   @map("path_id")
+  sessionId     String?   @map("session_id")
   status        String    @default("propose") // propose | en_cours | valide | annule
   note          String?
+  // Financement par participant (choix utilisateur) : coût + organisme + dossier.
+  cost          Float?    @map("cost_eur")
+  fundingSource String?   @map("funding_source") // opco | cpf | interne | client | autre
+  fundingRef    String?   @map("funding_ref")
   assignedById  String?   @map("assigned_by_id")
   validatedById String?   @map("validated_by_id")
   validatedAt   DateTime? @map("validated_at")
@@ -474,14 +484,88 @@ model TrainingAssignment {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  tenant     Tenant?         @relation(fields: [tenantId], references: [id])
-  technician Technician      @relation(fields: [technicianId], references: [id], onDelete: Cascade)
-  module     TrainingModule? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  path       TrainingPath?   @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  tenant     Tenant?          @relation(fields: [tenantId], references: [id])
+  technician Technician       @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  module     TrainingModule?  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  path       TrainingPath?    @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  session    TrainingSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
   history    TrainingAssignmentEvent[]
 
   @@index([tenantId])
+  @@index([sessionId])
   @@map("training_assignments")
+}
+
+// Fiche de session de formation : regroupe les participants (TrainingAssignment),
+// le contenu (module/parcours), les documents, l'historique. Le financement est
+// porté par chaque participant (cost/fundingSource/fundingRef sur l'affectation).
+model TrainingSession {
+  id        String    @id @default(uuid())
+  tenantId  String?   @map("tenant_id")
+  moduleId  String?   @map("module_id") // contenu / programme
+  pathId    String?   @map("path_id")
+  title     String
+  status    String    @default("planifiee") // planifiee | en_cours | terminee | annulee
+  startDate DateTime? @map("start_date")
+  endDate   DateTime? @map("end_date")
+  location  String?
+  trainer   String? // formateur / organisme
+  notes     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  tenant       Tenant?                @relation(fields: [tenantId], references: [id])
+  module       TrainingModule?        @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  path         TrainingPath?          @relation(fields: [pathId], references: [id], onDelete: SetNull)
+  participants TrainingAssignment[]
+  documents    TrainingSessionDocument[]
+  history      TrainingSessionEvent[]
+
+  @@index([tenantId])
+  @@map("training_sessions")
+}
+
+// Document attaché à une session (convention, devis, convocation, attestation
+// collective…). Stocké sous UPLOAD_DIR/sessions/{sessionId}/{fileName}.
+model TrainingSessionDocument {
+  id           String   @id @default(uuid())
+  sessionId    String   @map("session_id")
+  tenantId     String?  @map("tenant_id")
+  category     String   @default("autre")
+  title        String
+  fileName     String   @map("file_name")
+  originalName String   @map("original_name")
+  mimeType     String   @map("mime_type")
+  size         Int
+  uploadedById String?  @map("uploaded_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  session TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tenant  Tenant?         @relation(fields: [tenantId], references: [id])
+
+  @@index([sessionId])
+  @@index([tenantId])
+  @@map("training_session_documents")
+}
+
+// Historique du cycle de vie d'une session (créée, planifiée, démarrée,
+// terminée, annulée, participant/document ajouté…). actorName dénormalisé.
+model TrainingSessionEvent {
+  id        String   @id @default(uuid())
+  sessionId String   @map("session_id")
+  tenantId  String?  @map("tenant_id")
+  kind      String   @default("status") // status | participant | document | funding | info
+  label     String
+  actorId   String?  @map("actor_id")
+  actorName String?  @map("actor_name")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tenant  Tenant?         @relation(fields: [tenantId], references: [id])
+
+  @@index([sessionId])
+  @@index([tenantId])
+  @@map("training_session_events")
 }
 
 // Historique du cycle de vie d'une affectation : chaque transition de statut

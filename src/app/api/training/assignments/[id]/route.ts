@@ -50,6 +50,10 @@ export async function PATCH(
   const data: Record<string, unknown> = {};
   if (body.note !== undefined) data.note = body.note?.trim() || null;
   if (body.status !== undefined) data.status = body.status;
+  // Financement par participant.
+  if (body.cost !== undefined) data.cost = body.cost === null || body.cost === "" ? null : Number(body.cost) || null;
+  if (body.fundingSource !== undefined) data.fundingSource = body.fundingSource || null;
+  if (body.fundingRef !== undefined) data.fundingRef = body.fundingRef?.trim() || null;
 
   // Validation : le validateur fixe le niveau atteint -> maj competences + historique
   if (body.status === "valide") {
