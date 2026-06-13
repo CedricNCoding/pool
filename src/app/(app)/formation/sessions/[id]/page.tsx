@@ -39,6 +39,16 @@ const FUNDING_SOURCES = [
 ];
 const fundingLabel = (v: string | null) => FUNDING_SOURCES.find((f) => f.value === v)?.label ?? "—";
 const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString("fr-FR") : null);
+const levelLabel = (n: number) => (n === 0 ? "Aucune" : SKILL_LEVELS.find((l) => l.value === n)?.label ?? String(n));
+const levelColor = (n: number) => (n === 0 ? "#94A3B8" : SKILL_LEVELS.find((l) => l.value === n)?.color ?? "#64748B");
+
+interface WeakTech {
+  id: string;
+  firstName: string;
+  lastName: string;
+  company: { name: string; color: string };
+  perSkill: { skillId: string; name: string; level: number }[];
+}
 
 interface Participant {
   id: string;
@@ -159,6 +169,20 @@ export default function SessionFichePage() {
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [searching, setSearching] = useState(false);
   const [addingP, setAddingP] = useState(false);
+  // Mode "faiblesse" : préselection des techniciens faibles sur le programme.
+  const [addMode, setAddMode] = useState<"search" | "weak">("search");
+  const [weakLevel, setWeakLevel] = useState(3);
+  const [weakResults, setWeakResults] = useState<WeakTech[]>([]);
+  const [loadingWeak, setLoadingWeak] = useState(false);
+  const loadWeak = useCallback(async (lvl: number) => {
+    if (!f?.module) return;
+    setLoadingWeak(true);
+    try {
+      const r = await fetch(`/api/training/modules/${f.module.id}/preselection?level=${lvl}`);
+      const d = await r.json();
+      setWeakResults(Array.isArray(d) ? d : []);
+    } catch { setWeakResults([]); } finally { setLoadingWeak(false); }
+  }, [f?.module]);
   const existingIds = new Set((f?.participants ?? []).map((p) => p.technician.id));
   async function search() {
     setSearching(true);
@@ -470,39 +494,104 @@ export default function SessionFichePage() {
       </Dialog>
 
       {/* ===== Dialog : ajout de participants ===== */}
-      <Dialog open={addOpen} onOpenChange={(o) => { setAddOpen(o); if (!o) { setSel(new Set()); setResults([]); setQ(""); } }}>
+      <Dialog open={addOpen} onOpenChange={(o) => { setAddOpen(o); if (!o) { setSel(new Set()); setResults([]); setQ(""); setAddMode("search"); setWeakResults([]); } }}>
         <DialogContent>
           <DialogHeader><DialogTitle>Ajouter des participants</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
-                <Input className="pl-8" placeholder="Nom ou email…" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && search()} />
+            {f.module && (
+              <div className="flex gap-1.5">
+                {([["search", "Recherche"], ["weak", "Par faiblesse"]] as const).map(([m, lbl]) => (
+                  <button
+                    key={m}
+                    onClick={() => { setAddMode(m); if (m === "weak" && weakResults.length === 0) loadWeak(weakLevel); }}
+                    className={`px-3 py-1.5 text-sm rounded-md border transition ${addMode === m ? "bg-signal-500 text-[#0B1220] border-signal-500" : "border-ink-900/15 text-ink-600 hover:bg-paper-2"}`}
+                  >
+                    {lbl}
+                  </button>
+                ))}
               </div>
-              <Button variant="outline" onClick={search} disabled={searching}>
-                {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Rechercher"}
-              </Button>
-            </div>
-            <div className="max-h-72 overflow-y-auto border border-ink-900/10 rounded-lg divide-y divide-ink-900/5">
-              {results.length === 0 ? (
-                <p className="text-sm text-ink-400 p-4 text-center">{searching ? "Recherche…" : "Lancez une recherche."}</p>
-              ) : (
-                results.map((t) => {
-                  const already = existingIds.has(t.id);
-                  const checked = sel.has(t.id);
-                  return (
-                    <button key={t.id} disabled={already} onClick={() => toggleSel(t.id)} className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm ${already ? "opacity-40 cursor-not-allowed" : checked ? "bg-signal-500/10" : "hover:bg-paper-2"}`}>
-                      <span className={`w-4 h-4 rounded border flex items-center justify-center ${checked ? "bg-signal-500 border-signal-500" : "border-ink-900/25"}`}>
-                        {checked && <CheckCircle className="w-3 h-3 text-[#0B1220]" />}
-                      </span>
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.company.color }} />
-                      <span className="font-medium text-ink-900">{t.firstName} {t.lastName}</span>
-                      <span className="text-xs text-ink-400 ml-auto">{already ? "déjà inscrit" : t.company.name}</span>
-                    </button>
-                  );
-                })
-              )}
-            </div>
+            )}
+
+            {addMode === "search" ? (
+              <>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
+                    <Input className="pl-8" placeholder="Nom ou email…" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && search()} />
+                  </div>
+                  <Button variant="outline" onClick={search} disabled={searching}>
+                    {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Rechercher"}
+                  </Button>
+                </div>
+                <div className="max-h-72 overflow-y-auto border border-ink-900/10 rounded-lg divide-y divide-ink-900/5">
+                  {results.length === 0 ? (
+                    <p className="text-sm text-ink-400 p-4 text-center">{searching ? "Recherche…" : "Lancez une recherche."}</p>
+                  ) : (
+                    results.map((t) => {
+                      const already = existingIds.has(t.id);
+                      const checked = sel.has(t.id);
+                      return (
+                        <button key={t.id} disabled={already} onClick={() => toggleSel(t.id)} className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm ${already ? "opacity-40 cursor-not-allowed" : checked ? "bg-signal-500/10" : "hover:bg-paper-2"}`}>
+                          <span className={`w-4 h-4 rounded border flex items-center justify-center ${checked ? "bg-signal-500 border-signal-500" : "border-ink-900/25"}`}>
+                            {checked && <CheckCircle className="w-3 h-3 text-[#0B1220]" />}
+                          </span>
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.company.color }} />
+                          <span className="font-medium text-ink-900">{t.firstName} {t.lastName}</span>
+                          <span className="text-xs text-ink-400 ml-auto">{already ? "déjà inscrit" : t.company.name}</span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs">Faibles sous</Label>
+                  <select
+                    className="px-2 py-1 rounded border border-ink-900/15 bg-white text-ink-900 text-sm"
+                    value={weakLevel}
+                    onChange={(e) => { const lv = parseInt(e.target.value); setWeakLevel(lv); loadWeak(lv); }}
+                  >
+                    {SKILL_LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+                  </select>
+                  <span className="text-xs text-ink-400">sur les compétences du programme</span>
+                </div>
+                <div className="max-h-72 overflow-y-auto border border-ink-900/10 rounded-lg divide-y divide-ink-900/5">
+                  {loadingWeak ? (
+                    <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-ink-400" /></div>
+                  ) : weakResults.length === 0 ? (
+                    <p className="text-sm text-ink-400 p-4 text-center">Aucun technicien en faiblesse sous ce seuil.</p>
+                  ) : (
+                    weakResults.map((t) => {
+                      const already = existingIds.has(t.id);
+                      const checked = sel.has(t.id);
+                      return (
+                        <button key={t.id} disabled={already} onClick={() => toggleSel(t.id)} className={`w-full flex items-start gap-3 px-3 py-2 text-left text-sm ${already ? "opacity-40 cursor-not-allowed" : checked ? "bg-signal-500/10" : "hover:bg-paper-2"}`}>
+                          <span className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 ${checked ? "bg-signal-500 border-signal-500" : "border-ink-900/25"}`}>
+                            {checked && <CheckCircle className="w-3 h-3 text-[#0B1220]" />}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.company.color }} />
+                              <span className="font-medium text-ink-900">{t.firstName} {t.lastName}</span>
+                              <span className="text-xs text-ink-400">{already ? "déjà inscrit" : t.company.name}</span>
+                            </span>
+                            <span className="flex flex-wrap gap-1 mt-0.5">
+                              {t.perSkill.filter((p) => p.level < weakLevel).map((p) => (
+                                <span key={p.skillId} className="text-[10px] px-1.5 py-0.5 rounded" style={{ color: levelColor(p.level), backgroundColor: levelColor(p.level) + "22" }}>
+                                  {p.name}: {levelLabel(p.level)}
+                                </span>
+                              ))}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
           </div>
           <DialogFooter>
             <span className="text-sm text-ink-500 mr-auto self-center">{sel.size} sélectionné(s)</span>
