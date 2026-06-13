@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Grid3x3, Loader2, FileDown, Search } from "lucide-react";
 import { useSession } from "@/lib/hooks";
+import PageHelp from "@/components/PageHelp";
 
 interface Cat { id: string; name: string; color: string; skills: { id: string; name: string }[] }
 interface Row { id: string; firstName: string; lastName: string; service: string; company: { name: string; color: string } | null; levels: Record<string, number> }
@@ -59,6 +60,10 @@ export default function MatricePage() {
         <div className="flex items-center gap-3"><Grid3x3 className="w-6 h-6 text-ink-600" /><h1 className="text-2xl font-bold">Matrice de compétences</h1></div>
         <Button variant="outline" onClick={exportCsv} disabled={!cat}><FileDown className="w-4 h-4 mr-2" /> Export CSV</Button>
       </div>
+
+      <PageHelp>
+        Vue d&apos;ensemble des niveaux de l&apos;équipe, compétence par compétence. Choisissez une <strong>famille</strong> de compétences ; chaque case montre le niveau (<strong>0 à 5</strong>, du clair au foncé). <strong>Cliquez une case</strong> pour faire évoluer le niveau (réservé aux admins) — la modification est historisée sur la fiche du technicien. Bouton <strong>Export CSV</strong> pour une réunion.
+      </PageHelp>
 
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         <select className="px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm" value={catId} onChange={(e) => setCatId(e.target.value)}>

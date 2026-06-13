@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { MessagesSquare, Plus, Loader2, Trash2, FileDown, FileSignature, Settings2 } from "lucide-react";
+import PageHelp from "@/components/PageHelp";
 
 interface Interview { id: string; date: string; status: string; signedAt: string | null; technician: { id: string; firstName: string; lastName: string; company: { name: string } | null } }
 interface Tech { id: string; firstName: string; lastName: string }
@@ -103,6 +104,10 @@ export default function EntretiensPage() {
           <Button onClick={() => setOpen(true)}><Plus className="w-4 h-4 mr-2" /> Nouvel entretien</Button>
         </div>
       </div>
+
+      <PageHelp>
+        Préparez et tracez les entretiens annuels / professionnels (obligation légale tous les 2 ans). 1) Créez une ou plusieurs <strong>trames</strong> de questions réutilisables (bouton « Modèles »). 2) <strong>Nouvel entretien</strong> : choisissez le technicien, la date et la trame. 3) Cliquez l&apos;entretien pour le <strong>conduire</strong>, puis <strong>Signer</strong> et générer le <strong>compte rendu PDF</strong>.
+      </PageHelp>
 
       <Card><CardContent className="p-0">
         <table className="w-full text-sm">

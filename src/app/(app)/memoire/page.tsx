@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { FileText, Plus, Loader2, Trash2, Pencil, FileDown } from "lucide-react";
 import { SERVICES } from "@/lib/constants";
+import PageHelp from "@/components/PageHelp";
 
 interface Stats {
   effectif: number; ancienneteMoyenne: number | null; medicalOk: number; medicalTotal: number;
@@ -91,7 +92,9 @@ export default function MemoirePage() {
         <div className="flex items-center gap-3"><FileText className="w-6 h-6 text-ink-600" /><h1 className="text-2xl font-bold">Mémoire technique</h1></div>
         <Button onClick={exportPdf} disabled={!stats}><FileDown className="w-4 h-4 mr-2" /> Générer le PDF</Button>
       </div>
-      <p className="text-sm text-ink-500 mb-6">Volet « moyens humains » d&apos;un dossier de candidature marché public : chiffres calculés en direct + chapitres rédigés réutilisables.</p>
+      <PageHelp>
+        Constituez le volet « moyens humains » d&apos;une candidature marché public. Les <strong>chiffres-clés</strong> (effectif, ancienneté, habilitations valides, EPI, DUERP…) se calculent <strong>automatiquement</strong> sur vos données. Ajoutez vos <strong>chapitres rédigés</strong> réutilisables (organisation, démarche qualité-sécurité…), puis cliquez <strong>« Générer le PDF »</strong>.
+      </PageHelp>
 
       {loading || !stats ? <div className="flex items-center gap-2 text-ink-400"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div> : (
         <>

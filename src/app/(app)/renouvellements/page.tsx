@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { RefreshCw, Loader2, CalendarClock, CheckCircle } from "lucide-react";
+import PageHelp from "@/components/PageHelp";
 
 interface Row {
   id: string; expiryDate: string | null; renewalStatus: string; renewalDate: string | null; renewalOrganism: string | null;
@@ -60,7 +61,9 @@ export default function RenouvellementsPage() {
           <option value="30">Échéance &lt; 30 j</option><option value="60">&lt; 60 j</option><option value="90">&lt; 90 j</option><option value="120">&lt; 120 j</option>
         </select>
       </div>
-      <p className="text-sm text-ink-500 mb-4">Pilotez en amont les habilitations sécurité (la conformité bloque l&apos;affectation une fois expirée).</p>
+      <PageHelp>
+        Anticipez les recyclages des habilitations sécurité <strong>avant</strong> qu&apos;elles n&apos;expirent (une fois expirées, elles bloquent l&apos;affectation aux missions). Réglez l&apos;horizon en haut à droite, puis faites avancer chaque titre : <strong>Planifier → Convoquer</strong> (date + organisme) <strong>→ Réalisé</strong> (saisit la nouvelle date d&apos;expiration).
+      </PageHelp>
 
       <Card>
         <CardContent className="p-0">

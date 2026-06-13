@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { ClipboardCheck, Plus, Loader2, Trash2, Check, X } from "lucide-react";
+import PageHelp from "@/components/PageHelp";
 
 interface Campaign { id: string; name: string; status: string; createdAt: string; total: number; traites: number }
 interface Tech { id: string; firstName: string; lastName: string }
@@ -60,6 +61,10 @@ export default function CampagnesPage() {
         <div className="flex items-center gap-3"><ClipboardCheck className="w-6 h-6 text-ink-600" /><h1 className="text-2xl font-bold">Campagnes d&apos;évaluation</h1></div>
         <Button onClick={() => setOpen(true)}><Plus className="w-4 h-4 mr-2" /> Nouvelle campagne</Button>
       </div>
+
+      <PageHelp>
+        Organisez une revue des compétences. 1) <strong>Nouvelle campagne</strong> : choisissez des techniciens et des compétences — une grille d&apos;évaluation est générée, pré-remplie au niveau actuel. 2) <strong>Cliquez une campagne</strong> pour la revue : pour chaque ligne, validez (✓) ou ajustez le niveau, ou refusez (✗). La validation <strong>met à jour la fiche du technicien</strong> et son historique.
+      </PageHelp>
 
       <Card><CardContent className="p-0">
         <table className="w-full text-sm">

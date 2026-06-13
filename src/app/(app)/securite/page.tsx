@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { ShieldCheck, Plus, Loader2, Trash2, Check } from "lucide-react";
+import PageHelp from "@/components/PageHelp";
 
 interface Briefing { id: string; date: string; theme: string; animator: string | null; project: { title: string } | null; total: number; signed: number }
 interface Notice { id: string; title: string; content: string | null; publishedAt: string; total: number; acked: number }
@@ -72,6 +73,10 @@ export default function SecuritePage() {
         <div className="flex items-center gap-3"><ShieldCheck className="w-6 h-6 text-ink-600" /><h1 className="text-2xl font-bold">Sécurité</h1></div>
         <Button onClick={() => openCreate(tab === "causeries" ? "briefing" : "notice")}><Plus className="w-4 h-4 mr-2" /> {tab === "causeries" ? "Nouvelle causerie" : "Nouvelle consigne"}</Button>
       </div>
+
+      <PageHelp>
+        Preuve documentée de votre démarche sécurité. <strong>Causeries</strong> : créez une session (thème, date, participants) puis cliquez la ligne pour faire <strong>émarger</strong> les présents. <strong>Consignes</strong> : diffusez une note aux techniciens et suivez leurs <strong>accusés de lecture</strong>. Ces traces dégagent la responsabilité de l&apos;employeur en cas de contrôle ou d&apos;accident.
+      </PageHelp>
 
       <div className="flex gap-1 mb-4 border-b border-ink-900/10">
         {([["causeries", "Causeries sécurité"], ["consignes", "Consignes & accusés"]] as const).map(([k, l]) => (

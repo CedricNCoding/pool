@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { ShieldAlert, Plus, Loader2, Trash2, Pencil, FileDown } from "lucide-react";
+import PageHelp from "@/components/PageHelp";
 
 interface Item {
   id: string; danger: string; exposure: string | null; gravity: number; probability: number;
@@ -81,7 +82,9 @@ export default function DuerpPage() {
           <Button onClick={() => setUnitOpen(true)}><Plus className="w-4 h-4 mr-2" /> Unité de travail</Button>
         </div>
       </div>
-      <p className="text-sm text-ink-500 mb-4">Évaluation des risques par unité de travail. Criticité = gravité × probabilité (1-16).</p>
+      <PageHelp>
+        Document unique d&apos;évaluation des risques (obligation légale). 1) Créez vos <strong>unités de travail</strong> (ex. Travail en hauteur, Régie, Manutention). 2) Pour chacune, listez les <strong>dangers</strong> et notez <strong>gravité × probabilité = criticité</strong> (rouge = à traiter en priorité). 3) Renseignez les mesures et le responsable, puis <strong>exportez le PDF</strong>.
+      </PageHelp>
 
       <div className="space-y-5">
         {units.map((u) => (

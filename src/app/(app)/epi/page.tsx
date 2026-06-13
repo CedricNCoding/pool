@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { HardHat, Plus, Loader2, Trash2, FileDown, UserCheck, ShieldCheck, Search } from "lucide-react";
+import PageHelp from "@/components/PageHelp";
 
 interface Equip {
   id: string; category: string; name: string; brand: string | null; model: string | null; serialNumber: string | null;
@@ -106,6 +107,10 @@ export default function EpiPage() {
           <Button onClick={() => setOpen(true)}><Plus className="w-4 h-4 mr-2" /> Nouvel équipement</Button>
         </div>
       </div>
+
+      <PageHelp>
+        Inventaire de vos EPI et matériel (électroportatif, harnais, instruments…). Enregistrez chaque équipement avec son <strong>n° de série</strong>, <strong>attribuez-le à un technicien</strong> (« Doter »), planifiez les vérifications périodiques (<strong>VGP</strong>) et éditez la fiche d&apos;inventaire. Les dates en rouge sont dépassées, en orange à échéance.
+      </PageHelp>
 
       <div className="flex gap-2 mb-4 flex-wrap">
         <div className="relative">
