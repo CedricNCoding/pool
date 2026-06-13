@@ -48,6 +48,9 @@ interface Technician {
   medicalVisitDate: string | null;
   medicalVisitPeriodicityMonths: number;
   drivingLicenses: string | null;
+  medicalAptitude: string | null;
+  medicalRestrictions: string | null;
+  medicalRestrictionUntil: string | null;
   interventionCenterLat: number | null;
   interventionCenterLng: number | null;
   interventionRadiusKm: number;
@@ -99,6 +102,9 @@ export default function EditTechnicianPage() {
     medicalVisitDate: "",
     medicalVisitPeriodicityMonths: "24",
     drivingLicenses: "",
+    medicalAptitude: "",
+    medicalRestrictions: "",
+    medicalRestrictionUntil: "",
   });
 
   function addTag(name: string) {
@@ -137,6 +143,9 @@ export default function EditTechnicianPage() {
         medicalVisitDate: isoToInput(tech.medicalVisitDate),
         medicalVisitPeriodicityMonths: String(tech.medicalVisitPeriodicityMonths ?? 24),
         drivingLicenses: tech.drivingLicenses || "",
+        medicalAptitude: tech.medicalAptitude || "",
+        medicalRestrictions: tech.medicalRestrictions || "",
+        medicalRestrictionUntil: isoToInput(tech.medicalRestrictionUntil),
         isActive: tech.isActive,
         departureDate: isoToInput(tech.departureDate),
         availabilityStatus: tech.availabilityStatus || "disponible",
@@ -210,6 +219,9 @@ export default function EditTechnicianPage() {
         medicalVisitDate: form.medicalVisitDate || null,
         medicalVisitPeriodicityMonths: parseInt(form.medicalVisitPeriodicityMonths) || 24,
         drivingLicenses: form.drivingLicenses || null,
+        medicalAptitude: form.medicalAptitude || null,
+        medicalRestrictions: form.medicalRestrictions || null,
+        medicalRestrictionUntil: form.medicalRestrictionUntil || null,
         isActive: form.isActive,
         departureDate: form.departureDate || null,
         availabilityStatus: form.availabilityStatus,
@@ -593,6 +605,51 @@ export default function EditTechnicianPage() {
                 })}
               </div>
               <p className="text-xs text-ink-400 mt-1">Le scan du permis et le CV se deposent dans l&apos;onglet Documents.</p>
+            </div>
+
+            <div className="col-span-3 border-t border-ink-900/10 pt-4">
+              <Label>Aptitude (medecin du travail)</Label>
+              <div className="grid grid-cols-3 gap-4 mt-1">
+                <select
+                  className="px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm h-10"
+                  value={form.medicalAptitude}
+                  onChange={(e) => setForm((f) => ({ ...f, medicalAptitude: e.target.value }))}
+                >
+                  <option value="">Non renseignee</option>
+                  <option value="apte">Apte</option>
+                  <option value="apte_restrictions">Apte avec restrictions</option>
+                  <option value="inapte_temp">Inapte temporaire</option>
+                  <option value="inapte">Inapte</option>
+                </select>
+                {form.medicalAptitude === "inapte_temp" && (
+                  <div>
+                    <Input type="date" value={form.medicalRestrictionUntil} onChange={(e) => setForm((f) => ({ ...f, medicalRestrictionUntil: e.target.value }))} />
+                    <p className="text-xs text-ink-400 mt-1">Inaptitude jusqu&apos;au</p>
+                  </div>
+                )}
+              </div>
+              {(form.medicalAptitude === "apte_restrictions" || form.medicalAptitude === "inapte_temp") && (
+                <div className="flex flex-wrap gap-1.5 pt-3">
+                  {[["hauteur", "Travail en hauteur"], ["charges", "Port de charges"], ["conduite", "Conduite"], ["vision", "Taches visuelles"], ["nuit", "Travail de nuit"]].map(([val, lbl]) => {
+                    const has = form.medicalRestrictions.split(",").map((s) => s.trim()).includes(val);
+                    return (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setForm((f) => {
+                          const set = new Set(f.medicalRestrictions.split(",").map((s) => s.trim()).filter(Boolean));
+                          if (set.has(val)) set.delete(val); else set.add(val);
+                          return { ...f, medicalRestrictions: Array.from(set).join(",") };
+                        })}
+                        className={`px-3 py-1.5 rounded-md text-sm border transition ${has ? "bg-amber-500 border-amber-600 text-[#0B1220]" : "border-ink-900/15 text-ink-500 hover:border-amber-500"}`}
+                      >
+                        {lbl}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="text-xs text-ink-400 mt-2">Secret medical : aucune donnee de diagnostic. Un &laquo; Inapte &raquo; bloque l&apos;affectation aux missions.</p>
             </div>
           </CardContent>
         </Card>

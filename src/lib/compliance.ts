@@ -7,12 +7,30 @@ import { prisma } from "./db";
 export interface ComplianceTech {
   medicalVisitDate: Date | string | null;
   medicalVisitPeriodicityMonths: number | null;
+  medicalAptitude?: string | null;
+  medicalRestrictions?: string | null;
+  medicalRestrictionUntil?: Date | string | null;
   certifications?: {
     status: string;
     expiryDate: Date | string | null;
     certification: { name: string; category?: string | null };
   }[];
 }
+
+export const MEDICAL_APTITUDE = [
+  { value: "apte", label: "Apte" },
+  { value: "apte_restrictions", label: "Apte avec restrictions" },
+  { value: "inapte_temp", label: "Inapte temporaire" },
+  { value: "inapte", label: "Inapte" },
+] as const;
+
+export const MEDICAL_RESTRICTIONS = [
+  { value: "hauteur", label: "Travail en hauteur" },
+  { value: "charges", label: "Port de charges" },
+  { value: "conduite", label: "Conduite" },
+  { value: "vision", label: "Tâches visuelles" },
+  { value: "nuit", label: "Travail de nuit" },
+] as const;
 
 // Prochaine échéance de visite médicale = dernière visite + périodicité (mois).
 export function nextMedicalVisit(t: {
@@ -45,6 +63,16 @@ export function technicianCompliance(t: ComplianceTech, now = new Date()): {
     warnings.push("Visite médicale non renseignée");
   }
 
+  // Aptitude médicale (médecin du travail).
+  if (t.medicalAptitude === "inapte") {
+    blocking.push("Inapte (médecin du travail)");
+  } else if (t.medicalAptitude === "inapte_temp") {
+    const until = t.medicalRestrictionUntil ? new Date(t.medicalRestrictionUntil).getTime() : Infinity;
+    if (until > t0) blocking.push("Inaptitude temporaire en cours");
+  } else if (t.medicalAptitude === "apte_restrictions" && t.medicalRestrictions) {
+    warnings.push(`Aptitude avec restrictions : ${t.medicalRestrictions.split(",").filter(Boolean).join(", ")}`);
+  }
+
   for (const c of t.certifications ?? []) {
     if (c.status === "revoked" || !c.expiryDate) continue;
     if (new Date(c.expiryDate).getTime() < t0) {
@@ -75,6 +103,9 @@ export async function blockingTechnicians(
       lastName: true,
       medicalVisitDate: true,
       medicalVisitPeriodicityMonths: true,
+      medicalAptitude: true,
+      medicalRestrictions: true,
+      medicalRestrictionUntil: true,
       certifications: {
         where: { status: "active" },
         select: { status: true, expiryDate: true, certification: { select: { name: true, category: true } } },
