@@ -19,13 +19,56 @@ export default function OdooPage() {
   const [diag, setDiag] = useState<Record<string, unknown> | null>(null);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
+  // Rapprochement techniciens <-> utilisateurs Odoo
+  interface Tech { id: string; firstName: string; lastName: string; email: string; odooUserId: number | null; odooUserName: string | null }
+  interface OUser { id: number; name: string; email: string }
+  const [techs, setTechs] = useState<Tech[]>([]);
+  const [odooUsers, setOdooUsers] = useState<OUser[]>([]);
+  const [mapSel, setMapSel] = useState<Record<string, string>>({});
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [savingMap, setSavingMap] = useState(false);
+
   const load = useCallback(() => {
     fetch("/api/settings/odoo").then((r) => r.json()).then((d: Cfg) => {
       setCfg(d);
       if (d.configured) setForm((f) => ({ ...f, url: d.url ?? "", db: d.db ?? "", login: d.login ?? "", model: d.model ?? "project.task", defaultProject: d.defaultProject ?? "", enabled: !!d.enabled, apiKey: "" }));
     }).catch(() => {});
+    fetch("/api/settings/odoo/mapping").then((r) => r.json()).then((d: Tech[]) => {
+      if (Array.isArray(d)) { setTechs(d); setMapSel(Object.fromEntries(d.filter((t) => t.odooUserId != null).map((t) => [t.id, String(t.odooUserId)]))); }
+    }).catch(() => {});
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  async function loadOdooUsers() {
+    setLoadingUsers(true); setMsg(null);
+    const res = await fetch("/api/settings/odoo/users", { method: "POST" });
+    setLoadingUsers(false);
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) { setMsg({ kind: "err", text: d.error || "Échec du chargement des utilisateurs Odoo" }); return; }
+    setOdooUsers(d.users || []);
+    // auto-suggestion par e-mail pour les techniciens non rapprochés
+    setMapSel((cur) => {
+      const next = { ...cur };
+      for (const t of techs) {
+        if (next[t.id]) continue;
+        const u = (d.users as OUser[]).find((x) => x.email && x.email === t.email.toLowerCase());
+        if (u) next[t.id] = String(u.id);
+      }
+      return next;
+    });
+  }
+  async function saveMapping() {
+    setSavingMap(true); setMsg(null);
+    const mappings = techs.map((t) => {
+      const oid = mapSel[t.id];
+      const u = odooUsers.find((x) => String(x.id) === oid);
+      return { technicianId: t.id, odooUserId: oid || null, odooUserName: u?.name || null };
+    });
+    const res = await fetch("/api/settings/odoo/mapping", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mappings }) });
+    setSavingMap(false);
+    if (res.ok) { setMsg({ kind: "ok", text: "Rapprochement enregistré." }); load(); }
+    else setMsg({ kind: "err", text: "Échec de l'enregistrement" });
+  }
 
   async function save() {
     setSaving(true); setMsg(null);
@@ -111,6 +154,44 @@ export default function OdooPage() {
               {cfg.lastSyncAt && <p className="text-xs text-ink-400 mt-0.5">Dernière synchro : {new Date(cfg.lastSyncAt).toLocaleString("fr-FR")}</p>}
               {cfg.lastError && <p className="text-xs text-red-600 mt-1">{cfg.lastError}</p>}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Rapprochement techniciens <-> utilisateurs Odoo */}
+      <Card className="mt-6">
+        <CardHeader className="flex-row items-center justify-between">
+          <CardTitle className="text-base">Rapprochement des techniciens</CardTitle>
+          <Button variant="outline" size="sm" onClick={loadOdooUsers} disabled={loadingUsers || !cfg?.configured}>{loadingUsers ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null} Charger les utilisateurs Odoo</Button>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-ink-400 mb-3">Associe chaque technicien Praxis à son utilisateur Odoo. À défaut, la synchro tente un rapprochement par e-mail. Charge la liste Odoo pour proposer une correspondance automatique, ajuste si besoin, puis enregistre.</p>
+          {odooUsers.length === 0 ? (
+            <p className="text-sm text-ink-400">Clique « Charger les utilisateurs Odoo » pour démarrer le rapprochement.</p>
+          ) : (
+            <>
+              <div className="max-h-[50vh] overflow-y-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-xs text-ink-500 border-b border-ink-900/10"><tr><th className="text-left py-2">Technicien Praxis</th><th className="text-left py-2">Utilisateur Odoo</th></tr></thead>
+                  <tbody>
+                    {techs.map((t) => (
+                      <tr key={t.id} className="border-b border-ink-900/10">
+                        <td className="py-1.5">{t.firstName} {t.lastName}<span className="block text-[11px] text-ink-400">{t.email}</span></td>
+                        <td className="py-1.5">
+                          <select className="w-full px-2 py-1.5 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm" value={mapSel[t.id] ?? ""} onChange={(e) => setMapSel((m) => ({ ...m, [t.id]: e.target.value }))}>
+                            <option value="">— Non rapproché —</option>
+                            {odooUsers.map((u) => <option key={u.id} value={u.id}>{u.name}{u.email ? ` (${u.email})` : ""}</option>)}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex justify-end mt-3">
+                <Button onClick={saveMapping} disabled={savingMap}>{savingMap && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}<Save className="w-4 h-4 mr-1" /> Enregistrer le rapprochement</Button>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

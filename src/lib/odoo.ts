@@ -96,6 +96,13 @@ async function userIdByEmail(c: OdooConn, uid: number, email: string): Promise<n
   const ids = (await exec(c, uid, "res.users", "search", [["|", ["login", "=", email], ["email", "=", email]]], { limit: 1 })) as number[];
   return ids[0] ?? null;
 }
+// Liste des utilisateurs Odoo actifs (pour l'écran de rapprochement).
+export async function listUsers(c: OdooConn): Promise<{ id: number; name: string; email: string }[]> {
+  const uid = await authenticate(c);
+  const rows = (await exec(c, uid, "res.users", "search_read", [[["share", "=", false]]], { fields: ["name", "login", "email"], limit: 500, order: "name" })) as Array<{ id: number; name: string; login: string; email: string | false }>;
+  return rows.map((u) => ({ id: u.id, name: u.name, email: (u.email || u.login || "").toLowerCase() }));
+}
+
 async function ensureProject(c: OdooConn, uid: number, name: string): Promise<number> {
   const found = (await exec(c, uid, "project.project", "search", [[["name", "=", name]]], { limit: 1 })) as number[];
   if (found[0]) return found[0];
@@ -109,14 +116,15 @@ export async function pushBookings(c: OdooConn): Promise<{ pushed: number; error
   const horizon = new Date(now.getTime() + 90 * 86400000);
   const bookings = await prisma.booking.findMany({
     where: { start: { gte: now, lte: horizon }, status: { not: "decline" } },
-    include: { technician: { select: { firstName: true, lastName: true, email: true } }, project: { select: { title: true } } },
+    include: { technician: { select: { firstName: true, lastName: true, email: true, odooUserId: true } }, project: { select: { title: true } } },
   });
   const errors: string[] = [];
   const projCache = new Map<string, number>();
   let pushed = 0;
   for (const b of bookings) {
     try {
-      const ouid = await userIdByEmail(c, uid, b.technician.email);
+      // Priorité au rapprochement explicite, repli sur l'e-mail.
+      const ouid = b.technician.odooUserId ?? (await userIdByEmail(c, uid, b.technician.email));
       const projName = c.defaultProject || b.project.title;
       let pid = projCache.get(projName);
       if (pid == null) { pid = await ensureProject(c, uid, projName); projCache.set(projName, pid); }
@@ -162,10 +170,16 @@ export async function pullTasks(c: OdooConn): Promise<{ pulled: number; skipped:
       if (!t.planned_date_begin || !t.project_id) { skipped.push(`${t.name} : pas de date/projet`); continue; }
       const proj = await prisma.project.findFirst({ where: { title: t.project_id[1] }, select: { id: true } });
       if (!proj) { skipped.push(`${t.name} : projet « ${t.project_id[1]} » introuvable côté Praxis`); continue; }
-      const email = (t.user_ids || []).map((u) => emailByUser.get(u)).find(Boolean);
-      if (!email) { skipped.push(`${t.name} : aucun assigné rapprochable`); continue; }
-      const tech = await prisma.technician.findFirst({ where: { email }, select: { id: true } });
-      if (!tech) { skipped.push(`${t.name} : technicien « ${email} » introuvable`); continue; }
+      // 1) rapprochement explicite par id utilisateur Odoo ; 2) repli par e-mail.
+      let tech = (t.user_ids || []).length
+        ? await prisma.technician.findFirst({ where: { odooUserId: { in: t.user_ids } }, select: { id: true } })
+        : null;
+      if (!tech) {
+        const email = (t.user_ids || []).map((u) => emailByUser.get(u)).find(Boolean);
+        if (!email) { skipped.push(`${t.name} : aucun assigné rapprochable`); continue; }
+        tech = await prisma.technician.findFirst({ where: { email }, select: { id: true } });
+        if (!tech) { skipped.push(`${t.name} : technicien « ${email} » non rapproché`); continue; }
+      }
       const start = new Date(t.planned_date_begin.replace(" ", "T") + "Z");
       const end = t.planned_date_end ? new Date(t.planned_date_end.replace(" ", "T") + "Z") : new Date(start.getTime() + 8 * 3600000);
       const existing = await prisma.booking.findFirst({ where: { odooTaskId: t.id } });

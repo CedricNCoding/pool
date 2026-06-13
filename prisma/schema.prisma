@@ -147,6 +147,9 @@ model Technician {
   medicalAptitude       String?   @map("medical_aptitude")
   medicalRestrictions   String?   @map("medical_restrictions")
   medicalRestrictionUntil DateTime? @map("medical_restriction_until")
+  // Rapprochement Odoo (Béta) : id de l'utilisateur Odoo (res.users) correspondant.
+  odooUserId            Int?      @map("odoo_user_id")
+  odooUserName          String?   @map("odoo_user_name")
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
 
