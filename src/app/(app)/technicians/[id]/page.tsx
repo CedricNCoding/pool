@@ -43,9 +43,11 @@ import {
   FileText,
   FileDown,
   GraduationCap,
+  HardHat,
 } from "lucide-react";
 import TechnicianDocuments from "@/components/TechnicianDocuments";
 import TechnicianFormation from "@/components/TechnicianFormation";
+import TechnicianEquipment from "@/components/TechnicianEquipment";
 import TechnicianEvents from "@/components/TechnicianEvents";
 import AuditTrail from "@/components/AuditTrail";
 import TechnicianTimeline from "@/components/TechnicianTimeline";
@@ -752,6 +754,10 @@ export default function TechnicianDetailPage() {
               <FileText className="w-3.5 h-3.5 mr-1" />
               Documents
             </TabsTrigger>
+            <TabsTrigger value="epi">
+              <HardHat className="w-3.5 h-3.5 mr-1" />
+              EPI
+            </TabsTrigger>
             <TabsTrigger value="zone">
               <MapPin className="w-3.5 h-3.5 mr-1" />
               Zone d&apos;intervention
@@ -1206,6 +1212,13 @@ export default function TechnicianDetailPage() {
           {/* ----------------------------------------------------------- */}
           <TabsContent value="documents" className="space-y-6">
             <TechnicianDocuments technicianId={tech.id} service={tech.service} />
+          </TabsContent>
+
+          {/* ----------------------------------------------------------- */}
+          {/* TAB: EPI & materiel (dotation)                               */}
+          {/* ----------------------------------------------------------- */}
+          <TabsContent value="epi" className="space-y-6">
+            <TechnicianEquipment technicianId={tech.id} />
           </TabsContent>
 
           {/* ----------------------------------------------------------- */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,7 +136,7 @@ export default function EpiPage() {
                     </td>
                     <td className="py-2 px-3 font-mono text-xs">{e.serialNumber || "—"}</td>
                     <td className="py-2 px-3"><Badge variant="outline" style={{ color: st.color, borderColor: st.color + "55" }}>{st.label}</Badge></td>
-                    <td className="py-2 px-3 text-ink-600">{e.currentAssignment ? `${e.currentAssignment.technician.firstName} ${e.currentAssignment.technician.lastName}` : "—"}</td>
+                    <td className="py-2 px-3 text-ink-600">{e.currentAssignment ? <Link href={`/technicians/${e.currentAssignment.technician.id}`} className="hover:underline">{e.currentAssignment.technician.firstName} {e.currentAssignment.technician.lastName}</Link> : "—"}</td>
                     <td className={`py-2 px-3 ${dateClass(e.expiryDate)}`}>{fmt(e.expiryDate)}</td>
                     <td className={`py-2 px-3 ${dateClass(e.nextCheckDate)}`}>{fmt(e.nextCheckDate)}</td>
                     <td className="py-2 px-4 text-right">
