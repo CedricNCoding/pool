@@ -23,7 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.start && body.end) {
     const start = new Date(body.start), end = new Date(body.end);
     const isAdmin = session.role === "admin" || session.role === "superadmin";
-    const check = await checkBooking({ technicianId: b.technicianId, start, end, excludeBookingId: id });
+    const check = await checkBooking({ technicianId: b.technicianId, start, end, excludeBookingId: id, projectId: b.projectId });
     if (check.conflicts.length > 0 && !(body.force === true && isAdmin)) {
       return NextResponse.json({ error: "Conflit de planning", conflicts: check.conflicts, warnings: check.warnings }, { status: 409 });
     }

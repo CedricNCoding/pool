@@ -272,6 +272,7 @@ model Certification {
 
   tenant      Tenant?                  @relation(fields: [tenantId], references: [id])
   technicians TechnicianCertification[]
+  requiredByProjects Project[] @relation("MissionRequiredCerts")
 
   @@unique([tenantId, name, issuer])
   @@map("certifications")
@@ -418,8 +419,15 @@ model Project {
   // Planification : dates et lieu de la mission.
   startDate   DateTime? @map("start_date")
   endDate     DateTime? @map("end_date")
+  // Dossier & client
+  dossierNumber String? @map("dossier_number")
   clientName  String?   @map("client_name")
+  clientContact String? @map("client_contact")
+  clientPhone String?   @map("client_phone")
+  clientEmail String?   @map("client_email")
   site        String?
+  // Exigences de la mission : EPI requis (catégories CSV) + habilitations requises (M2M).
+  requiredEpi String?   @map("required_epi")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -427,6 +435,7 @@ model Project {
   company     Company?     @relation(fields: [companyId], references: [id])
   technicians Technician[]
   bookings        Booking[]
+  requiredCertifications Certification[] @relation("MissionRequiredCerts")
 
   @@index([tenantId])
   @@map("projects")

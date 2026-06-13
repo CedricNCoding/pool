@@ -32,6 +32,22 @@ interface Project {
   status: string;
   company: { name: string; color: string } | null;
   technicians: Tech[];
+  dossierNumber: string | null;
+  clientName: string | null;
+  clientContact: string | null;
+  clientPhone: string | null;
+  clientEmail: string | null;
+  site: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  requiredEpi: string | null;
+  requiredCertifications: { id: string; name: string }[];
+}
+interface Prep {
+  requiredCertifications: { id: string; name: string }[];
+  requiredEpi: string[];
+  crew: { technician: { id: string; firstName: string; lastName: string }; missingCerts: string[]; missingEpi: string[]; ok: boolean }[];
+  hasGaps: boolean;
 }
 
 const STATUSES = [
@@ -39,32 +55,57 @@ const STATUSES = [
   { value: "termine", label: "Termine" },
   { value: "archive", label: "Archive" },
 ];
+const EPI_CATS = [["epi", "EPI"], ["electroportatif", "Électroportatif"], ["instrument", "Instrument"], ["vehicule", "Véhicule"], ["autre", "Autre"]] as const;
+const isoDate = (d: string | null) => (d ? d.slice(0, 10) : "");
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
   const [categories, setCategories] = useState<SkillCategory[]>([]);
-  const [form, setForm] = useState({ title: "", description: "", status: "actif" });
+  const [certs, setCerts] = useState<{ id: string; name: string; category: string }[]>([]);
+  const [form, setForm] = useState({
+    title: "", description: "", status: "actif",
+    dossierNumber: "", clientName: "", clientContact: "", clientPhone: "", clientEmail: "", site: "", startDate: "", endDate: "",
+    requiredEpi: [] as string[], requiredCertificationIds: [] as string[],
+  });
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [prep, setPrep] = useState<Prep | null>(null);
+
+  const fetchPrep = useCallback(async () => {
+    const r = await fetch(`/api/projects/${id}/preparation`);
+    if (r.ok) setPrep(await r.json());
+  }, [id]);
 
   const fetchProject = useCallback(async () => {
     const res = await fetch(`/api/projects/${id}`);
     if (res.ok) {
       const p: Project = await res.json();
       setProject(p);
-      setForm({ title: p.title, description: p.description ?? "", status: p.status });
+      setForm({
+        title: p.title, description: p.description ?? "", status: p.status,
+        dossierNumber: p.dossierNumber ?? "", clientName: p.clientName ?? "", clientContact: p.clientContact ?? "",
+        clientPhone: p.clientPhone ?? "", clientEmail: p.clientEmail ?? "", site: p.site ?? "",
+        startDate: isoDate(p.startDate), endDate: isoDate(p.endDate),
+        requiredEpi: (p.requiredEpi ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+        requiredCertificationIds: p.requiredCertifications.map((c) => c.id),
+      });
       setDirty(false);
     }
     setLoading(false);
   }, [id]);
 
   useEffect(() => {
-    fetchProject();
+    fetchProject(); fetchPrep();
     fetch("/api/skills/categories").then((r) => r.json()).then(setCategories).catch(() => {});
-  }, [fetchProject]);
+    fetch("/api/certifications").then((r) => r.json()).then((d) => setCerts(Array.isArray(d) ? d : [])).catch(() => {});
+  }, [fetchProject, fetchPrep]);
+
+  function toggleArr(key: "requiredEpi" | "requiredCertificationIds", val: string) {
+    setForm((f) => { const arr = f[key]; const next = arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]; setDirty(true); return { ...f, [key]: next }; });
+  }
 
   async function save() {
     setSaving(true);
@@ -73,7 +114,7 @@ export default function ProjectDetailPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    await fetchProject();
+    await fetchProject(); await fetchPrep();
     setSaving(false);
   }
 
@@ -85,7 +126,7 @@ export default function ProjectDetailPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ technicianIds: ids }),
     });
-    fetchProject();
+    fetchProject(); fetchPrep();
   }
 
   async function removeProject() {
@@ -171,8 +212,46 @@ export default function ProjectDetailPage() {
             </div>
             <div>
               <Label>Description</Label>
-              <Textarea rows={4} value={form.description} onChange={(e) => { setForm((f) => ({ ...f, description: e.target.value })); setDirty(true); }} />
+              <Textarea rows={3} value={form.description} onChange={(e) => { setForm((f) => ({ ...f, description: e.target.value })); setDirty(true); }} />
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div><Label>N° de dossier</Label><Input value={form.dossierNumber} onChange={(e) => { setForm((f) => ({ ...f, dossierNumber: e.target.value })); setDirty(true); }} /></div>
+              <div><Label>Début</Label><Input type="date" value={form.startDate} onChange={(e) => { setForm((f) => ({ ...f, startDate: e.target.value })); setDirty(true); }} /></div>
+              <div><Label>Fin</Label><Input type="date" value={form.endDate} onChange={(e) => { setForm((f) => ({ ...f, endDate: e.target.value })); setDirty(true); }} /></div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div><Label>Client</Label><Input value={form.clientName} onChange={(e) => { setForm((f) => ({ ...f, clientName: e.target.value })); setDirty(true); }} /></div>
+              <div><Label>Lieu / site</Label><Input value={form.site} onChange={(e) => { setForm((f) => ({ ...f, site: e.target.value })); setDirty(true); }} /></div>
+              <div><Label>Contact client</Label><Input value={form.clientContact} onChange={(e) => { setForm((f) => ({ ...f, clientContact: e.target.value })); setDirty(true); }} /></div>
+              <div className="grid grid-cols-2 gap-2">
+                <div><Label>Téléphone</Label><Input value={form.clientPhone} onChange={(e) => { setForm((f) => ({ ...f, clientPhone: e.target.value })); setDirty(true); }} /></div>
+                <div><Label>E-mail</Label><Input value={form.clientEmail} onChange={(e) => { setForm((f) => ({ ...f, clientEmail: e.target.value })); setDirty(true); }} /></div>
+              </div>
+            </div>
+
+            <div>
+              <Label>Habilitations requises pour cette mission</Label>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {certs.filter((c) => c.category === "securite").map((c) => {
+                  const on = form.requiredCertificationIds.includes(c.id);
+                  return <button key={c.id} type="button" onClick={() => toggleArr("requiredCertificationIds", c.id)} className={`px-2.5 py-1 rounded-md text-xs border transition ${on ? "bg-red-500 border-red-600 text-white" : "border-ink-900/15 text-ink-500 hover:border-red-400"}`}>{c.name}</button>;
+                })}
+                {certs.filter((c) => c.category === "securite").length === 0 && <span className="text-xs text-ink-400">Aucune habilitation sécurité au référentiel.</span>}
+              </div>
+              <p className="text-xs text-ink-400 mt-1">Un technicien sans une de ces habilitations (ou expirée) est bloqué à l&apos;affectation.</p>
+            </div>
+            <div>
+              <Label>EPI requis</Label>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {EPI_CATS.map(([v, l]) => {
+                  const on = form.requiredEpi.includes(v);
+                  return <button key={v} type="button" onClick={() => toggleArr("requiredEpi", v)} className={`px-2.5 py-1 rounded-md text-xs border transition ${on ? "bg-signal-500 border-signal-600 text-[#0B1220]" : "border-ink-900/15 text-ink-500 hover:border-signal-400"}`}>{l}</button>;
+                })}
+              </div>
+              <p className="text-xs text-ink-400 mt-1">Un technicien non doté d&apos;un EPI requis est signalé (avertissement non bloquant).</p>
+            </div>
+
             <div className="flex justify-end">
               <Button size="sm" disabled={!dirty || saving} onClick={save}>
                 <Save className="w-4 h-4 mr-1" /> {saving ? "Sauvegarde..." : "Enregistrer"}
@@ -180,6 +259,42 @@ export default function ProjectDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Préparation : équipe vs exigences */}
+        {prep && (prep.requiredCertifications.length > 0 || prep.requiredEpi.length > 0) && (
+          <Card className={`no-print ${prep.hasGaps ? "border-red-300" : "border-green-300"}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                Préparation mission
+                {prep.hasGaps
+                  ? <Badge variant="outline" style={{ color: "#EF4444", borderColor: "#EF444455" }}>Manques détectés</Badge>
+                  : <Badge variant="outline" style={{ color: "#10B981", borderColor: "#10B98155" }}>Équipe conforme</Badge>}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-ink-500 mb-3">
+                Exigences : {prep.requiredCertifications.map((c) => c.name).join(", ") || "—"}
+                {prep.requiredEpi.length > 0 && ` · EPI : ${prep.requiredEpi.join(", ")}`}
+              </p>
+              {prep.crew.length === 0 ? (
+                <p className="text-sm text-ink-400">Aucun technicien planifié sur cette mission (voir Planning).</p>
+              ) : (
+                <div className="divide-y divide-ink-900/5">
+                  {prep.crew.map((c) => (
+                    <div key={c.technician.id} className="flex items-start justify-between gap-3 py-2 text-sm">
+                      <Link href={`/technicians/${c.technician.id}`} className="font-medium text-ink-900 hover:underline">{c.technician.firstName} {c.technician.lastName}</Link>
+                      <div className="flex flex-wrap gap-1 justify-end">
+                        {c.ok && <span className="text-xs text-green-600">✓ conforme</span>}
+                        {c.missingCerts.map((m) => <span key={m} className="text-[11px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-700">Habilitation : {m}</span>)}
+                        {c.missingEpi.map((m) => <span key={m} className="text-[11px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700">EPI : {m}</span>)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Description en impression */}
         {project.description && (

@@ -23,6 +23,7 @@ export async function GET(
     where: { id },
     include: {
       company: { select: { id: true, name: true, color: true } },
+      requiredCertifications: { select: { id: true, name: true } },
       technicians: {
         include: {
           company: { select: { name: true, color: true } },
@@ -71,6 +72,17 @@ export async function PATCH(
   if (body.title !== undefined) data.title = String(body.title).trim();
   if (body.description !== undefined) data.description = body.description?.trim() || null;
   if (body.status !== undefined) data.status = body.status;
+  // Dossier, client, planification, exigences.
+  if (body.dossierNumber !== undefined) data.dossierNumber = body.dossierNumber?.trim() || null;
+  if (body.clientName !== undefined) data.clientName = body.clientName?.trim() || null;
+  if (body.clientContact !== undefined) data.clientContact = body.clientContact?.trim() || null;
+  if (body.clientPhone !== undefined) data.clientPhone = body.clientPhone?.trim() || null;
+  if (body.clientEmail !== undefined) data.clientEmail = body.clientEmail?.trim() || null;
+  if (body.site !== undefined) data.site = body.site?.trim() || null;
+  if (body.startDate !== undefined) data.startDate = body.startDate ? new Date(body.startDate) : null;
+  if (body.endDate !== undefined) data.endDate = body.endDate ? new Date(body.endDate) : null;
+  if (body.requiredEpi !== undefined) data.requiredEpi = Array.isArray(body.requiredEpi) ? body.requiredEpi.join(",") : (body.requiredEpi?.trim() || null);
+  if (Array.isArray(body.requiredCertificationIds)) data.requiredCertifications = { set: body.requiredCertificationIds.map((cid: string) => ({ id: cid })) };
 
   // technicianIds = remplacement complet ; addTechnicianIds = ajout (sans retirer).
   const replaceIds = Array.isArray(body.technicianIds) ? body.technicianIds : null;

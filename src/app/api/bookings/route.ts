@@ -25,12 +25,44 @@ export async function GET(req: NextRequest) {
   const bookings = await prisma.booking.findMany({
     where,
     include: {
-      project: { select: { id: true, title: true, status: true } },
+      project: { select: { id: true, title: true, status: true, requiredEpi: true, requiredCertifications: { select: { id: true, name: true } } } },
       technician: { select: { id: true, firstName: true, lastName: true, company: { select: { name: true, color: true } } } },
     },
     orderBy: { start: "asc" },
   });
-  return NextResponse.json(bookings);
+
+  // Enrichit chaque créneau d'un récap des manques (habilitations bloquantes / EPI avertissement).
+  const techIds = [...new Set(bookings.map((b) => b.technicianId))];
+  const certs = techIds.length ? await prisma.technicianCertification.findMany({
+    where: { technicianId: { in: techIds }, status: "active" },
+    select: { technicianId: true, certificationId: true, expiryDate: true },
+  }) : [];
+  const equips = techIds.length ? await prisma.equipmentAssignment.findMany({
+    where: { technicianId: { in: techIds }, returnedAt: null },
+    select: { technicianId: true, equipment: { select: { category: true } } },
+  }) : [];
+  const now = Date.now();
+  const validCertByTech = new Map<string, Set<string>>();
+  for (const c of certs) {
+    if (c.expiryDate && new Date(c.expiryDate).getTime() < now) continue;
+    if (!validCertByTech.has(c.technicianId)) validCertByTech.set(c.technicianId, new Set());
+    validCertByTech.get(c.technicianId)!.add(c.certificationId);
+  }
+  const catByTech = new Map<string, Set<string>>();
+  for (const e of equips) {
+    if (!catByTech.has(e.technicianId)) catByTech.set(e.technicianId, new Set());
+    catByTech.get(e.technicianId)!.add(e.equipment.category);
+  }
+
+  const enriched = bookings.map((b) => {
+    const held = validCertByTech.get(b.technicianId) ?? new Set();
+    const cats = catByTech.get(b.technicianId) ?? new Set();
+    const missingCerts = b.project.requiredCertifications.filter((c) => !held.has(c.id)).map((c) => c.name);
+    const reqEpi = (b.project.requiredEpi ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    const missingEpi = reqEpi.filter((e) => !cats.has(e));
+    return { ...b, project: { id: b.project.id, title: b.project.title, status: b.project.status }, missingCerts, missingEpi };
+  });
+  return NextResponse.json(enriched);
 }
 
 export async function POST(req: NextRequest) {
@@ -51,7 +83,7 @@ export async function POST(req: NextRequest) {
   if (!canAccessCompany(session, tech.companyId)) return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
 
   const isAdmin = session.role === "admin" || session.role === "superadmin";
-  const check = await checkBooking({ technicianId, start, end });
+  const check = await checkBooking({ technicianId, start, end, projectId });
   if (check.conflicts.length > 0 && !(body.force === true && isAdmin)) {
     return NextResponse.json({ error: "Conflit de planning", conflicts: check.conflicts, warnings: check.warnings }, { status: 409 });
   }

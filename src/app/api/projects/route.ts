@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
   const companyId =
     session.role === "admin" ? body.companyId ?? null : session.companyId ?? null;
 
+  const reqCertIds: string[] = Array.isArray(body.requiredCertificationIds) ? body.requiredCertificationIds : [];
   const project = await prisma.project.create({
     data: {
       title,
@@ -69,7 +70,17 @@ export async function POST(req: NextRequest) {
       status: body.status || "actif",
       companyId,
       createdById: session.id,
+      dossierNumber: body.dossierNumber?.trim() || null,
+      clientName: body.clientName?.trim() || null,
+      clientContact: body.clientContact?.trim() || null,
+      clientPhone: body.clientPhone?.trim() || null,
+      clientEmail: body.clientEmail?.trim() || null,
+      site: body.site?.trim() || null,
+      startDate: body.startDate ? new Date(body.startDate) : null,
+      endDate: body.endDate ? new Date(body.endDate) : null,
+      requiredEpi: Array.isArray(body.requiredEpi) ? body.requiredEpi.join(",") : (body.requiredEpi?.trim() || null),
       technicians: { connect: allowedIds.map((id) => ({ id })) },
+      requiredCertifications: { connect: reqCertIds.map((id) => ({ id })) },
     },
     include: { _count: { select: { technicians: true } } },
   });

@@ -23,8 +23,9 @@ export async function checkBooking(opts: {
   start: Date;
   end: Date;
   excludeBookingId?: string;
+  projectId?: string;
 }): Promise<ScheduleCheck> {
-  const { technicianId, start, end, excludeBookingId } = opts;
+  const { technicianId, start, end, excludeBookingId, projectId } = opts;
   const conflicts: string[] = [];
   const warnings: string[] = [];
 
@@ -101,6 +102,40 @@ export async function checkBooking(opts: {
     if (b.start >= weekStart && b.start < weekEnd) weekMs += b.end.getTime() - b.start.getTime();
   }
   if (weekMs / H > WEEK_MAX_H) warnings.push(`Durée hebdomadaire > ${WEEK_MAX_H} h`);
+
+  // 6) Exigences de la mission : habilitation requise = BLOQUANT, EPI requis = avertissement.
+  if (projectId) {
+    const project = await prisma.project.findFirst({
+      where: { id: projectId },
+      select: { requiredEpi: true, requiredCertifications: { select: { id: true, name: true } } },
+    });
+    if (project) {
+      const reqCerts = project.requiredCertifications;
+      const reqEpi = (project.requiredEpi ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+
+      if (reqCerts.length > 0) {
+        const held = await prisma.technicianCertification.findMany({
+          where: { technicianId, status: "active", certificationId: { in: reqCerts.map((c) => c.id) } },
+          select: { certificationId: true, expiryDate: true },
+        });
+        const validIds = new Set(held.filter((h) => !h.expiryDate || new Date(h.expiryDate) >= start).map((h) => h.certificationId));
+        for (const c of reqCerts) {
+          if (!validIds.has(c.id)) conflicts.push(`Habilitation requise manquante/expirée : ${c.name}`);
+        }
+      }
+
+      if (reqEpi.length > 0) {
+        const dotation = await prisma.equipmentAssignment.findMany({
+          where: { technicianId, returnedAt: null },
+          select: { equipment: { select: { category: true } } },
+        });
+        const cats = new Set(dotation.map((d) => d.equipment.category));
+        for (const e of reqEpi) {
+          if (!cats.has(e)) warnings.push(`EPI requis non doté : ${e}`);
+        }
+      }
+    }
+  }
 
   return { conflicts: [...new Set(conflicts)], warnings: [...new Set(warnings)] };
 }
