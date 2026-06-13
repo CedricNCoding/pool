@@ -29,6 +29,7 @@ import {
   Loader2,
   Search,
   Users,
+  History,
 } from "lucide-react";
 import { SKILL_LEVELS, SERVICES } from "@/lib/constants";
 import { useSession } from "@/lib/hooks";
@@ -58,6 +59,13 @@ interface Assignment {
   technician: { id: string; firstName: string; lastName: string; company: { name: string; color: string } };
   module: { id: string; title: string; targetSkills: { id: string; name: string }[] } | null;
   path: { id: string; title: string } | null;
+}
+interface AssignEvent {
+  id: string;
+  status: string;
+  note: string | null;
+  actorName: string | null;
+  createdAt: string;
 }
 interface WeakTech {
   id: string;
@@ -336,8 +344,25 @@ export default function FormationPage() {
     fetchAll();
   }
   async function deleteAssignment(id: string) {
+    if (!confirm("Supprimer cette affectation et tout son historique ?")) return;
     await fetch(`/api/training/assignments/${id}`, { method: "DELETE" });
     fetchAll();
+  }
+
+  // ---- Historique d'une affectation -------------------------------------
+  const [histAssign, setHistAssign] = useState<Assignment | null>(null);
+  const [histEvents, setHistEvents] = useState<AssignEvent[]>([]);
+  const [histLoading, setHistLoading] = useState(false);
+  async function openHistory(a: Assignment) {
+    setHistAssign(a);
+    setHistEvents([]);
+    setHistLoading(true);
+    try {
+      const r = await fetch(`/api/training/assignments/${a.id}`);
+      if (r.ok) setHistEvents((await r.json()).history ?? []);
+    } finally {
+      setHistLoading(false);
+    }
   }
   async function deleteModule(id: string) {
     if (!confirm("Supprimer cette session ?")) return;
@@ -533,10 +558,16 @@ export default function FormationPage() {
                               <CheckCircle className="w-3.5 h-3.5 mr-1" /> Valider
                             </Button>
                           )}
-                          {a.status !== "valide" && (
+                          {a.status === "annule" && (
+                            <Button size="sm" variant="outline" onClick={() => setStatus(a.id, "propose")}>Reactiver</Button>
+                          )}
+                          {a.status !== "valide" && a.status !== "annule" && (
                             <Button size="sm" variant="ghost" className="text-ink-400" onClick={() => setStatus(a.id, "annule")}>Annuler</Button>
                           )}
-                          <button onClick={() => deleteAssignment(a.id)} className="text-ink-400 hover:text-red-400 ml-1">
+                          <button onClick={() => openHistory(a)} className="text-ink-400 hover:text-ink-700 ml-1" title="Historique">
+                            <History className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => deleteAssignment(a.id)} className="text-ink-400 hover:text-red-400" title="Supprimer">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -810,6 +841,60 @@ export default function FormationPage() {
               {savingVal && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               <CheckCircle className="w-4 h-4 mr-1" /> Valider
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===== Dialog : historique d'une affectation ===== */}
+      <Dialog open={!!histAssign} onOpenChange={(o) => !o && setHistAssign(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Historique de l&apos;affectation</DialogTitle></DialogHeader>
+          {histAssign && (
+            <p className="text-sm text-ink-500 -mt-1">
+              {histAssign.technician.firstName} {histAssign.technician.lastName}
+              {" — "}
+              {histAssign.module?.title || histAssign.path?.title || ""}
+            </p>
+          )}
+          <div className="py-3">
+            {histLoading ? (
+              <div className="flex items-center gap-2 text-sm text-ink-400">
+                <Loader2 className="w-4 h-4 animate-spin" /> Chargement…
+              </div>
+            ) : histEvents.length === 0 ? (
+              <p className="text-sm text-ink-400">Aucun évènement.</p>
+            ) : (
+              <ol className="relative border-l border-ink-900/15 ml-2 space-y-4">
+                {histEvents.map((e) => {
+                  const st = STATUS[e.status] ?? STATUS.propose;
+                  return (
+                    <li key={e.id} className="ml-4">
+                      <span
+                        className="absolute -left-[5px] mt-1 w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: st.color }}
+                      />
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline" style={{ color: st.color, borderColor: st.color + "55" }}>
+                          {st.label}
+                        </Badge>
+                        <span className="text-xs text-ink-400">
+                          {new Date(e.createdAt).toLocaleString("fr-FR")}
+                        </span>
+                      </div>
+                      {(e.actorName || e.note) && (
+                        <div className="text-xs text-ink-500 mt-0.5">
+                          {e.actorName ? `par ${e.actorName}` : ""}
+                          {e.note ? `${e.actorName ? " — " : ""}${e.note}` : ""}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">Fermer</Button></DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>

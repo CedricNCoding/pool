@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, canAccessCompany } from "@/lib/auth";
 import { setTenantContext } from "@/lib/tenant-context";
+import { recordAssignmentEvent } from "@/lib/training";
 import { auditLog } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
@@ -66,6 +67,15 @@ export async function POST(req: NextRequest) {
       note: body.note?.trim() || null,
       assignedById: session.id,
     },
+  });
+
+  // 1er évènement de l'historique : la demande/proposition.
+  await recordAssignmentEvent({
+    assignmentId: assignment.id,
+    status: assignment.status,
+    note: body.note?.trim() || "Affectation créée",
+    actorId: session.id,
+    actorName: session.name,
   });
 
   await auditLog({

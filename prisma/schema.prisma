@@ -35,6 +35,7 @@ model Tenant {
   events          TechnicianEvent[]
   assistanceRequests AssistanceRequest[]
   webhooks        Webhook[]
+  trainingAssignmentEvents TrainingAssignmentEvent[]
 
   @@map("tenants")
 }
@@ -477,9 +478,32 @@ model TrainingAssignment {
   technician Technician      @relation(fields: [technicianId], references: [id], onDelete: Cascade)
   module     TrainingModule? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   path       TrainingPath?   @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  history    TrainingAssignmentEvent[]
 
   @@index([tenantId])
   @@map("training_assignments")
+}
+
+// Historique du cycle de vie d'une affectation : chaque transition de statut
+// (proposé -> en cours -> validé / annulé) est tracée avec l'auteur et la date.
+// actorName est dénormalisé (instantané) pour rester lisible même si l'auteur
+// est renommé ou supprimé.
+model TrainingAssignmentEvent {
+  id           String   @id @default(uuid())
+  assignmentId String   @map("assignment_id")
+  status       String // propose | en_cours | valide | annule
+  note         String?
+  actorId      String?  @map("actor_id")
+  actorName    String?  @map("actor_name")
+  tenantId     String?  @map("tenant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  assignment TrainingAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  tenant     Tenant?            @relation(fields: [tenantId], references: [id])
+
+  @@index([assignmentId])
+  @@index([tenantId])
+  @@map("training_assignment_events")
 }
 
 // Demande de renfort : un gestionnaire sollicite un technicien d'une AUTRE

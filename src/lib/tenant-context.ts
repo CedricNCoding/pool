@@ -16,7 +16,7 @@ const SCOPED = new Set([
   "Company", "Agency", "Technician", "SkillCategory", "Skill", "Certification",
   "Project", "TrainingModule", "TrainingPath", "TrainingAssignment", "Tag",
   "SkillObjective", "ApiKey", "AuditLog", "Document", "TechnicianEvent", "User",
-  "AssistanceRequest", "Webhook",
+  "AssistanceRequest", "Webhook", "TrainingAssignmentEvent",
 ]);
 const WHERE_OPS = new Set([
   "findMany", "findFirst", "findFirstOrThrow", "count", "aggregate", "groupBy",

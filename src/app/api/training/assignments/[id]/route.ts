@@ -2,9 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession, canAccessCompany } from "@/lib/auth";
 import { setTenantContext } from "@/lib/tenant-context";
+import { recordAssignmentEvent } from "@/lib/training";
 import { auditLog } from "@/lib/audit";
 
 const clamp = (n: number) => Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
+
+// Affectation + son historique (timeline du cycle de vie).
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await requireSession();
+  setTenantContext(session.tenantId);
+  const { id } = await params;
+  const assignment = await prisma.trainingAssignment.findFirst({
+    where: { id },
+    include: {
+      technician: { select: { companyId: true } },
+      history: { orderBy: { createdAt: "asc" } },
+    },
+  });
+  if (!assignment) return NextResponse.json({ error: "Non trouve" }, { status: 404 });
+  if (!canAccessCompany(session, assignment.technician.companyId)) {
+    return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+  }
+  return NextResponse.json({ id: assignment.id, status: assignment.status, history: assignment.history });
+}
 
 export async function PATCH(
   req: NextRequest,
@@ -59,6 +82,17 @@ export async function PATCH(
   }
 
   const updated = await prisma.trainingAssignment.update({ where: { id }, data });
+
+  // Historique : on trace toute transition de statut (et la note associée).
+  if (body.status !== undefined && body.status !== assignment.status) {
+    await recordAssignmentEvent({
+      assignmentId: id,
+      status: body.status,
+      note: body.note?.trim() || null,
+      actorId: session.id,
+      actorName: session.name,
+    });
+  }
 
   await auditLog({
     userId: session.id,
