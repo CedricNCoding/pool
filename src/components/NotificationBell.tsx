@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Bell, Award, FileText, GraduationCap, Clock, AlertTriangle } from "lucide-react";
 
@@ -21,9 +22,13 @@ const KIND: Record<string, { icon: React.ComponentType<{ className?: string }>; 
   dossier: { icon: AlertTriangle, color: "#F97316" },
 };
 
+const PANEL_W = 360;
+
 export default function NotificationBell() {
   const router = useRouter();
+  const btnRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const [items, setItems] = useState<Item[]>([]);
   const [total, setTotal] = useState(0);
 
@@ -43,6 +48,35 @@ export default function NotificationBell() {
     return () => clearInterval(t);
   }, [load]);
 
+  // Ancre le panneau (fixed) sur le bouton, quel que soit l'état de la sidebar
+  // (repliée 68px / dépliée 264px / overlay mobile). Le panneau s'ouvre à droite
+  // de la cloche et bascule à gauche s'il déborde du viewport.
+  const place = useCallback(() => {
+    const el = btnRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    let left = r.right + 8;
+    if (left + PANEL_W > window.innerWidth - 8) left = r.left - PANEL_W - 8;
+    if (left < 8) left = Math.max(8, window.innerWidth - PANEL_W - 8);
+    const top = Math.max(8, Math.min(r.top, window.innerHeight - 360));
+    setPos({ top, left });
+  }, []);
+
+  function toggle() {
+    if (!open) {
+      place();
+      load();
+    }
+    setOpen((o) => !o);
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    const onResize = () => place();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [open, place]);
+
   function go(item: Item) {
     setOpen(false);
     router.push(item.href);
@@ -51,9 +85,11 @@ export default function NotificationBell() {
   return (
     <>
       <button
-        onClick={() => setOpen((o) => !o)}
-        className="relative flex items-center justify-center w-9 rounded-lg text-ink-500 bg-paper-2 hover:bg-white hover:text-white transition-colors"
+        ref={btnRef}
+        onClick={toggle}
+        className="relative flex items-center justify-center h-9 w-9 shrink-0 rounded-md text-ink-300 bg-[rgba(245,242,235,0.04)] hover:bg-[rgba(245,242,235,0.08)] hover:text-paper transition-colors"
         title="Notifications"
+        aria-label="Notifications"
       >
         <Bell className="w-4 h-4" />
         {total > 0 && (
@@ -63,10 +99,15 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {open && (
+      {/* Rendu via portal sur document.body : la sidebar a transform + overflow-hidden,
+          ce qui « capturerait » un position:fixed enfant et le rognerait. */}
+      {open && createPortal(
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="fixed left-[16.5rem] top-20 z-50 w-[370px] max-h-[70vh] overflow-hidden rounded-xl border border-ink-900/10 bg-paper-bone shadow-2xl flex flex-col">
+          <div className="fixed inset-0 z-[60]" onClick={() => setOpen(false)} />
+          <div
+            className="fixed z-[61] w-[min(360px,calc(100vw-16px))] max-h-[70vh] overflow-hidden rounded-xl border border-ink-900/10 bg-paper-bone shadow-2xl flex flex-col"
+            style={{ top: pos.top, left: pos.left }}
+          >
             <div className="px-4 py-3 border-b border-ink-900/10 flex items-center justify-between">
               <span className="text-sm font-semibold text-ink-900">Notifications</span>
               <span className="text-xs text-ink-400">{total} a traiter</span>
@@ -101,7 +142,8 @@ export default function NotificationBell() {
               )}
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </>
   );
