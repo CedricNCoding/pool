@@ -10,7 +10,7 @@ import { HardHat, Plus, Loader2, Undo2 } from "lucide-react";
 interface Equip { id: string; name: string; category: string; serialNumber: string | null; brand: string | null; model: string | null; expiryDate: string | null; nextCheckDate: string | null; status: string }
 interface Assignment { id: string; assignedAt: string; returnedAt: string | null; equipment: Equip }
 
-const CAT_LABEL: Record<string, string> = { epi: "EPI", electroportatif: "Électroportatif", instrument: "Instrument", vehicule: "Véhicule", autre: "Autre" };
+const CAT_LABEL: Record<string, string> = { epi: "EPI", outillage: "Outillage", electroportatif: "Électroportatif", instrument: "Instrument", vehicule: "Véhicule", autre: "Autre" };
 const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString("fr-FR") : "—");
 function dateClass(d: string | null) {
   if (!d) return "text-ink-400";

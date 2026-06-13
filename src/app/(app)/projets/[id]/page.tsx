@@ -9,10 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Printer, Save, Trash2, Users, MapPin, Award, X, FileDown } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { ArrowLeft, Printer, Save, Trash2, Users, MapPin, Award, X, FileDown, CalendarPlus, Loader2 } from "lucide-react";
 import MiniRadar from "@/components/MiniRadar";
 import { generateProjectPdf, type PdfProject } from "@/lib/pdf";
 import AuditTrail from "@/components/AuditTrail";
+import InterventionMap from "@/components/InterventionMap";
+import { CITIES, findCity } from "@/lib/cities";
 
 interface SkillCategory { id: string; name: string; color: string }
 interface Tech {
@@ -42,11 +45,16 @@ interface Project {
   endDate: string | null;
   requiredEpi: string | null;
   requiredCertifications: { id: string; name: string }[];
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  requiredTrainingModules: { id: string; title: string }[];
 }
 interface Prep {
   requiredCertifications: { id: string; name: string }[];
   requiredEpi: string[];
-  crew: { technician: { id: string; firstName: string; lastName: string }; missingCerts: string[]; missingEpi: string[]; ok: boolean }[];
+  requiredTrainingModules: { id: string; title: string }[];
+  crew: { technician: { id: string; firstName: string; lastName: string }; missingCerts: string[]; missingEpi: string[]; missingTraining: string[]; ok: boolean }[];
   hasGaps: boolean;
 }
 
@@ -55,7 +63,7 @@ const STATUSES = [
   { value: "termine", label: "Termine" },
   { value: "archive", label: "Archive" },
 ];
-const EPI_CATS = [["epi", "EPI"], ["electroportatif", "Électroportatif"], ["instrument", "Instrument"], ["vehicule", "Véhicule"], ["autre", "Autre"]] as const;
+const EPI_CATS = [["epi", "EPI"], ["outillage", "Outillage"], ["electroportatif", "Électroportatif"], ["instrument", "Instrument"], ["vehicule", "Véhicule"], ["autre", "Autre"]] as const;
 const isoDate = (d: string | null) => (d ? d.slice(0, 10) : "");
 
 export default function ProjectDetailPage() {
@@ -64,10 +72,12 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [categories, setCategories] = useState<SkillCategory[]>([]);
   const [certs, setCerts] = useState<{ id: string; name: string; category: string }[]>([]);
+  const [modules, setModules] = useState<{ id: string; title: string }[]>([]);
   const [form, setForm] = useState({
     title: "", description: "", status: "actif",
     dossierNumber: "", clientName: "", clientContact: "", clientPhone: "", clientEmail: "", site: "", startDate: "", endDate: "",
-    requiredEpi: [] as string[], requiredCertificationIds: [] as string[],
+    address: "", lat: "" as string, lng: "" as string,
+    requiredEpi: [] as string[], requiredCertificationIds: [] as string[], requiredTrainingModuleIds: [] as string[],
   });
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -89,8 +99,10 @@ export default function ProjectDetailPage() {
         dossierNumber: p.dossierNumber ?? "", clientName: p.clientName ?? "", clientContact: p.clientContact ?? "",
         clientPhone: p.clientPhone ?? "", clientEmail: p.clientEmail ?? "", site: p.site ?? "",
         startDate: isoDate(p.startDate), endDate: isoDate(p.endDate),
+        address: p.address ?? "", lat: p.lat != null ? String(p.lat) : "", lng: p.lng != null ? String(p.lng) : "",
         requiredEpi: (p.requiredEpi ?? "").split(",").map((s) => s.trim()).filter(Boolean),
         requiredCertificationIds: p.requiredCertifications.map((c) => c.id),
+        requiredTrainingModuleIds: p.requiredTrainingModules.map((m) => m.id),
       });
       setDirty(false);
     }
@@ -101,9 +113,10 @@ export default function ProjectDetailPage() {
     fetchProject(); fetchPrep();
     fetch("/api/skills/categories").then((r) => r.json()).then(setCategories).catch(() => {});
     fetch("/api/certifications").then((r) => r.json()).then((d) => setCerts(Array.isArray(d) ? d : [])).catch(() => {});
+    fetch("/api/training/modules").then((r) => r.json()).then((d) => setModules(Array.isArray(d) ? d : [])).catch(() => {});
   }, [fetchProject, fetchPrep]);
 
-  function toggleArr(key: "requiredEpi" | "requiredCertificationIds", val: string) {
+  function toggleArr(key: "requiredEpi" | "requiredCertificationIds" | "requiredTrainingModuleIds", val: string) {
     setForm((f) => { const arr = f[key]; const next = arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]; setDirty(true); return { ...f, [key]: next }; });
   }
 
@@ -133,6 +146,30 @@ export default function ProjectDetailPage() {
     if (!project || !confirm(`Supprimer le projet "${project.title}" ?`)) return;
     await fetch(`/api/projects/${id}`, { method: "DELETE" });
     router.push("/projets");
+  }
+
+  // --- Assistant de planification (plage + jours + horaires) ---
+  const WEEKDAYS: [number, string][] = [[1, "Lun"], [2, "Mar"], [3, "Mer"], [4, "Jeu"], [5, "Ven"], [6, "Sam"], [0, "Dim"]];
+  const [planOpen, setPlanOpen] = useState(false);
+  const [planning, setPlanning] = useState(false);
+  const [planResult, setPlanResult] = useState<{ created: number; skipped: { technician: string; date: string; reasons: string[] }[]; warnings: string[] } | null>(null);
+  const [plan, setPlan] = useState({ startDate: "", endDate: "", startTime: "09:00", endTime: "17:00", force: false, weekdays: [1, 2, 3, 4, 5] as number[], techIds: [] as string[] });
+  function openPlan() {
+    setPlan({ startDate: form.startDate || "", endDate: form.endDate || "", startTime: "09:00", endTime: "17:00", force: false, weekdays: [1, 2, 3, 4, 5], techIds: (project?.technicians ?? []).map((t) => t.id) });
+    setPlanResult(null); setPlanOpen(true);
+  }
+  function togglePlanArr(key: "weekdays" | "techIds", val: number | string) {
+    setPlan((p) => { const arr = p[key] as (number | string)[]; const next = arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]; return { ...p, [key]: next }; });
+  }
+  async function runPlan() {
+    if (!plan.startDate || !plan.endDate || plan.techIds.length === 0) return;
+    setPlanning(true);
+    const r = await fetch("/api/bookings/bulk", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectId: id, technicianIds: plan.techIds, startDate: plan.startDate, endDate: plan.endDate, startTime: plan.startTime, endTime: plan.endTime, weekdays: plan.weekdays, force: plan.force }),
+    });
+    setPlanning(false);
+    if (r.ok) { setPlanResult(await r.json()); fetchPrep(); }
   }
 
   function radarValues(t: Tech): number[] {
@@ -178,6 +215,9 @@ export default function ProjectDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 no-print">
+            <Button variant="outline" size="sm" onClick={openPlan}>
+              <CalendarPlus className="w-4 h-4 mr-1" /> Planifier
+            </Button>
             <Button variant="outline" size="sm" onClick={() => generateProjectPdf(project as unknown as PdfProject)}>
               <FileDown className="w-4 h-4 mr-1" /> PDF
             </Button>
@@ -252,6 +292,38 @@ export default function ProjectDetailPage() {
               <p className="text-xs text-ink-400 mt-1">Un technicien non doté d&apos;un EPI requis est signalé (avertissement non bloquant).</p>
             </div>
 
+            <div>
+              <Label>Adresse du chantier</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-1">
+                <Input className="sm:col-span-2" value={form.address} onChange={(e) => { setForm((f) => ({ ...f, address: e.target.value })); setDirty(true); }} placeholder="N°, rue…" />
+                <select
+                  className="px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm"
+                  value=""
+                  onChange={(e) => { const c = findCity(e.target.value); if (c) { setForm((f) => ({ ...f, lat: String(c.lat), lng: String(c.lng) })); setDirty(true); } }}
+                >
+                  <option value="">Localiser (ville)…</option>
+                  {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+                </select>
+              </div>
+              {form.lat && form.lng && (
+                <div className="mt-2 h-48 rounded-lg overflow-hidden border border-ink-900/10">
+                  <InterventionMap lat={Number(form.lat)} lng={Number(form.lng)} radiusKm={2} name={form.address || project.title} />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label>Formations requises pour cette mission</Label>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {modules.map((m) => {
+                  const on = form.requiredTrainingModuleIds.includes(m.id);
+                  return <button key={m.id} type="button" onClick={() => toggleArr("requiredTrainingModuleIds", m.id)} className={`px-2.5 py-1 rounded-md text-xs border transition ${on ? "bg-signal-500 border-signal-600 text-[#0B1220]" : "border-ink-900/15 text-ink-500 hover:border-signal-400"}`}>{m.title}</button>;
+                })}
+                {modules.length === 0 && <span className="text-xs text-ink-400">Aucun programme de formation au catalogue.</span>}
+              </div>
+              <p className="text-xs text-ink-400 mt-1">Un technicien n&apos;ayant pas validé une formation requise est signalé (avertissement).</p>
+            </div>
+
             <div className="flex justify-end">
               <Button size="sm" disabled={!dirty || saving} onClick={save}>
                 <Save className="w-4 h-4 mr-1" /> {saving ? "Sauvegarde..." : "Enregistrer"}
@@ -261,7 +333,7 @@ export default function ProjectDetailPage() {
         </Card>
 
         {/* Préparation : équipe vs exigences */}
-        {prep && (prep.requiredCertifications.length > 0 || prep.requiredEpi.length > 0) && (
+        {prep && (prep.requiredCertifications.length > 0 || prep.requiredEpi.length > 0 || prep.requiredTrainingModules.length > 0) && (
           <Card className={`no-print ${prep.hasGaps ? "border-red-300" : "border-green-300"}`}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -273,8 +345,9 @@ export default function ProjectDetailPage() {
             </CardHeader>
             <CardContent>
               <p className="text-xs text-ink-500 mb-3">
-                Exigences : {prep.requiredCertifications.map((c) => c.name).join(", ") || "—"}
+                Habilitations : {prep.requiredCertifications.map((c) => c.name).join(", ") || "—"}
                 {prep.requiredEpi.length > 0 && ` · EPI : ${prep.requiredEpi.join(", ")}`}
+                {prep.requiredTrainingModules.length > 0 && ` · Formations : ${prep.requiredTrainingModules.map((m) => m.title).join(", ")}`}
               </p>
               {prep.crew.length === 0 ? (
                 <p className="text-sm text-ink-400">Aucun technicien planifié sur cette mission (voir Planning).</p>
@@ -287,6 +360,7 @@ export default function ProjectDetailPage() {
                         {c.ok && <span className="text-xs text-green-600">✓ conforme</span>}
                         {c.missingCerts.map((m) => <span key={m} className="text-[11px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-700">Habilitation : {m}</span>)}
                         {c.missingEpi.map((m) => <span key={m} className="text-[11px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700">EPI : {m}</span>)}
+                        {c.missingTraining.map((m) => <span key={m} className="text-[11px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700">Formation : {m}</span>)}
                       </div>
                     </div>
                   ))}
@@ -374,6 +448,60 @@ export default function ProjectDetailPage() {
 
         <AuditTrail entityType="project" entityId={project.id} />
       </div>
+
+      {/* Assistant de planification */}
+      <Dialog open={planOpen} onOpenChange={setPlanOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Assistant de planification</DialogTitle></DialogHeader>
+          {planResult ? (
+            <div className="py-2 space-y-3 text-sm">
+              <p className="text-green-700 font-medium">{planResult.created} créneau(x) créé(s).</p>
+              {planResult.warnings.length > 0 && <ul className="list-disc ml-5 text-amber-600">{planResult.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>}
+              {planResult.skipped.length > 0 && (
+                <div>
+                  <p className="text-red-700 font-medium">{planResult.skipped.length} ignoré(s) (conflit) :</p>
+                  <ul className="list-disc ml-5 text-red-600 max-h-40 overflow-y-auto">{planResult.skipped.map((s, i) => <li key={i}>{s.technician} le {new Date(s.date).toLocaleDateString("fr-FR")} — {s.reasons.join(", ")}</li>)}</ul>
+                </div>
+              )}
+              <DialogFooter><Button onClick={() => setPlanOpen(false)}>Fermer</Button></DialogFooter>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3 py-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>Du *</Label><Input type="date" value={plan.startDate} onChange={(e) => setPlan((p) => ({ ...p, startDate: e.target.value }))} /></div>
+                  <div><Label>Au *</Label><Input type="date" value={plan.endDate} onChange={(e) => setPlan((p) => ({ ...p, endDate: e.target.value }))} /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>Début</Label><Input type="time" value={plan.startTime} onChange={(e) => setPlan((p) => ({ ...p, startTime: e.target.value }))} /></div>
+                  <div><Label>Fin</Label><Input type="time" value={plan.endTime} onChange={(e) => setPlan((p) => ({ ...p, endTime: e.target.value }))} /></div>
+                </div>
+                <div>
+                  <Label>Jours travaillés</Label>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {WEEKDAYS.map(([n, l]) => <button key={n} type="button" onClick={() => togglePlanArr("weekdays", n)} className={`px-2.5 py-1 rounded-md text-xs border ${plan.weekdays.includes(n) ? "bg-signal-500 border-signal-600 text-[#0B1220]" : "border-ink-900/15 text-ink-500"}`}>{l}</button>)}
+                  </div>
+                </div>
+                <div>
+                  <Label>Techniciens ({plan.techIds.length})</Label>
+                  <div className="max-h-40 overflow-y-auto border border-ink-900/10 rounded-lg p-2 mt-1 space-y-0.5">
+                    {(project.technicians ?? []).map((t) => (
+                      <label key={t.id} className="flex items-center gap-2 text-sm py-0.5 cursor-pointer"><input type="checkbox" checked={plan.techIds.includes(t.id)} onChange={() => togglePlanArr("techIds", t.id)} /> {t.firstName} {t.lastName}</label>
+                    ))}
+                    {(project.technicians ?? []).length === 0 && <span className="text-xs text-ink-400">Ajoutez d&apos;abord des techniciens à l&apos;équipe.</span>}
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 text-xs text-ink-600"><input type="checkbox" checked={plan.force} onChange={(e) => setPlan((p) => ({ ...p, force: e.target.checked }))} /> Forcer malgré les conflits (admin)</label>
+                <p className="text-xs text-ink-400">Crée un créneau par jour travaillé et par technicien. Les conflits (chevauchement, habilitation manquante) sont ignorés sauf si vous forcez.</p>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>
+                <Button onClick={runPlan} disabled={planning || !plan.startDate || !plan.endDate || plan.techIds.length === 0}>{planning && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Planifier</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

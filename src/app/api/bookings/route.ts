@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   const bookings = await prisma.booking.findMany({
     where,
     include: {
-      project: { select: { id: true, title: true, status: true, requiredEpi: true, requiredCertifications: { select: { id: true, name: true } } } },
+      project: { select: { id: true, title: true, status: true, requiredEpi: true, requiredCertifications: { select: { id: true, name: true } }, requiredTrainingModules: { select: { id: true, title: true } } } },
       technician: { select: { id: true, firstName: true, lastName: true, company: { select: { name: true, color: true } } } },
     },
     orderBy: { start: "asc" },
@@ -41,6 +41,12 @@ export async function GET(req: NextRequest) {
     where: { technicianId: { in: techIds }, returnedAt: null },
     select: { technicianId: true, equipment: { select: { category: true } } },
   }) : [];
+  const trainings = techIds.length ? await prisma.trainingAssignment.findMany({
+    where: { technicianId: { in: techIds }, status: "valide" },
+    select: { technicianId: true, moduleId: true },
+  }) : [];
+  const trainByTech = new Map<string, Set<string>>();
+  for (const t of trainings) { if (t.moduleId) { if (!trainByTech.has(t.technicianId)) trainByTech.set(t.technicianId, new Set()); trainByTech.get(t.technicianId)!.add(t.moduleId); } }
   const now = Date.now();
   const validCertByTech = new Map<string, Set<string>>();
   for (const c of certs) {
@@ -60,7 +66,9 @@ export async function GET(req: NextRequest) {
     const missingCerts = b.project.requiredCertifications.filter((c) => !held.has(c.id)).map((c) => c.name);
     const reqEpi = (b.project.requiredEpi ?? "").split(",").map((s) => s.trim()).filter(Boolean);
     const missingEpi = reqEpi.filter((e) => !cats.has(e));
-    return { ...b, project: { id: b.project.id, title: b.project.title, status: b.project.status }, missingCerts, missingEpi };
+    const doneTrain = trainByTech.get(b.technicianId) ?? new Set();
+    const missingTraining = b.project.requiredTrainingModules.filter((m) => !doneTrain.has(m.id)).map((m) => m.title);
+    return { ...b, project: { id: b.project.id, title: b.project.title, status: b.project.status }, missingCerts, missingEpi, missingTraining };
   });
   return NextResponse.json(enriched);
 }

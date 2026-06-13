@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
     session.role === "admin" ? body.companyId ?? null : session.companyId ?? null;
 
   const reqCertIds: string[] = Array.isArray(body.requiredCertificationIds) ? body.requiredCertificationIds : [];
+  const reqModIds: string[] = Array.isArray(body.requiredTrainingModuleIds) ? body.requiredTrainingModuleIds : [];
   const project = await prisma.project.create({
     data: {
       title,
@@ -76,11 +77,15 @@ export async function POST(req: NextRequest) {
       clientPhone: body.clientPhone?.trim() || null,
       clientEmail: body.clientEmail?.trim() || null,
       site: body.site?.trim() || null,
+      address: body.address?.trim() || null,
+      lat: body.lat != null && body.lat !== "" ? Number(body.lat) : null,
+      lng: body.lng != null && body.lng !== "" ? Number(body.lng) : null,
       startDate: body.startDate ? new Date(body.startDate) : null,
       endDate: body.endDate ? new Date(body.endDate) : null,
       requiredEpi: Array.isArray(body.requiredEpi) ? body.requiredEpi.join(",") : (body.requiredEpi?.trim() || null),
       technicians: { connect: allowedIds.map((id) => ({ id })) },
       requiredCertifications: { connect: reqCertIds.map((id) => ({ id })) },
+      requiredTrainingModules: { connect: reqModIds.map((id) => ({ id })) },
     },
     include: { _count: { select: { technicians: true } } },
   });

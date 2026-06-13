@@ -24,6 +24,7 @@ export async function GET(
     include: {
       company: { select: { id: true, name: true, color: true } },
       requiredCertifications: { select: { id: true, name: true } },
+      requiredTrainingModules: { select: { id: true, title: true } },
       technicians: {
         include: {
           company: { select: { name: true, color: true } },
@@ -82,7 +83,11 @@ export async function PATCH(
   if (body.startDate !== undefined) data.startDate = body.startDate ? new Date(body.startDate) : null;
   if (body.endDate !== undefined) data.endDate = body.endDate ? new Date(body.endDate) : null;
   if (body.requiredEpi !== undefined) data.requiredEpi = Array.isArray(body.requiredEpi) ? body.requiredEpi.join(",") : (body.requiredEpi?.trim() || null);
+  if (body.address !== undefined) data.address = body.address?.trim() || null;
+  if (body.lat !== undefined) data.lat = body.lat != null && body.lat !== "" ? Number(body.lat) : null;
+  if (body.lng !== undefined) data.lng = body.lng != null && body.lng !== "" ? Number(body.lng) : null;
   if (Array.isArray(body.requiredCertificationIds)) data.requiredCertifications = { set: body.requiredCertificationIds.map((cid: string) => ({ id: cid })) };
+  if (Array.isArray(body.requiredTrainingModuleIds)) data.requiredTrainingModules = { set: body.requiredTrainingModuleIds.map((mid: string) => ({ id: mid })) };
 
   // technicianIds = remplacement complet ; addTechnicianIds = ajout (sans retirer).
   const replaceIds = Array.isArray(body.technicianIds) ? body.technicianIds : null;

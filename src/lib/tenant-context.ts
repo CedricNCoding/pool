@@ -22,6 +22,7 @@ const SCOPED = new Set([
   "RiskUnit", "RiskItem",
   "SafetyNotice", "SafetyNoticeAck", "SkillCampaign", "SkillSelfAssessment",
   "InterviewTemplate", "Interview", "TenderMemoSection",
+  "EquipmentPack", "EquipmentPackLine",
 ]);
 const WHERE_OPS = new Set([
   "findMany", "findFirst", "findFirstOrThrow", "count", "aggregate", "groupBy",

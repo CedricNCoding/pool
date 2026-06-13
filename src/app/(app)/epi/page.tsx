@@ -18,7 +18,7 @@ interface Equip {
 }
 interface Tech { id: string; firstName: string; lastName: string }
 
-const CATEGORIES = [["epi", "EPI"], ["electroportatif", "Électroportatif"], ["instrument", "Instrument"], ["vehicule", "Véhicule"], ["autre", "Autre"]] as const;
+const CATEGORIES = [["epi", "EPI"], ["outillage", "Outillage"], ["electroportatif", "Électroportatif"], ["instrument", "Instrument"], ["vehicule", "Véhicule"], ["autre", "Autre"]] as const;
 const CAT_LABEL: Record<string, string> = Object.fromEntries(CATEGORIES.map(([v, l]) => [v, l]));
 const STATUS: Record<string, { label: string; color: string }> = {
   disponible: { label: "Disponible", color: "#10B981" }, attribue: { label: "Attribué", color: "#3B82F6" },
@@ -81,6 +81,29 @@ export default function EpiPage() {
     if (!vgpEquip) return;
     await fetch(`/api/equipment/${vgpEquip.id}/check`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(vgp) });
     setVgpEquip(null); setVgp({ date: "", result: "conforme", note: "", nextCheckDate: "" }); load();
+  }
+
+  // --- Packs (modèles réutilisables : recette catégorie × quantité) ---
+  interface Pack { id: string; name: string; notes: string | null; lines: { id: string; category: string; quantity: number }[] }
+  const [packs, setPacks] = useState<Pack[]>([]);
+  const loadPacks = useCallback(() => { fetch("/api/equipment/packs").then((r) => r.json()).then((d) => setPacks(Array.isArray(d) ? d : [])).catch(() => {}); }, []);
+  useEffect(() => { loadPacks(); }, [loadPacks]);
+  const [packOpen, setPackOpen] = useState(false);
+  const [packForm, setPackForm] = useState<{ name: string; notes: string; lines: { category: string; quantity: number }[] }>({ name: "", notes: "", lines: [{ category: "outillage", quantity: 1 }] });
+  function setPackLine(i: number, patch: Partial<{ category: string; quantity: number }>) { setPackForm((f) => ({ ...f, lines: f.lines.map((l, j) => j === i ? { ...l, ...patch } : l) })); }
+  async function savePack() {
+    if (!packForm.name.trim()) return;
+    await fetch("/api/equipment/packs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(packForm) });
+    setPackOpen(false); setPackForm({ name: "", notes: "", lines: [{ category: "outillage", quantity: 1 }] }); loadPacks();
+  }
+  async function delPack(pid: string) { if (!confirm("Supprimer ce pack ?")) return; await fetch(`/api/equipment/packs/${pid}`, { method: "DELETE" }); loadPacks(); }
+  const [dotePack, setDotePack] = useState<Pack | null>(null);
+  const [dotePackTech, setDotePackTech] = useState("");
+  const [doteResult, setDoteResult] = useState<{ assigned: number; shortfalls: { category: string; manquant: number }[] } | null>(null);
+  async function assignPack() {
+    if (!dotePack || !dotePackTech) return;
+    const r = await fetch(`/api/equipment/packs/${dotePack.id}/assign`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ technicianId: dotePackTech }) });
+    if (r.ok) { setDoteResult(await r.json()); load(); }
   }
 
   async function exportPdf() {
@@ -163,6 +186,80 @@ export default function EpiPage() {
           </table>
         </CardContent>
       </Card>
+
+      {/* Packs */}
+      <div className="flex items-center justify-between mt-8 mb-3">
+        <h2 className="text-lg font-semibold flex items-center gap-2"><HardHat className="w-5 h-5 text-ink-500" /> Packs / kits réutilisables</h2>
+        <Button variant="outline" onClick={() => setPackOpen(true)}><Plus className="w-4 h-4 mr-2" /> Nouveau pack</Button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {packs.map((p) => (
+          <Card key={p.id}><CardContent className="p-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0"><h3 className="font-medium text-ink-900">{p.name}</h3>{p.notes && <p className="text-xs text-ink-400 mt-0.5">{p.notes}</p>}</div>
+              <button onClick={() => delPack(p.id)} className="text-ink-400 hover:text-red-500 shrink-0"><Trash2 className="w-4 h-4" /></button>
+            </div>
+            <div className="flex flex-wrap gap-1 mt-2">
+              {p.lines.map((l) => <span key={l.id} className="text-[11px] px-1.5 py-0.5 rounded bg-paper-2 text-ink-600">{l.quantity}× {CAT_LABEL[l.category] ?? l.category}</span>)}
+              {p.lines.length === 0 && <span className="text-xs text-ink-400">Recette vide</span>}
+            </div>
+            <Button size="sm" variant="outline" className="w-full mt-3" onClick={() => { setDotePack(p); setDotePackTech(""); setDoteResult(null); }}><UserCheck className="w-3.5 h-3.5 mr-1" /> Doter à un technicien</Button>
+          </CardContent></Card>
+        ))}
+        {packs.length === 0 && <p className="text-sm text-ink-400 col-span-full">Aucun pack. Créez un kit réutilisable (ex. « Caisse à outils » = 5× Outillage) ; à la dotation, le système pioche des équipements disponibles.</p>}
+      </div>
+
+      {/* Pack create */}
+      <Dialog open={packOpen} onOpenChange={setPackOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Nouveau pack</DialogTitle></DialogHeader>
+          <div className="space-y-3 py-2">
+            <div><Label>Nom *</Label><Input value={packForm.name} onChange={(e) => setPackForm((f) => ({ ...f, name: e.target.value }))} placeholder="ex: Caisse à outils régie" /></div>
+            <div><Label>Notes</Label><Input value={packForm.notes} onChange={(e) => setPackForm((f) => ({ ...f, notes: e.target.value }))} /></div>
+            <div>
+              <Label>Recette (catégorie × quantité)</Label>
+              <div className="space-y-2 mt-1">
+                {packForm.lines.map((l, i) => (
+                  <div key={i} className="flex gap-2">
+                    <select className="flex-1 px-2 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm" value={l.category} onChange={(e) => setPackLine(i, { category: e.target.value })}>
+                      {CATEGORIES.map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}
+                    </select>
+                    <Input type="number" min={1} className="w-20" value={l.quantity} onChange={(e) => setPackLine(i, { quantity: Number(e.target.value) })} />
+                    <button onClick={() => setPackForm((f) => ({ ...f, lines: f.lines.filter((_, j) => j !== i) }))} className="text-ink-400 hover:text-red-500 px-1"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => setPackForm((f) => ({ ...f, lines: [...f.lines, { category: "outillage", quantity: 1 }] }))}><Plus className="w-3.5 h-3.5 mr-1" /> Ligne</Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter><DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose><Button onClick={savePack} disabled={!packForm.name.trim()}>Créer</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pack dote */}
+      <Dialog open={!!dotePack} onOpenChange={(o) => !o && setDotePack(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Doter le pack — {dotePack?.name}</DialogTitle></DialogHeader>
+          <div className="space-y-3 py-2">
+            <div><Label>Technicien</Label>
+              <select className="w-full px-3 py-2 rounded-md border border-ink-900/15 bg-white text-ink-900 text-sm" value={dotePackTech} onChange={(e) => setDotePackTech(e.target.value)}>
+                <option value="">— Choisir —</option>{techs.map((t) => <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>)}
+              </select>
+            </div>
+            <p className="text-xs text-ink-400">Le système attribue des équipements disponibles selon la recette : {dotePack?.lines.map((l) => `${l.quantity}× ${CAT_LABEL[l.category] ?? l.category}`).join(", ")}.</p>
+            {doteResult && (
+              <div className="rounded-lg bg-paper-2 p-3 text-sm">
+                <p className="text-green-700">{doteResult.assigned} équipement(s) attribué(s).</p>
+                {doteResult.shortfalls.length > 0 && <ul className="list-disc ml-5 text-amber-700 mt-1">{doteResult.shortfalls.map((s, i) => <li key={i}>Stock insuffisant : {s.manquant}× {CAT_LABEL[s.category] ?? s.category}</li>)}</ul>}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">Fermer</Button></DialogClose>
+            {!doteResult && <Button onClick={assignPack} disabled={!dotePackTech}>Doter</Button>}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add */}
       <Dialog open={open} onOpenChange={setOpen}>

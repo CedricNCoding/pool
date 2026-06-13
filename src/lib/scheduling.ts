@@ -107,11 +107,27 @@ export async function checkBooking(opts: {
   if (projectId) {
     const project = await prisma.project.findFirst({
       where: { id: projectId },
-      select: { requiredEpi: true, requiredCertifications: { select: { id: true, name: true } } },
+      select: {
+        requiredEpi: true,
+        requiredCertifications: { select: { id: true, name: true } },
+        requiredTrainingModules: { select: { id: true, title: true } },
+      },
     });
     if (project) {
       const reqCerts = project.requiredCertifications;
       const reqEpi = (project.requiredEpi ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+
+      // Prérequis formation : module requis non validé pour ce technicien = avertissement.
+      if (project.requiredTrainingModules.length > 0) {
+        const done = await prisma.trainingAssignment.findMany({
+          where: { technicianId, status: "valide", moduleId: { in: project.requiredTrainingModules.map((m) => m.id) } },
+          select: { moduleId: true },
+        });
+        const doneIds = new Set(done.map((d) => d.moduleId));
+        for (const m of project.requiredTrainingModules) {
+          if (!doneIds.has(m.id)) warnings.push(`Formation requise non suivie : ${m.title}`);
+        }
+      }
 
       if (reqCerts.length > 0) {
         const held = await prisma.technicianCertification.findMany({

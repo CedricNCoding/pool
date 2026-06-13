@@ -426,7 +426,10 @@ model Project {
   clientPhone String?   @map("client_phone")
   clientEmail String?   @map("client_email")
   site        String?
-  // Exigences de la mission : EPI requis (catégories CSV) + habilitations requises (M2M).
+  address     String?
+  lat         Float?
+  lng         Float?
+  // Exigences de la mission : EPI requis (catégories CSV) + habilitations + formations (M2M).
   requiredEpi String?   @map("required_epi")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -436,6 +439,7 @@ model Project {
   technicians Technician[]
   bookings        Booking[]
   requiredCertifications Certification[] @relation("MissionRequiredCerts")
+  requiredTrainingModules TrainingModule[] @relation("MissionRequiredTraining")
 
   @@index([tenantId])
   @@map("projects")
@@ -459,6 +463,7 @@ model TrainingModule {
   assignments  TrainingAssignment[]
   pathModules  TrainingPathModule[]
   sessions     TrainingSession[]
+  requiredByProjects Project[] @relation("MissionRequiredTraining")
 
   @@index([tenantId])
   @@map("training_modules")
@@ -711,6 +716,35 @@ model EquipmentCheck {
   @@index([tenantId])
   @@index([equipmentId])
   @@map("equipment_checks")
+}
+
+// Pack/kit réutilisable : recette de catégories × quantités. À la dotation, le
+// système pioche des équipements DISPONIBLES de chaque catégorie pour le technicien.
+model EquipmentPack {
+  id        String   @id @default(uuid())
+  tenantId  String?  @map("tenant_id")
+  name      String
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  lines EquipmentPackLine[]
+
+  @@index([tenantId])
+  @@map("equipment_packs")
+}
+
+model EquipmentPackLine {
+  id       String @id @default(uuid())
+  tenantId String? @map("tenant_id")
+  packId   String @map("pack_id")
+  category String @default("outillage")
+  quantity Int    @default(1)
+
+  pack EquipmentPack @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([packId])
+  @@map("equipment_pack_lines")
 }
 
 // ============================================================================

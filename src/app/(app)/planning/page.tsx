@@ -14,7 +14,7 @@ interface Booking {
   id: string; start: string; end: string; role: string | null; status: string;
   project: { id: string; title: string };
   technician: { id: string; firstName: string; lastName: string; company: { name: string; color: string } | null };
-  missingCerts: string[]; missingEpi: string[];
+  missingCerts: string[]; missingEpi: string[]; missingTraining: string[];
 }
 interface Absence { id: string; type: string; start: string | null; end: string | null; recurringWeekday: number | null; status: string; technician: { id: string } }
 interface Tech { id: string; firstName: string; lastName: string; company: { name: string; color: string } | null }
@@ -32,7 +32,7 @@ function startOfDay(d: Date) { const x = new Date(d); x.setHours(0, 0, 0, 0); re
 function ymd(d: Date) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
 function hm(s: string) { const d = new Date(s); const m = d.getMinutes(); return `${d.getHours()}h${m ? String(m).padStart(2, "0") : ""}`; }
 function overlapsDay(b: { start: string; end: string }, day: Date) { return new Date(b.start) < addDays(day, 1) && new Date(b.end) > day; }
-function gapTone(b: Booking) { return b.missingCerts.length ? "block" : b.missingEpi.length ? "warn" : null; }
+function gapTone(b: Booking) { return b.missingCerts.length ? "block" : (b.missingEpi.length || b.missingTraining.length) ? "warn" : null; }
 
 export default function PlanningPage() {
   const [tab, setTab] = useState<"calendrier" | "charge">("calendrier");
