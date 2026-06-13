@@ -142,6 +142,11 @@ model Technician {
   medicalVisitPeriodicityMonths Int       @default(24) @map("medical_visit_periodicity_months")
   // Permis de conduire détenus (catégories séparées par des virgules : "B,C,CE")
   drivingLicenses       String?   @map("driving_licenses")
+  // Aptitude médicale (médecin du travail) : apte | apte_restrictions | inapte_temp | inapte.
+  // Restrictions = CSV de clés (hauteur,charges,conduite,vision,nuit). Secret médical : pas de diagnostic.
+  medicalAptitude       String?   @map("medical_aptitude")
+  medicalRestrictions   String?   @map("medical_restrictions")
+  medicalRestrictionUntil DateTime? @map("medical_restriction_until")
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
 
@@ -157,6 +162,13 @@ model Technician {
   tags                Tag[]
   events              TechnicianEvent[]
   assistanceRequests  AssistanceRequest[] @relation("AssistanceTech")
+  bookings              Booking[]
+  absences              Absence[]
+  equipmentAssignments  EquipmentAssignment[]
+  safetyAttendances     SafetyBriefingAttendee[]
+  safetyAcks            SafetyNoticeAck[]
+  selfAssessments       SkillSelfAssessment[]
+  interviews            Interview[]
 
   @@index([tenantId])
   @@map("technicians")
@@ -275,6 +287,10 @@ model TechnicianCertification {
   certificateNumber String?   @map("certificate_number")
   status            String    @default("active")
   documentId        String?   @map("document_id")
+  // Workflow de renouvellement : ok | a_planifier | convoque | realise.
+  renewalStatus     String    @default("ok") @map("renewal_status")
+  renewalDate       DateTime? @map("renewal_date")
+  renewalOrganism   String?   @map("renewal_organism")
   createdAt         DateTime  @default(now()) @map("created_at")
 
   technician    Technician    @relation(fields: [technicianId], references: [id], onDelete: Cascade)
@@ -400,12 +416,19 @@ model Project {
   companyId   String?  @map("company_id")
   tenantId    String?  @map("tenant_id")
   createdById String?  @map("created_by_id")
+  // Planification : dates et lieu de la mission.
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  clientName  String?   @map("client_name")
+  site        String?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   tenant      Tenant?      @relation(fields: [tenantId], references: [id])
   company     Company?     @relation(fields: [companyId], references: [id])
   technicians Technician[]
+  bookings        Booking[]
+  safetyBriefings SafetyBriefing[]
 
   @@index([tenantId])
   @@map("projects")
@@ -566,6 +589,320 @@ model TrainingSessionEvent {
   @@index([sessionId])
   @@index([tenantId])
   @@map("training_session_events")
+}
+
+// ============================================================================
+// PLANNING — affectations datées, absences
+// ============================================================================
+
+// Affectation datée d'un technicien à un projet/mission (créneau).
+model Booking {
+  id           String   @id @default(uuid())
+  tenantId     String?  @map("tenant_id")
+  projectId    String   @map("project_id")
+  technicianId String   @map("technician_id")
+  start        DateTime
+  end          DateTime
+  role         String?
+  note         String?
+  status       String   @default("pressenti") // pressenti | confirme | decline
+  createdById  String?  @map("created_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([technicianId])
+  @@index([projectId])
+  @@map("bookings")
+}
+
+// Absence d'un technicien (congé, arrêt, RTT…). recurringWeekday : indispo
+// hebdomadaire permanente (0=dim … 6=sam), sinon créneau daté start/end.
+model Absence {
+  id              String    @id @default(uuid())
+  tenantId        String?   @map("tenant_id")
+  technicianId    String    @map("technician_id")
+  type            String    @default("cp") // cp | rtt | maladie | sans_solde | indispo | autre
+  start           DateTime?
+  end             DateTime?
+  halfStart       Boolean   @default(false) @map("half_start")
+  halfEnd         Boolean   @default(false) @map("half_end")
+  recurringWeekday Int?     @map("recurring_weekday")
+  reason          String?
+  status          String    @default("valide") // demande | valide | refuse
+  validatedById   String?   @map("validated_by_id")
+  createdById     String?   @map("created_by_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([technicianId])
+  @@map("absences")
+}
+
+// ============================================================================
+// EPI & MATÉRIEL
+// ============================================================================
+
+model Equipment {
+  id           String    @id @default(uuid())
+  tenantId     String?   @map("tenant_id")
+  companyId    String?   @map("company_id")
+  category     String    @default("epi") // epi | electroportatif | instrument | vehicule | autre
+  name         String
+  brand        String?
+  model        String?
+  serialNumber String?   @map("serial_number")
+  size         String?
+  purchaseDate DateTime? @map("purchase_date")
+  expiryDate   DateTime? @map("expiry_date")
+  nextCheckDate DateTime? @map("next_check_date")
+  status       String    @default("disponible") // disponible | attribue | maintenance | reforme
+  notes        String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  assignments EquipmentAssignment[]
+  checks      EquipmentCheck[]
+
+  @@index([tenantId])
+  @@map("equipments")
+}
+
+model EquipmentAssignment {
+  id            String    @id @default(uuid())
+  tenantId      String?   @map("tenant_id")
+  equipmentId   String    @map("equipment_id")
+  technicianId  String    @map("technician_id")
+  assignedAt    DateTime  @default(now()) @map("assigned_at")
+  returnedAt    DateTime? @map("returned_at")
+  conditionNote String?   @map("condition_note")
+  createdById   String?   @map("created_by_id")
+
+  equipment  Equipment  @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([equipmentId])
+  @@map("equipment_assignments")
+}
+
+model EquipmentCheck {
+  id          String   @id @default(uuid())
+  tenantId    String?  @map("tenant_id")
+  equipmentId String   @map("equipment_id")
+  date        DateTime
+  result      String   @default("conforme") // conforme | non_conforme | a_surveiller
+  checkedBy   String?  @map("checked_by")
+  note        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  equipment Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([equipmentId])
+  @@map("equipment_checks")
+}
+
+// ============================================================================
+// DUERP — évaluation des risques
+// ============================================================================
+
+model RiskUnit {
+  id          String   @id @default(uuid())
+  tenantId    String?  @map("tenant_id")
+  name        String
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  items RiskItem[]
+
+  @@index([tenantId])
+  @@map("risk_units")
+}
+
+model RiskItem {
+  id               String    @id @default(uuid())
+  tenantId         String?   @map("tenant_id")
+  riskUnitId       String    @map("risk_unit_id")
+  danger           String
+  exposure         String?
+  gravity          Int       @default(2) // 1-4
+  probability      Int       @default(2) // 1-4
+  existingMeasures String?   @map("existing_measures")
+  plannedMeasures  String?   @map("planned_measures")
+  dueDate          DateTime? @map("due_date")
+  responsible      String?
+  status           String    @default("a_traiter") // a_traiter | en_cours | maitrise
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  riskUnit RiskUnit @relation(fields: [riskUnitId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([riskUnitId])
+  @@map("risk_items")
+}
+
+// ============================================================================
+// SÉCURITÉ — causeries & consignes
+// ============================================================================
+
+model SafetyBriefing {
+  id        String   @id @default(uuid())
+  tenantId  String?  @map("tenant_id")
+  date      DateTime
+  theme     String
+  animator  String?
+  projectId String?  @map("project_id")
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  project   Project?                 @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  attendees SafetyBriefingAttendee[]
+
+  @@index([tenantId])
+  @@map("safety_briefings")
+}
+
+model SafetyBriefingAttendee {
+  id           String    @id @default(uuid())
+  tenantId     String?   @map("tenant_id")
+  briefingId   String    @map("briefing_id")
+  technicianId String    @map("technician_id")
+  signedAt     DateTime? @map("signed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  briefing   SafetyBriefing @relation(fields: [briefingId], references: [id], onDelete: Cascade)
+  technician Technician     @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([briefingId])
+  @@map("safety_briefing_attendees")
+}
+
+model SafetyNotice {
+  id          String   @id @default(uuid())
+  tenantId    String?  @map("tenant_id")
+  title       String
+  content     String?
+  publishedAt DateTime @default(now()) @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  acks SafetyNoticeAck[]
+
+  @@index([tenantId])
+  @@map("safety_notices")
+}
+
+model SafetyNoticeAck {
+  id           String    @id @default(uuid())
+  tenantId     String?   @map("tenant_id")
+  noticeId     String    @map("notice_id")
+  technicianId String    @map("technician_id")
+  ackAt        DateTime? @map("ack_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  notice     SafetyNotice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  technician Technician   @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([noticeId])
+  @@map("safety_notice_acks")
+}
+
+// ============================================================================
+// COMPÉTENCES — campagnes d'évaluation
+// ============================================================================
+
+model SkillCampaign {
+  id          String   @id @default(uuid())
+  tenantId    String?  @map("tenant_id")
+  name        String
+  status      String   @default("ouverte") // ouverte | cloturee
+  createdById String?  @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  assessments SkillSelfAssessment[]
+
+  @@index([tenantId])
+  @@map("skill_campaigns")
+}
+
+model SkillSelfAssessment {
+  id             String   @id @default(uuid())
+  tenantId       String?  @map("tenant_id")
+  campaignId     String   @map("campaign_id")
+  technicianId   String   @map("technician_id")
+  skillId        String   @map("skill_id")
+  proposedLevel  Int      @map("proposed_level")
+  comment        String?
+  status         String   @default("propose") // propose | valide | ajuste | refuse
+  validatedLevel Int?     @map("validated_level")
+  validatedById  String?  @map("validated_by_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  campaign   SkillCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  technician Technician    @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([campaignId])
+  @@map("skill_self_assessments")
+}
+
+// ============================================================================
+// RH — entretiens annuels
+// ============================================================================
+
+model InterviewTemplate {
+  id        String   @id @default(uuid())
+  tenantId  String?  @map("tenant_id")
+  name      String
+  sections  String   @default("[]") // JSON : [{title, questions:[...]}]
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@map("interview_templates")
+}
+
+model Interview {
+  id            String    @id @default(uuid())
+  tenantId      String?   @map("tenant_id")
+  technicianId  String    @map("technician_id")
+  templateId    String?   @map("template_id")
+  date          DateTime
+  status        String    @default("planifie") // planifie | tenu | signe
+  managerNotes  String?   @map("manager_notes")
+  employeeNotes String?   @map("employee_notes")
+  objectives    String?
+  answers       String    @default("{}") // JSON des réponses par question
+  createdById   String?   @map("created_by_id")
+  signedAt      DateTime? @map("signed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([technicianId])
+  @@map("interviews")
+}
+
+// ============================================================================
+// MARCHÉ PUBLIC — chapitres réutilisables de mémoire technique
+// ============================================================================
+
+model TenderMemoSection {
+  id        String   @id @default(uuid())
+  tenantId  String?  @map("tenant_id")
+  title     String
+  content   String
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@map("tender_memo_sections")
 }
 
 // Historique du cycle de vie d'une affectation : chaque transition de statut
