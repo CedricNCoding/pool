@@ -619,6 +619,7 @@ model Booking {
   note         String?
   status       String   @default("pressenti") // pressenti | confirme | decline
   createdById  String?  @map("created_by_id")
+  odooTaskId   Int?     @map("odoo_task_id") // id de la tâche Odoo synchronisée (Béta)
   createdAt    DateTime @default(now()) @map("created_at")
 
   project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -745,6 +746,28 @@ model EquipmentPackLine {
   @@index([tenantId])
   @@index([packId])
   @@map("equipment_pack_lines")
+}
+
+// Connexion Odoo (BÉTA) : 1 par tenant. Synchronise le planning (Booking) avec
+// les tâches Odoo (project.task) via l'API JSON-RPC. La clé API est CHIFFRÉE.
+model OdooConnection {
+  id             String    @id @default(uuid())
+  tenantId       String?   @map("tenant_id")
+  url            String // https://xxx.odoo.com
+  db             String
+  login          String
+  apiKeyEnc      String    @map("api_key_enc") // chiffré AES-256-GCM
+  model          String    @default("project.task")
+  defaultProject String?   @map("default_project") // nom du projet Odoo cible (push)
+  enabled        Boolean   @default(false)
+  lastSyncAt     DateTime? @map("last_sync_at")
+  lastStatus     String?   @map("last_status")
+  lastError      String?   @map("last_error")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("odoo_connections")
 }
 
 // ============================================================================

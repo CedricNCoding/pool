@@ -35,6 +35,7 @@ import {
   ClipboardCheck,
   MessagesSquare,
   FileText,
+  Plug,
   type LucideIcon,
 } from "lucide-react";
 import { useSession } from "@/lib/hooks";
@@ -81,6 +82,7 @@ const settingsNav: NavItem[] = [
   { href: "/settings/users", label: "Utilisateurs", icon: UserCog },
   { href: "/settings/api-keys", label: "Cles API", icon: Key },
   { href: "/settings/smtp", label: "Email / SMTP", icon: Mail },
+  { href: "/settings/odoo", label: "Odoo (Béta)", icon: Plug },
   { href: "/settings/rgpd", label: "RGPD", icon: Shield },
 ];
 
